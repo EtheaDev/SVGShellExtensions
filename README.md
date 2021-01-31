@@ -1,16 +1,27 @@
 # SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer:
+**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):
 
-- a [preview handler](http://msdn.microsoft.com/en-us/magazine/cc163487.aspx) 
-- a [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers)
-- an SVG Text Editor
+- a [Preview handler](http://msdn.microsoft.com/en-us/magazine/cc163487.aspx)  which allows you to see the SVG image without open it, in the "Preview Panel".
+ 
+- (TODO) a [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image without open it, in the "Preview Panel".
 
-for Windows Vista, 7, 8 and 10 which allows you to see the SVG image directly into Windows Explorer and read the xml content without open the file in the Panel preview.
+- (TODO) an SVG-XML Text Editor to manually edit and preview the text of SVG files.
+
 
 ### Features ###
 * Supports Windows Vista, 7, 8 and 10 on 32 and 64 bits.
 * Themes (Dark and Light) according to user preferences of Windows Theme
+
+### Preview Panel ###
+
+In Windows 10 with Light theme:
+
+![Preview Panel Light](./Images/PreviewPanelLight.png)
+
+In Windows 10 with Dark theme:
+
+![Preview Panel Dark](./Images/PreviewPanelDark.png)
 
 ### Important Note about installing a new version ###
 In order to avoid problems you must follow these steps when you install or register a new 
