@@ -22,7 +22,7 @@
 {  See the License for the specific language governing permissions and         }
 {  limitations under the License.                                              }
 {                                                                              }
-{  The Original Code is:                                                       }
+{  The Original Code is Main.pas.                                              }
 {  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
 {                                                                              }
 {  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
@@ -41,14 +41,15 @@ uses
   SynEditHighlighter,
   uPreviewHandler,
   SynHighlighterXML,
+  uSVGThumbnailHandler,
   uSVGPreviewHandler;
 
 initialization
-  //use settings to determine previsualizers
-  TPreviewHandler.FExtensions := TDictionary<TSynCustomHighlighterClass, TStrings>.Create;
-  //SVG-XML Files (*.svg)|*.svg)
-  TSVGPreviewHandler.AddExtentions(TSynXMLSyn, ['.svg']);
-  TSVGPreviewHandler.RegisterPreview(SVG_PreviewHandlerGUID, 'SVG.PreviewHandler', 'SVG Preview Handler');
+  TSVGPreviewHandler.RegisterPreview(SVG_PreviewHandlerGUID,
+    'SVG.PreviewHandler', 'Delphi SVG Preview Handler');
+  TSVGThumbnailProvider.RegisterThumbnailProvider(SVG_ThumbnailProviderGUID,
+    'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider');
+
 end.
 
 

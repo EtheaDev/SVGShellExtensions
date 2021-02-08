@@ -1,39 +1,28 @@
-{******************************************************************************}
-{                                                                              }
-{       SVG Shell Extensions: Shell extensions for SVG files                   }
-{       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
-{                                                                              }
-{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
-{       Author: Carlo Barazzetta                                               }
-{                                                                              }
-{       https://github.com/EtheaDev/SVGShellExtensions                         }
-{                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
-{                                                                              }
-{  The Original Code is:                                                       }
-{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
-{                                                                              }
-{  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
-{  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
-{  All Rights Reserved.                                                        }
-{******************************************************************************}
+// **************************************************************************************************
+//
+// Unit uCommonPreviewHandler
+// unit for the Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler
+//
+// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
+// you may not use this file except in compliance with the License. You may obtain a copy of the
+// License at http://www.mozilla.org/MPL/
+//
+// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+// ANY KIND, either express or implied. See the License for the specific language governing rights
+// and limitations under the License.
+//
+// The Original Code is uCommonPreviewHandler.pas.
+//
+// The Initial Developer of the Original Code is Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2011-2021 Rodrigo Ruz V.
+// All Rights Reserved.
+//
+// *************************************************************************************************
 unit uCommonPreviewHandler;
 
 interface
 
-{ .$DEFINE USE_TStreamPreviewHandler }
+{$DEFINE USE_TStreamPreviewHandler}
 
 uses
 //  uStackTrace,
@@ -41,8 +30,13 @@ uses
   Controls,
   StdCtrls,
   SysUtils,
-  uEditor,
+{$IFDEF UEDITOR}
+    uEditor,
+{$ELSE}
+    SVGEditor,
+{$ENDIF}
 {$IFDEF USE_TStreamPreviewHandler}
+  uStreamAdapter,
   uStreamPreviewHandler,
 {$ELSE}
   uFilePreviewHandler,
@@ -75,7 +69,6 @@ Uses
   SynEdit,
   Windows,
   Forms,
-  WinAPI.GDIPObj, WinAPI.GDIPApi,
   uMisc, uPreviewContainer;
 
 constructor TBasePreviewHandler.Create(AParent: TWinControl);
@@ -90,12 +83,19 @@ procedure TBasePreviewHandler.DoPreview(Stream: TIStreamAdapter);
 begin
   try
     TLogPreview.Add('DoPreview ' + Self.ClassName);
-    if (Editor <> nil) and IsWindow(Editor.Handle) then
+    //if (Editor <> nil) and IsWindow(Editor.Handle) then
     begin
+      Initialize_GDI;
+      TLogPreview.Add('TGlobalPreviewHandler TFrmEditor.Create');
+      Editor := TFrmEditor.Create(nil);
+      Editor.Parent := TPreviewContainer(TFrmEditor.AParent);
+      Editor.Align := alClient;
+      Editor.BorderStyle := bsNone;
+
       TLogPreview.Add('DoPreview Visible');
       Editor.Visible := True;
       TLogPreview.Add('DoPreview LoadFromStream');
-      Editor.SynEdit1.Lines.LoadFromStream(Stream);
+      Editor.LoadFromStream(Stream);
     end;
   except
     on E: Exception do
@@ -110,25 +110,17 @@ begin
     TLogPreview.Add('DoPreview ' + Self.ClassName);
     //if (Editor <> nil) and IsWindow(Editor.Handle) then
     begin
+      Initialize_GDI;
       TLogPreview.Add('TGlobalPreviewHandler TFrmEditor.Create');
-
-      //Initialize GDI+
-      StartupInput.DebugEventCallback := nil;
-      StartupInput.SuppressBackgroundThread := False;
-      StartupInput.SuppressExternalCodecs := False;
-      StartupInput.GdiplusVersion := 1;
-      GdiplusStartup(gdiplusToken, @StartupInput, nil);
-
       Editor := TFrmEditor.Create(nil);
-      Editor.Parent := TFrmEditor.AParent;
       Editor.Align := alClient;
+      Editor.Parent := TPreviewContainer(TFrmEditor.AParent).ClientPanel;
       Editor.BorderStyle := bsNone;
-      Editor.Extensions := FExtensions;
 
       TLogPreview.Add('DoPreview Visible');
       Editor.Visible := True;
       TLogPreview.Add('DoPreview LoadFile');
-      Editor.LoadFile(FilePath);
+      Editor.LoadFromFile(FilePath);
     end;
   except
     on E: Exception do
@@ -149,9 +141,12 @@ type
 procedure TBasePreviewHandler.Unload;
 begin
   try
-    GdiplusShutdown(gdiplusToken);
-
     TLogPreview.Add('Unload  Init ' + Self.ClassName);
+    // if IsWindow(TWinControlClass(Editor).WindowHandle) then
+    // begin
+    // Editor.Visible:=False;
+    // Editor.SynEdit1.Lines.Clear;
+    // end;
 
      if Editor<>nil then
      begin
@@ -161,8 +156,8 @@ begin
 
      if (TFrmEditor.AParent<>nil) then
      begin
-       if TPreviewContainer(TFrmEditor.AParent).Preview<>nil then
-        TComPreviewHandler(TPreviewContainer(TFrmEditor.AParent).Preview).Container:=nil;
+       if TPreviewContainer(TFrmEditor.AParent).PreviewHandler <> nil then
+        TComPreviewHandler(TPreviewContainer(TFrmEditor.AParent).PreviewHandler).Container := nil;
 
        TFrmEditor.AParent.Free;
        TFrmEditor.AParent:=nil;
@@ -170,6 +165,7 @@ begin
 
 
     inherited;
+    Finalize_GDI;
     TLogPreview.Add('Unload  Done ' + Self.ClassName);
   except
     on E: Exception do

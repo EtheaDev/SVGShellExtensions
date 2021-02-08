@@ -38,8 +38,8 @@ uses
   Controls,
   StdCtrls,
   SysUtils,
-  uEditor,
   uCommonPreviewHandler,
+  uStreamPreviewHandler,
   uPreviewHandler;
 
 const
@@ -67,17 +67,7 @@ constructor TSVGPreviewHandler.Create(AParent: TWinControl);
 begin
   TLogPreview.Add('TSVGPreviewHandler.Create');
   inherited Create(AParent);
-  try
-    if IsWindow(TWinControlClass(AParent).WindowHandle) then
-    begin
-      TFrmEditor.Extensions := FExtensions;
-      TLogPreview.Add('TSVGPreviewHandler Done');
-    end;
-  except
-    on E: Exception do
-      TLogPreview.Add(Format('Error in %s.Create - Message: %s: Trace %s',
-      [Self.ClassName, E.Message, E.StackTrace]));
-  end;
+  TLogPreview.Add('TSVGPreviewHandler Done');
 end;
 
 end.

@@ -34,8 +34,7 @@ unit uSVGSettings;
 interface
 
 uses
-  System.SysUtils,
-  SynEdit;
+  System.SysUtils;
 
 type
   TSettings = class
@@ -54,7 +53,8 @@ type
     class property SettingsFileName: string read GetSettingsFileName;
     class property SettingsPath: string read GetSettingsPath;
 
-    procedure UpdateSettings(ASynEdit: TSynEdit; AEditorVisible: Boolean);
+    procedure UpdateSettings(const AFontName: string;
+      AFontSize: Integer; AEditorVisible: Boolean);
     procedure ReadSettings;
     procedure WriteSettings;
 
@@ -128,11 +128,13 @@ begin
         FUseDarkStyle := True;
         FStyleName := 'Windows10 SlateGray';
         //FStyleName := 'Windows10 Dark';
+        //FStyleName := 'Windows';
       end
       else
       begin
         FUseDarkStyle := False;
         FStyleName := 'Windows10';
+        //FStyleName := 'Windows';
       end;
     finally
       Settings.Free;
@@ -143,10 +145,11 @@ begin
   end;
 end;
 
-procedure TSettings.UpdateSettings(ASynEdit: TSynEdit; AEditorVisible: Boolean);
+procedure TSettings.UpdateSettings(const AFontName: string;
+  AFontSize: Integer; AEditorVisible: Boolean);
 begin
-  FontSize := ASynEdit.Font.Size;
-  FontName := ASynEdit.Font.Name;
+  FontSize := AFontSize;
+  FontName := AFontName;
   StyleName := TStyleManager.ActiveStyle.Name;
   ShowEditor := AEditorVisible;
 end;

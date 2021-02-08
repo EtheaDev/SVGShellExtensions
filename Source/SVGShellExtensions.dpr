@@ -32,27 +32,28 @@
 library SVGShellExtensions;
 
 uses
-   madExcept,
-  madLinkDisAsm,
-  madListHardware,
-  madListProcesses,
-  madListModules,
  ComServ,
   Main in 'Main.pas',
-  uEditor in 'uEditor.pas' {FrmEditor},
-  //uSettings in 'uSettings.pas' {FrmSettings},
   uPreviewHandler in 'uPreviewHandler.pas',
   uMisc in 'uMisc.pas',
   uStreamPreviewHandler in 'uStreamPreviewHandler.pas',
   uFilePreviewHandler in 'uFilePreviewHandler.pas',
-  uPreviewHandlerRegister in 'uPreviewHandlerRegister.pas',
   uPreviewContainer in 'uPreviewContainer.pas' {PreviewContainer},
   uRegistry in 'uRegistry.pas',
   uLogExcept in 'uLogExcept.pas',
   uCommonPreviewHandler in 'uCommonPreviewHandler.pas',
   uSVGPreviewHandler in 'uSVGPreviewHandler.pas',
+  uPreviewHandlerRegister in 'uPreviewHandlerRegister.pas',
+  uSVGThumbnailHandler in 'uSVGThumbnailHandler.pas',
+  uThumbnailHandlerRegister in 'uThumbnailHandlerRegister.pas',
   uAbout in 'uAbout.pas' {FrmAbout},
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
+  {$IFDEF UEDITOR}
+  uEditor in 'uEditor.pas' {FrmEditor},
+  {$ELSE}
+  SVGEditor in 'SVGEditor.pas' {FrmEditor},
+  {$ENDIF }
+  //uSVGThumbnailHandler in 'uSVGThumbnailHandler.pas',
   uSVGSettings in 'uSVGSettings.pas';
 
 exports

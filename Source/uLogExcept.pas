@@ -1,34 +1,24 @@
-{******************************************************************************}
-{                                                                              }
-{       SVG Shell Extensions: Shell extensions for SVG files                   }
-{       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
-{                                                                              }
-{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
-{       Author: Carlo Barazzetta                                               }
-{                                                                              }
-{       https://github.com/EtheaDev/SVGShellExtensions                         }
-{                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
-{                                                                              }
-{  The Original Code is:                                                       }
-{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
-{                                                                              }
-{  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
-{  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
-{  All Rights Reserved.                                                        }
-{******************************************************************************}
+// **************************************************************************************************
+//
+// Unit uLogExcept
+// unit for the Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler
+//
+// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
+// you may not use this file except in compliance with the License. You may obtain a copy of the
+// License at http://www.mozilla.org/MPL/
+//
+// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+// ANY KIND, either express or implied. See the License for the specific language governing rights
+// and limitations under the License.
+//
+// The Original Code is uLogExcept.pas.
+//
+// The Initial Developer of the Original Code is Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2011-2021 Rodrigo Ruz V.
+// All Rights Reserved.
+//
+// *************************************************************************************************
+
 unit uLogExcept;
 
 interface
@@ -56,7 +46,7 @@ uses
 var
   sLogFile: string;
 
-{.$DEFINE ENABLELOG}
+  {$DEFINE ENABLELOG}
 
 procedure AppendAllText(const FileName, Contents: string);
 {$IFDEF ENABLELOG}
@@ -84,11 +74,16 @@ end;
 { TLogException }
 class procedure TLogPreview.Add(const AMessage: string);
 begin
+{$IFDEF DEBUG}
   try
-    AppendAllText(sLogFile, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + AMessage + sLineBreak);
+    //if Copy(AMessage,1,27) = 'TPreviewContainer.SetBounds' then
+    //if Copy(AMessage,1,10) = 'SetWindow:' then
+    if Copy(AMessage,1,25) = 'TComSVGThumbnailProvider.' then
+      AppendAllText(sLogFile, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + AMessage + sLineBreak);
   except
     on e: EFOpenError do;
   end;
+{$ENDIF}
 end;
 
 class procedure TLogPreview.Add(const AException: Exception);

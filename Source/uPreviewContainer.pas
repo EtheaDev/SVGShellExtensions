@@ -42,21 +42,25 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    FPreview: TObject;
+    FPreviewHandler: TObject;
   public
+    //procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     procedure SetFocusTabFirst;
     procedure SetFocusTabLast;
     procedure SetBackgroundColor(color: TColorRef);
-    procedure SetBoundsRect(const ARect: TRect);
+    //procedure SetBoundsRect(const ARect: TRect);
+    procedure SetBoundsRectAndPPI(const ARect: TRect;
+      const AOldPPI, ANewPPI: Integer); virtual;
     procedure SetTextColor(color: TColorRef);
     procedure SetTextFont(const plf: TLogFont);
-    property  Preview: TObject read FPreview write FPreview;
+    property  PreviewHandler: TObject read FPreviewHandler write FPreviewHandler;
   end;
 
 implementation
 
 uses
   SynEdit,
+  System.Math,
   Vcl.Styles.Ext,
   Vcl.Styles,
   Vcl.Themes,
@@ -79,7 +83,9 @@ procedure TPreviewContainer.FormCreate(Sender: TObject);
 var
   LSettings: TSettings;
 begin
-  TLogPreview.Add('TPreviewContainer.FormCreate');
+  TLogPreview.Add('TPreviewContainer.FormCreate'+
+    'ScaleFactor: '+Self.ScaleFactor.ToString+
+    'CurrentPPI '+Self.CurrentPPI.ToString);
   LSettings := TSettings.Create;
   try
     if not IsStyleHookRegistered(TCustomSynEdit, TScrollingStyleHook) then
@@ -102,10 +108,76 @@ procedure TPreviewContainer.SetBackgroundColor(color: TColorRef);
 begin
 end;
 
+(*
+procedure TPreviewContainer.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
+begin
+  if not (csLoading in componentstate) and (AWidth <> 320) and (AHeight <> 240)
+    and (AWidth <> 0) and (AHeight <> 0) then
+  begin
+    TLogPreview.Add('TPreviewContainer.SetBounds'+
+      ' ScaleFactor: '+Self.ScaleFactor.ToString+
+      ' CurrentPPI: '+Self.CurrentPPI.ToString+
+//      ' Scaled: '+Self.Scaled.ToString+
+      ' Width: '+Width.ToString+
+      ' Height: '+Height.ToString+
+      ' AWidth: '+AWidth.ToString+
+      ' AHeight: '+AHeight.ToString);
+  end;
+  inherited;
+  if not (csLoading in componentstate) and (AWidth <> 320) and (AHeight <> 240)
+    and (AWidth <> 0) and (AHeight <> 0) then
+  begin
+    TLogPreview.Add('TPreviewContainer.SetBounds'+
+      ' ScaleFactor: '+Self.ScaleFactor.ToString+
+      ' CurrentPPI: '+Self.CurrentPPI.ToString+
+//      ' Scaled: '+Self.Scaled.ToString+
+      ' Width: '+Width.ToString+
+      ' Height: '+Height.ToString);
+  end;
+end;
+*)
+procedure TPreviewContainer.SetBoundsRectAndPPI(const ARect: TRect;
+  const AOldPPI, ANewPPI: Integer);
+begin
+  if (ARect.Width <> 0) and (ARect.Height <> 0) then
+  begin
+    TLogPreview.Add('TPreviewContainer.SetBoundsRect:'+
+    ' Visible: '+Self.Visible.Tostring+
+      ' CurrentPPI:'+Self.CurrentPPI.ToString+
+      ' AOldPPI:'+AOldPPI.ToString+
+      ' ANewPPI:'+ANewPPI.ToString+
+      ' Scaled:'+Self.Scaled.ToString+
+      ' ARect.Width: '+ARect.Width.ToString+
+      ' ARect.Height: '+ARect.Height.ToString);
+
+      if ANewPPI > AOldPPI then
+      begin
+        SetBounds(
+          ARect.Left,
+          ARect.Top,
+          MulDiv(ARect.Width, ANewPPI, AOldPPI),
+          MulDiv(ARect.Height, ANewPPI, AOldPPI));
+      end
+      else
+      begin
+        SetBounds(
+          ARect.Left,
+          ARect.Top,
+          ARect.Width,
+          ARect.Height);
+        //ClientPanel.ScaleForPPI(ANewPPI);
+      end;
+
+    FCurrentPPI := ANewPPI;
+  end;
+end;
+
+(*
 procedure TPreviewContainer.SetBoundsRect(const ARect: TRect);
 begin
   SetBounds(ARect.Left, ARect.Top, ARect.Right - ARect.Left, ARect.Bottom - ARect.Top);
 end;
+*)
 
 procedure TPreviewContainer.SetTextColor(color: TColorRef);
 begin

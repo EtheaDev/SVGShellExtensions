@@ -22,7 +22,7 @@
 {  See the License for the specific language governing permissions and         }
 {  limitations under the License.                                              }
 {                                                                              }
-{  The Original Code is:                                                       }
+{  The Original Code is uAbout.pas:                                            }
 {  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
 {                                                                              }
 {  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
@@ -43,14 +43,14 @@ type
   TFrmAbout = class(TForm)
     Panel1:    TPanel;
     Button1:   TButton;
-    LogoImage: TImage;
-    Label1:    TLabel;
+    TitleLabel: TLabel;
     LabelVersion: TLabel;
     MemoCopyRights: TMemo;
     Button3: TButton;
     btnCheckUpdates: TButton;
     LinkLabel1: TLinkLabel;
     SVGIconImage1: TSVGIconImage;
+    SVGIconImage2: TSVGIconImage;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -103,7 +103,7 @@ procedure TFrmAbout.FormCreate(Sender: TObject);
 var
   FileVersionStr: string;
 begin
-  Label1.Font.Size := Label1.Font.Size * 2;
+  TitleLabel.Font.Height := TitleLabel.Font.Height * 2;
 
   FileVersionStr:=uMisc.GetFileVersion(GetModuleLocation());
   LabelVersion.Caption := Format('Version %s', [FileVersionStr]);

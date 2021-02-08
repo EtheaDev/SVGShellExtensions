@@ -1,9 +1,8 @@
 object PreviewContainer: TPreviewContainer
   Left = 753
   Top = 443
-  Caption = 'Preview Container'
-  ClientHeight = 142
-  ClientWidth = 330
+  ClientHeight = 447
+  ClientWidth = 684
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,7 +10,7 @@ object PreviewContainer: TPreviewContainer
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  ShowHint = True
+  Visible = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96

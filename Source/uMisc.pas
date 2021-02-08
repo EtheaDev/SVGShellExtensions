@@ -22,7 +22,7 @@
 {  See the License for the specific language governing permissions and         }
 {  limitations under the License.                                              }
 {                                                                              }
-{  The Original Code is:                                                       }
+{  The Original Code is uMisc.pas:                                             }
 {  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
 {                                                                              }
 {  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
@@ -33,15 +33,13 @@ unit uMisc;
 
 interface
 
-uses
-  SynEdit,
-  SynEditHighlighter;
-
   function GetDllPath: String;
   function GetTempDirectory: string;
   function GetSpecialFolder(const CSIDL: integer): string;
   function GetFileVersion(const FileName: string): string;
   function  GetModuleLocation: string;
+  procedure Initialize_GDI;
+  procedure Finalize_GDI;
 
 var
   gbSearchBackwards: boolean;
@@ -63,6 +61,8 @@ resourcestring
 implementation
 
 uses
+  WinAPI.GDIPObj,
+  WinAPI.GDIPApi,
   ComObj,
   System.SysUtils,
   WinApi.Windows,
@@ -70,7 +70,23 @@ uses
   Vcl.Forms,
   Vcl.Graphics,
   Vcl.GraphUtil,
-  SynHighlighterXML;
+  uLogExcept;
+
+procedure Initialize_GDI;
+begin
+  //Initialize GDI+
+  TLogPreview.Add('Initialize GDI+');
+  StartupInput.DebugEventCallback := nil;
+  StartupInput.SuppressBackgroundThread := False;
+  StartupInput.SuppressExternalCodecs := False;
+  StartupInput.GdiplusVersion := 1;
+  GdiplusStartup(gdiplusToken, @StartupInput, nil);
+end;
+
+procedure Finalize_GDI;
+begin
+  GdiplusShutdown(gdiplusToken);
+end;
 
 function GetDllPath: String;
 var
@@ -110,6 +126,8 @@ begin
     StrDispose(lpszPath);
   end;
 end;
+
+
 
 function GetFileVersion(const FileName: string): string;
 var

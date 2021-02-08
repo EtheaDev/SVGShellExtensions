@@ -1,34 +1,25 @@
-{******************************************************************************}
-{                                                                              }
-{       SVG Shell Extensions: Shell extensions for SVG files                   }
-{       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
-{                                                                              }
-{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
-{       Author: Carlo Barazzetta                                               }
-{                                                                              }
-{       https://github.com/EtheaDev/SVGShellExtensions                         }
-{                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
-{                                                                              }
-{  The Original Code is:                                                       }
-{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
-{                                                                              }
-{  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
-{  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
-{  All Rights Reserved.                                                        }
-{******************************************************************************}
+//**************************************************************************************************
+//
+// Unit uPreviewHandler
+// unit for the Delphi Preview Handler https://github.com/RRUZ/delphi-preview-handler
+//
+// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
+// you may not use this file except in compliance with the License. You may obtain a copy of the
+// License at http://www.mozilla.org/MPL/
+//
+// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+// ANY KIND, either express or implied. See the License for the specific language governing rights
+// and limitations under the License.
+//
+// The Original Code is uPreviewHandler.pas.
+//
+// The Initial Developer of the Original Code is Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2011-2021 Rodrigo Ruz V.
+// All Rights Reserved.
+//
+//*************************************************************************************************
+
+
 unit uPreviewHandler;
 
 
@@ -42,7 +33,6 @@ uses
   ShlObj,
   Windows,
   uPreviewContainer,
-  SynEditHighlighter,
   System.Generics.Collections,
   ActiveX;
 
@@ -50,10 +40,8 @@ uses
 type
   TPreviewHandler = class abstract
   public
-    class var FExtensions: TDictionary<TSynCustomHighlighterClass, TStrings>;
     constructor Create(AParent: TWinControl); virtual;
     class function GetComClass: TComClass; virtual; abstract;
-    class procedure AddExtentions(ClassType: TSynCustomHighlighterClass; Extensions: array of string);
     class procedure RegisterPreview(const AClassID: TGUID; const AName, ADescription: string);
     procedure Unload; virtual;
   end;
@@ -79,6 +67,7 @@ type
     function TranslateAccelerator(var pmsg: tagMSG): HRESULT; stdcall;
     function Unload: HRESULT; stdcall;
   private
+    FCurrentPPI: Integer;
     FBackgroundColor: TColorRef;
     FBounds: TRect;
     FContainer: TPreviewContainer;
@@ -89,6 +78,8 @@ type
     FPreviewHandlerFrame: IPreviewHandlerFrame;
     FSite: IInterface;
     FTextColor: TColorRef;
+    procedure SetBounds(const Value: TRect);
+    procedure UpdateContainerBoundsRect;
   protected
     procedure CheckContainer;
     procedure CheckPreviewHandler;
@@ -96,7 +87,7 @@ type
     procedure InternalDoPreview; virtual; abstract;
     property  BackgroundColor: TColorRef read FBackgroundColor write FBackgroundColor;
     property  TextColor: TColorRef read FTextColor write FTextColor;
-    property  Bounds: TRect read FBounds write FBounds;
+    property  Bounds: TRect read FBounds write SetBounds;
     property  LogFont: TLogFont read FLogFont  write FLogFont;
     property  ParentWindow: HWND read FParentWindow write FParentWindow;
     property  PreviewHandler: TPreviewHandler read FPreviewHandler;
@@ -119,34 +110,53 @@ uses
     ExtCtrls,
     uMisc,
     uLogExcept,
-    uPreviewHandlerRegister,
-    uEditor;
+{$IFDEF UEDITOR}
+    uEditor,
+{$ELSE}
+    SVGEditor,
+{$ENDIF}
+    uPreviewHandlerRegister;
 
 
 destructor TComPreviewHandler.Destroy;
 begin
   TLogPreview.Add('Destroy Init');
-  FPreviewHandler.Free;
-  if FContainer <> nil then
-   FContainer.Free;
   inherited Destroy;
+  FreeAndNil(FContainer);
+  FreeAndNil(FPreviewHandler);
   TLogPreview.Add('Destroy Done');
+end;
+
+procedure TComPreviewHandler.UpdateContainerBoundsRect;
+var
+  LNewPPI: Integer;
+begin
+  if (Container <> nil) then
+  begin
+    LNewPPI := GetDpiForWindow(FParentWindow);
+    Container.SetBoundsRectAndPPI(
+      FBounds,
+      FCurrentPPI,
+      LNewPPI
+      );
+  end;
 end;
 
 procedure TComPreviewHandler.CheckContainer;
 begin
   TLogPreview.Add('CheckContainer Init');
-  TLogPreview.Add('CheckContainer FContainer = nil '+BoolToStr(FContainer = nil, True));
+  TLogPreview.Add('CheckContainer FContainer = nil '+BoolToStr(FContainer = nil, True)+
+    'Fbounds.Width: '+FBounds.width.ToString);
   if (FContainer = nil) and IsWindow(FParentWindow) then
   begin
     TLogPreview.Add('ParentWindow '+IntToHex(ParentWindow, 8));
+
     FContainer := TPreviewContainer.Create(nil);
     FContainer.ParentWindow := FParentWindow;
     FContainer.BorderStyle := bsNone;
-    FContainer.Visible:=True;
-    FContainer.SetBoundsRect(FBounds);
-    FContainer.Preview:=Self;
-
+    FContainer.Visible := True;
+    UpdateContainerBoundsRect;
+    FContainer.PreviewHandler := Self;
     TFrmEditor.AParent := FContainer;
   end;
   TLogPreview.Add('CheckContainer Done');
@@ -206,7 +216,8 @@ begin
     InternalDoPreview;
   except
     on E: Exception do
-      TLogPreview.Add(Format('Error in TComPreviewHandler.IPreviewHandler_DoPreview - Message: %s: Trace %s', [E.Message, E.StackTrace]));
+      TLogPreview.Add(Format('Error in TComPreviewHandler.IPreviewHandler_DoPreview - Message: %s: Trace %s',
+        [E.Message, E.StackTrace]));
   end;
   Result := S_OK;
   TLogPreview.Add('IPreviewHandler_DoPreview Done');
@@ -228,6 +239,21 @@ begin
     Container.SetBackgroundColor(FBackgroundColor);
   Result := S_OK;
   TLogPreview.Add('SetBackgroundColor Done');
+end;
+
+procedure TComPreviewHandler.SetBounds(const Value: TRect);
+begin
+  if Value = FBounds then
+    Exit;
+  TLogPreview.Add('TComPreviewHandler.SetBounds -'+
+    ' Width: '+Value.Width.ToString+
+    ' Height: '+Value.Height.ToString);
+  if (Value.Width <> 0) and (Value.Height <> 0) then
+  begin
+    FBounds := Value;
+    CheckPreviewHandler;
+    UpdateContainerBoundsRect;
+  end;
 end;
 
 function TComPreviewHandler.SetFocus: HRESULT;
@@ -255,11 +281,27 @@ begin
 end;
 
 function TComPreviewHandler.SetRect(var prc: TRect): HRESULT;
+var
+  LNewPPI: Integer;
 begin
-  TLogPreview.Add('SetRect Init');
-  FBounds := prc;
-  if Container <> nil then
-    Container.SetBoundsRect(FBounds);
+  LNewPPI := GetDpiForWindow(FParentWindow);
+
+  TLogPreview.Add('SetRect Init:'+
+    ' prc.Width: '+prc.Width.ToString+
+    ' prc.Height: '+prc.Height.ToString+
+    ' GetDpiForWindow: '+LNewPPI.ToString);
+(*
+  if (LNewPPI <> FCurrentPPI) then
+  begin
+    FreeAndNil(FPreviewHandler);
+    FreeAndNil(FContainer);
+    CheckPreviewHandler;
+    InternalDoPreview;
+  end;
+*)
+  Bounds := prc;
+  FCurrentPPI := LNewPPI;
+  TLogPreview.Add('FCurrentPPI := LNewPPI: '+LNewPPI.ToString);
   Result := S_OK;
   TLogPreview.Add('SetRect Done');
 end;
@@ -284,17 +326,36 @@ begin
 end;
 
 function TComPreviewHandler.SetWindow(hwnd: HWND; var prc: TRect): HRESULT;
+var
+  LMonitor: TMonitor;
+  LRect: TRect;
 begin
   TLogPreview.Add('SetWindow Init');
   FParentWindow := hwnd;
-  FBounds := prc;
-  if Container <> nil then
+//  FCurrentPPI := 96;
+  FCurrentPPI := GetDpiForWindow(hwnd);
+
+  TLogPreview.Add('SetWindow: Window DPI: '+FCurrentPPI.ToString);
+
+  LMonitor := Screen.MonitorFromWindow(hwnd);
+//  FCurrentPPI := LMonitor.PixelsPerInch;
+  TLogPreview.Add('SetWindow: Monitor - '+
+  ' Width: '+LMonitor.Width.ToString+
+  ' Height: '+LMonitor.Height.ToString+
+  ' PPI: '+LMonitor.PixelsPerInch.ToString);
+
+  if (prc.Width <> 0) and (prc.Height <> 0) then
   begin
-    Container.ParentWindow := FParentWindow;
-    Container.SetBoundsRect(FBounds);
-    TLogPreview.Add('SetWindow Ok');
+    Bounds := prc;
+    Result := S_OK;
+  end
+  else
+  begin
+    LRect.Width := 320;
+    LRect.Height := 240;
+    Bounds := LRect;
+    Result := S_OK;
   end;
-  Result := S_OK;
   TLogPreview.Add('SetWindow Done');
 end;
 
@@ -316,17 +377,6 @@ begin
   TLogPreview.Add('Unload Done');
 end;
 
-class procedure TPreviewHandler.AddExtentions(ClassType: TSynCustomHighlighterClass; Extensions: array of string);
-var
-  i: integer;
-begin
-  if not FExtensions.ContainsKey(ClassType) then
-    FExtensions.Add(ClassType, TStringList.Create);
-
-   for i:=0 to Length(Extensions)-1 do
-     FExtensions.Items[ClassType].Add(LowerCase(Extensions[i]));
-end;
-
 constructor TPreviewHandler.Create(AParent: TWinControl);
 begin
   inherited Create;
@@ -334,29 +384,9 @@ end;
 
 class procedure TPreviewHandler.RegisterPreview(const AClassID: TGUID;
   const AName, ADescription: string);
-var
-  Extensions: array of string;
-  LItem: TPair<TSynCustomHighlighterClass, TStrings>;
-  i, c, j: integer;
 begin
   TLogPreview.Add('RegisterPreview Init ' + AName);
-  c:=0;
-  for LItem in FExtensions do
-    Inc(c, LItem.Value.Count);
-
-  TLogPreview.Add('RegisterPreview count ' + IntToStr(c));
-  SetLength(Extensions, c);
-
-  j:=0;
-  for LItem in FExtensions do
-   for i := 0 to   LItem.Value.Count-1 do
-   begin
-     Extensions[j] := LItem.Value[i];
-     Inc(j);
-   end;
-
-  TPreviewHandlerRegister.Create(Self, AClassID, AName, ADescription, Extensions);
-
+  TPreviewHandlerRegister.Create(Self, AClassID, AName, ADescription);
   TLogPreview.Add('RegisterPreview Done ' + AName);
 end;
 

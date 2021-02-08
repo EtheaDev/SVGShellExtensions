@@ -1,23 +1,34 @@
-// **************************************************************************************************
-//
-// Unit uEditor
-// unit for the Delphi Preview Handler https://github.com/RRUZ/delphi-preview-handler
-//
-// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
-// you may not use this file except in compliance with the License. You may obtain a copy of the
-// License at http://www.mozilla.org/MPL/
-//
-// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
-// ANY KIND, either express or implied. See the License for the specific language governing rights
-// and limitations under the License.
-//
-// The Original Code is uEditor.pas.
-//
-// The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2011-2021 Rodrigo Ruz V.
-// All Rights Reserved.
-//
-// *************************************************************************************************
+{******************************************************************************}
+{                                                                              }
+{       SVG Shell Extensions: Shell extensions for SVG files                   }
+{       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
+{                                                                              }
+{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
+{       Author: Carlo Barazzetta                                               }
+{                                                                              }
+{       https://github.com/EtheaDev/SVGShellExtensions                         }
+{                                                                              }
+{******************************************************************************}
+{                                                                              }
+{  Licensed under the Apache License, Version 2.0 (the "License");             }
+{  you may not use this file except in compliance with the License.            }
+{  You may obtain a copy of the License at                                     }
+{                                                                              }
+{      http://www.apache.org/licenses/LICENSE-2.0                              }
+{                                                                              }
+{  Unless required by applicable law or agreed to in writing, software         }
+{  distributed under the License is distributed on an "AS IS" BASIS,           }
+{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
+{  See the License for the specific language governing permissions and         }
+{  limitations under the License.                                              }
+{                                                                              }
+{  The Original Code is:                                                       }
+{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
+{                                                                              }
+{  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
+{  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
+{  All Rights Reserved.                                                        }
+{******************************************************************************}
 
 unit SVGEditor;
 
@@ -28,57 +39,56 @@ uses
   Dialogs, StdCtrls, ExtCtrls, SynEdit, pngimage,
   System.Generics.Collections,
   SynEditHighlighter,
-//  uDelphiIDEHighlight,
-//  uDelphiVersions,
-  SynHighlighterPas, ComCtrls, ToolWin, ImgList, SynHighlighterXML,
-  SynHighlighterCpp, SynHighlighterAsm, uSynEditPopupEdit,
-  SynHighlighterFortran, SynHighlighterEiffel, SynHighlighterPython,
-  SynHighlighterPerl, SynHighlighterDfm, SynHighlighterBat,
-  SynHighlighterVBScript, SynHighlighterPHP, SynHighlighterJScript,
-  SynHighlighterHtml, SynHighlighterCSS, SynHighlighterCS, SynHighlighterCobol,
-  SynHighlighterVB, SynHighlighterM3, SynHighlighterJava, SynHighlighterSml,
-  SynHighlighterIni, SynHighlighterInno, SynHighlighterSQL,
-  SynHighlighterUNIXShellScript, SynHighlighterRuby, Vcl.Menus, SynEditExport,
+  ComCtrls, ToolWin, ImgList, SynHighlighterXML,
+  Vcl.Menus, SynEditExport,
   SynExportHTML, SynExportRTF, SynEditRegexSearch, SynEditMiscClasses,
-  SynEditSearch, uSettings, System.ImageList, SynEditCodeFolding,
-  SVGIconImageListBase, SVGIconImageListBase, SVGIconImageList;
+  SynEditSearch, uSVGSettings, System.ImageList, SynEditCodeFolding,
+  SVGIconImageList, SVGIconImageListBase, SVGIconImage;
 
 type
-  //TProcRefreshSynHighlighter = procedure(FCurrentTheme: TIDETheme; SynEdit: SynEdit.TSynEdit);
-
   TFrmEditor = class(TForm)
     SynEdit: TSynEdit;
     PanelTop: TPanel;
     PanelEditor: TPanel;
-    PanelToolBar: TPanel;
     SynXMLSyn: TSynXMLSyn;
-    dlgFileSaveAs: TSaveDialog;
-    StatusBar1: TStatusBar;
-    SynEditSearch1: TSynEditSearch;
-    SynEditRegexSearch1: TSynEditRegexSearch;
-    ToolBar1: TToolBar;
+    StatusBar: TStatusBar;
+    SynEditSearch: TSynEditSearch;
+    SynEditRegexSearch: TSynEditRegexSearch;
+    SVGIconImageList: TSVGIconImageList;
     ToolButtonZoomIn: TToolButton;
     ToolButtonZommOut: TToolButton;
     ToolButtonSearch: TToolButton;
-    ToolButtonSave: TToolButton;
-    ToolButton1: TToolButton;
+    ToolBar: TToolBar;
+    ToolButtonFont: TToolButton;
     ToolButtonAbout: TToolButton;
-    SVGIconImageList: TSVGIconImageList;
-    ToolButtonEdit: TToolButton;
+    SeparatorEditor: TToolButton;
+    ToolButtonShowText: TToolButton;
+    ToolButtonReformat: TToolButton;
+    FontDialog: TFontDialog;
+    SynXMLSynDark: TSynXMLSyn;
+    ImagePanel: TPanel;
+    SVGIconImage: TSVGIconImage;
+    Splitter: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure ToolButtonZoomInClick(Sender: TObject);
     procedure ToolButtonZommOutClick(Sender: TObject);
-    procedure ToolButtonSaveClick(Sender: TObject);
+    procedure ToolButtonFontClick(Sender: TObject);
     procedure ToolButtonAboutClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ToolButtonSearchClick(Sender: TObject);
     procedure ToolButtonSelectModeClick(Sender: TObject);
-    procedure ToolButtonEditClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure ToolButtonShowTextClick(Sender: TObject);
+    procedure ToolButtonReformatClick(Sender: TObject);
+    procedure ToolButtonMouseEnter(Sender: TObject);
+    procedure ToolButtonMouseLeave(Sender: TObject);
+    procedure SplitterMoved(Sender: TObject);
+    procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+      NewDPI: Integer);
   private
-    //FCurrentTheme: TIDETheme;
+    FFontSize: Integer;
+    FSimpleText: string;
     FFileName: string;
-    //FRefreshSynHighlighter: TProcRefreshSynHighlighter;
-    //FListThemes: TStringList;
     fSearchFromCaret: boolean;
     FSettings: TSettings;
 
@@ -88,14 +98,22 @@ type
     procedure AppException(Sender: TObject; E: Exception);
     procedure ShowSearchDialog;
     procedure DoSearchText(ABackwards: boolean);
+    procedure UpdateGUI;
+    procedure UpdateFromSettings;
+    procedure SaveSettings;
+    function GetEditorFontSize: Integer;
+    procedure SetEditorFontSize(const Value: Integer);
+    procedure UpdateHighlighter;
+  protected
   public
-    //procedure FillThemes;
-    //procedure LoadCurrentTheme;
-    //property RefreshSynHighlighter: TProcRefreshSynHighlighter read FRefreshSynHighlighter write FRefreshSynHighlighter;
-
+    procedure ScaleControls(const ANewPPI: Integer);
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     class property Extensions: TDictionary<TSynCustomHighlighterClass, TStrings> read FExtensions write FExtensions;
-    class property AParent: TWinControl read  FAParent write FAParent;
-    procedure LoadFile(const FileName: string);
+    class property AParent: TWinControl read FAParent write FAParent;
+    procedure LoadFromFile(const AFileName: string);
+    procedure LoadFromStream(const AStream: TStream);
+    property EditorFontSize: Integer read GetEditorFontSize write SetEditorFontSize;
   end;
 
 
@@ -107,7 +125,15 @@ uses
   Vcl.Themes,
   uLogExcept,
   System.Types,
-  Registry, uMisc, IOUtils, ShellAPI, ComObj, IniFiles, GraphUtil, uAbout,
+  Registry,
+  uMisc,
+  IOUtils,
+  ShellAPI,
+  ComObj,
+  IniFiles,
+  GraphUtil,
+  uAbout,
+  Xml.XMLDoc,
   dlgSearchText;
 
 const
@@ -124,11 +150,23 @@ begin
   TLogPreview.Add(E);
 end;
 
+constructor TFrmEditor.Create(AOwner: TComponent);
+begin
+  FSettings := TSettings.Create;
+  inherited;
+end;
+
+destructor TFrmEditor.Destroy;
+begin
+  FreeAndNil(FSettings);
+  inherited;
+end;
+
 procedure TFrmEditor.DoSearchText(ABackwards: boolean);
 var
   Options: TSynSearchOptions;
 begin
-  StatusBar1.SimpleText := '';
+  StatusBar.SimpleText := '';
   Options := [];
   if ABackwards then
     Include(Options, ssoBackwards);
@@ -142,14 +180,14 @@ begin
     Include(Options, ssoWholeWord);
 
   if gbSearchRegex then
-    SynEdit.SearchEngine := SynEditRegexSearch1
+    SynEdit.SearchEngine := SynEditRegexSearch
   else
-    SynEdit.SearchEngine := SynEditSearch1;
+    SynEdit.SearchEngine := SynEditSearch;
 
   if SynEdit.SearchReplace(gsSearchText, gsReplaceText, Options) = 0 then
   begin
     MessageBeep(MB_ICONASTERISK);
-    StatusBar1.SimpleText := STextNotFound;
+    StatusBar.SimpleText := STextNotFound;
     if ssoBackwards in Options then
       SynEdit.BlockEnd := SynEdit.BlockBegin
     else
@@ -158,57 +196,159 @@ begin
   end;
 end;
 
-(*
-procedure TFrmEditor.FillThemes;
-var
-  s, Theme: string;
-  LMenuItem: TMenuItem;
+procedure TFrmEditor.UpdateGUI;
 begin
-  if not TDirectory.Exists(TSettings.PathThemes) then
-    exit;
-
-  for Theme in TDirectory.GetFiles(TSettings.PathThemes, '*' + sThemesExt) do
+  if PanelEditor.Visible then
   begin
-    s := TSettings.GetThemeNameFromFile(Theme);
-    FListThemes.Add(s);
-    LMenuItem := TMenuItem.Create(PopupMenuThemes);
-    PopupMenuThemes.Items.Add(LMenuItem);
-    LMenuItem.Caption := s;
-    LMenuItem.RadioItem := True;
-    LMenuItem.OnClick := MenuThemeOnCLick;
-    LMenuItem.Tag := FListThemes.Count - 1;
+    Splitter.Top := PanelEditor.Top + PanelEditor.Height;
+    Splitter.Visible := True;
+    ToolButtonShowText.Caption := 'Hide Text';
+    ToolButtonShowText.Hint := 'Hide content of SVG file';
+    ToolButtonShowText.ImageName := 'hide-text';
+  end
+  else
+  begin
+    Splitter.Visible := False;
+    ToolButtonShowText.Caption := 'Show Text';
+    ToolButtonShowText.Hint := 'Show content of SVG file';
+    ToolButtonShowText.ImageName := 'show-text';
   end;
-
-  // if ComboBoxThemes.Items.Count > 0 then
-  // ComboBoxThemes.ItemIndex := ComboBoxThemes.Items.IndexOf(GetThemeNameFromFile(ThemeName));
+  ToolButtonShowText.Visible := True;
+  ToolButtonAbout.Visible := True;
+  ToolButtonFont.Visible := PanelEditor.Visible;
+  ToolButtonReformat.Visible := PanelEditor.Visible;
+  ToolButtonSearch.Visible := PanelEditor.Visible;
+  ToolButtonZoomIn.Visible := PanelEditor.Visible;
+  ToolButtonZommOut.Visible := PanelEditor.Visible;
 end;
-*)
+
+procedure TFrmEditor.UpdateHighlighter;
+var
+  LBackgroundColor: TColor;
+begin
+  if FSettings.UseDarkStyle then
+  begin
+    SynEdit.Highlighter := SynXMLSynDark;
+  end
+  else
+  begin
+    SynEdit. Highlighter := SynXMLSyn;
+  end;
+  SynEdit.Gutter.Font.Color := StyleServices.GetSystemColor(clWindowText);
+  SynEdit.Gutter.Color := StyleServices.GetSystemColor(clBtnFace);
+  LBackgroundColor := StyleServices.GetSystemColor(clWindow);
+
+  SynXMLSynDark.ElementAttri.Background := LBackgroundColor;
+  SynXMLSynDark.AttributeAttri.Background := LBackgroundColor;
+  SynXMLSynDark.NamespaceAttributeAttri.Background := LBackgroundColor;
+  SynXMLSynDark.AttributeValueAttri.Background := LBackgroundColor;
+  SynXMLSynDark.NamespaceAttributeValueAttri.Background := LBackgroundColor;
+  SynXMLSynDark.TextAttri.Background := LBackgroundColor;
+  SynXMLSynDark.CDATAAttri.Background := LBackgroundColor;
+  SynXMLSynDark.EntityRefAttri.Background := LBackgroundColor;
+  SynXMLSynDark.ProcessingInstructionAttri.Background := LBackgroundColor;
+  SynXMLSynDark.CommentAttri.Background := LBackgroundColor;
+  SynXMLSynDark.DocTypeAttri.Background := LBackgroundColor;
+  SynXMLSynDark.SpaceAttri.Background := LBackgroundColor;
+  SynXMLSynDark.SymbolAttri.Background := LBackgroundColor;
+end;
+
+procedure TFrmEditor.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+begin
+  TLogPreview.Add('TFrmEditor.FormAfterMonitorDpiChanged: '+
+  '- Old: '+OldDPI.ToString+' - New: '+NewDPI.ToString);
+end;
 
 procedure TFrmEditor.FormCreate(Sender: TObject);
 begin
-  FSettings := TSettings.Create;
-
+  TLogPreview.Add('TFrmEditor.FormCreate');
   Application.OnException := AppException;
-  TLogPreview.Add('FormCreate');
-  SynEdit.Font.Size := FSettings.FontSize;
-  SynEdit.Font.Name := FSettings.FontName;
-//  SynEdit.SelectionMode := FSettings.SelectionMode;
-  //FListThemes := TStringList.Create;
-//  FillThemes;
+  FSimpleText := StatusBar.SimpleText;
+  UpdateFromSettings;
+  UpdateHighlighter;
 end;
 
 procedure TFrmEditor.FormDestroy(Sender: TObject);
 begin
-  //FListThemes.Free;
-  TLogPreview.Add('FormDestroy');
+  SaveSettings;
+  TLogPreview.Add('TFrmEditor.FormDestroy');
+  inherited;
 end;
 
-procedure TFrmEditor.LoadFile(const FileName: string);
+procedure TFrmEditor.FormResize(Sender: TObject);
 begin
-  TLogPreview.Add('TFrmEditor.LoadFile Init');
-  FFileName := FileName;
+  PanelEditor.Height := Round(Self.Height * (FSettings.SplitterPos / 100));
+  Splitter.Top := PanelEditor.Height;
+  if Self.Width < (550 * Self.ScaleFactor) then
+    ToolBar.ShowCaptions := False
+  else
+    Toolbar.ShowCaptions := True;
+  UpdateGUI;
+end;
+
+function TFrmEditor.GetEditorFontSize: Integer;
+begin
+  Result := FFontSize;
+end;
+
+procedure TFrmEditor.LoadFromFile(const AFileName: string);
+begin
+  TLogPreview.Add('TFrmEditor.LoadFromFile Init');
+  FFileName := AFileName;
   SynEdit.Lines.LoadFromFile(FFileName);
-  TLogPreview.Add('TFrmEditor.LoadFile Done');
+  SVGIconImage.SVGText := SynEdit.Lines.Text;
+  TLogPreview.Add('TFrmEditor.LoadFromFile Done');
+end;
+
+procedure TFrmEditor.LoadFromStream(const AStream: TStream);
+begin
+  TLogPreview.Add('TFrmEditor.LoadFromStream Init');
+  AStream.Position := 0;
+  SynEdit.Lines.LoadFromStream(AStream);
+  SVGIconImage.LoadFromStream(AStream);
+  TLogPreview.Add('TFrmEditor.LoadFromStream Done');
+end;
+
+procedure TFrmEditor.SaveSettings;
+begin
+  if Assigned(FSettings) then
+  begin
+    FSettings.UpdateSettings(SynEdit.Font.Name,
+      EditorFontSize,
+      PanelEditor.Visible);
+    FSettings.WriteSettings;
+  end;
+end;
+
+procedure TFrmEditor.ScaleControls(const ANewPPI: Integer);
+var
+  LCurrentPPI: Integer;
+  LScaleFactor: Integer;
+begin
+  LCurrentPPI := FCurrentPPI;
+  if ANewPPI <> LCurrentPPI then
+    SVGIconImageList.Size := MulDiv(SVGIconImageList.Size, ANewPPI, LCurrentPPI);
+end;
+
+procedure TFrmEditor.SetEditorFontSize(const Value: Integer);
+var
+  LScaleFactor: Single;
+begin
+  if (Value >= MinfontSize) and (Value <= MaxfontSize) then
+  begin
+    TLogPreview.Add('TFrmEditor.SetEditorFontSize'+
+      ' CurrentPPI: '+Self.CurrentPPI.ToString+
+      ' ScaleFactor: '+ScaleFactor.ToString+
+      ' Value: '+Value.ToString);
+    if FFontSize <> 0 then
+      LScaleFactor := SynEdit.Font.Size / FFontSize
+    else
+      LScaleFactor := 1;
+    FFontSize := Value;
+    SynEdit.Font.Size := Round(FFontSize * LScaleFactor);
+    SynEdit.Gutter.Font.Size := SynEdit.Font.Size;
+  end;
 end;
 
 procedure TFrmEditor.ShowSearchDialog;
@@ -224,7 +364,7 @@ begin
       exit;
     end;
 
-  StatusBar1.SimpleText := '';
+  StatusBar.SimpleText := '';
   LTextSearchDialog := TTextSearchDialog.Create(Self);
   try
     LTextSearchDialog.SearchBackwards := gbSearchBackwards;
@@ -274,6 +414,20 @@ begin
   end;
 end;
 
+procedure TFrmEditor.SplitterMoved(Sender: TObject);
+begin
+  FSettings.SplitterPos := splitter.Top * 100 div
+    (Self.Height - Toolbar.Height);
+  SaveSettings;
+end;
+
+procedure TFrmEditor.ToolButtonShowTextClick(Sender: TObject);
+begin
+  PanelEditor.Visible := not PanelEditor.Visible;
+  UpdateGUI;
+  SaveSettings;
+end;
+
 procedure TFrmEditor.ToolButtonAboutClick(Sender: TObject);
 var
   LFrm: TFrmAbout;
@@ -303,47 +457,43 @@ begin
   end;
 end;
 
-procedure TFrmEditor.ToolButtonEditClick(Sender: TObject);
+procedure TFrmEditor.ToolButtonMouseEnter(Sender: TObject);
 begin
-  ShowMessage('SVG Editor... coming soon');
+  StatusBar.SimpleText := (Sender as TToolButton).Hint;
 end;
 
-procedure TFrmEditor.ToolButtonSaveClick(Sender: TObject);
-var
-  LFrm: TFrmSettings;
-  LRect: TRect;
-  i: integer;
+procedure TFrmEditor.ToolButtonMouseLeave(Sender: TObject);
 begin
+  StatusBar.SimpleText := FSimpleText;
+end;
 
-  for i := 0 to Screen.FormCount - 1 do
-    if Screen.Forms[i].ClassType = TFrmSettings then
-    begin
-      Screen.Forms[i].BringToFront;
-      exit;
-    end;
+procedure TFrmEditor.ToolButtonReformatClick(Sender: TObject);
+begin
+  SynEdit.Lines.Text := Xml.XMLDoc.FormatXMLData(SynEdit.Lines.Text);
+end;
 
-  LFrm := TFrmSettings.Create(nil);
-  try
-    LFrm.LoadCurrentValues(SynEdit);
-    if Self.Parent <> nil then
-    begin
-      GetWindowRect(Self.Parent.ParentWindow, LRect);
-      LFrm.Left := (LRect.Left + LRect.Right - LFrm.Width) div 2;
-      LFrm.Top := (LRect.Top + LRect.Bottom - LFrm.Height) div 2;
-    end;
-    // if Self.Parent <> nil then
-    // LFrm.ParentWindow:=Self.Parent.ParentWindow;
+procedure TFrmEditor.UpdateFromSettings;
+begin
+  FSettings.ReadSettings;
+  if FSettings.FontSize >= MinfontSize then
+    EditorFontSize := FSettings.FontSize
+  else
+    EditorFontSize := MinfontSize;
+  SynEdit.Font.Name := FSettings.FontName;
+  PanelEditor.Visible := FSettings.ShowEditor;
+  UpdateGUI;
+end;
 
-    LFrm.ShowModal();
-    if LFrm.SettingsChanged then
-    begin
-      FSettings.ReadSettings;
-      SynEdit.Font.Size := FSettings.FontSize;
-      SynEdit.Font.Name := FSettings.FontName;
-    end;
-
-  finally
-    LFrm.Free;
+procedure TFrmEditor.ToolButtonFontClick(Sender: TObject);
+begin
+  FontDialog.Font.Assign(SynEdit.Font);
+  FontDialog.Font.Size := EditorFontSize;
+  if FontDialog.Execute then
+  begin
+    FSettings.FontName := FontDialog.Font.Name;
+    FSettings.FontSize := FontDialog.Font.Size;
+    FSettings.WriteSettings;
+    UpdateFromSettings;
   end;
 end;
 
@@ -359,14 +509,14 @@ end;
 
 procedure TFrmEditor.ToolButtonZommOutClick(Sender: TObject);
 begin
-  if SynEdit.Font.Size > MinfontSize then
-    SynEdit.Font.Size := SynEdit.Font.Size - 1;
+  EditorFontSize := EditorFontSize - 1;
+  SaveSettings;
 end;
 
 procedure TFrmEditor.ToolButtonZoomInClick(Sender: TObject);
 begin
-  if SynEdit.Font.Size < MaxfontSize then
-    SynEdit.Font.Size := SynEdit.Font.Size + 1;
+  EditorFontSize := EditorFontSize + 1;
+  SaveSettings;
 end;
 
 end.

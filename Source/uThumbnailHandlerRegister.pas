@@ -22,14 +22,8 @@
 {  See the License for the specific language governing permissions and         }
 {  limitations under the License.                                              }
 {                                                                              }
-{  The Original Code is:                                                       }
-{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
-{                                                                              }
-{  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
-{  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
-{  All Rights Reserved.                                                        }
 {******************************************************************************}
-unit uPreviewHandlerRegister;
+unit uThumbnailHandlerRegister;
 
 interface
 
@@ -37,21 +31,21 @@ uses
   ComObj,
   Classes,
   Windows,
-  uPreviewHandler;
+  uSVGThumbnailHandler;
 
 type
-  TPreviewHandlerRegister = class(TComObjectFactory)
+  TThumbnailHandlerRegister = class(TComObjectFactory)
   private
-    FPreviewHandlerClass: TPreviewHandlerClass;
+    FTThumbnailHandlerClass: TThumbnailHandlerClass;
     class procedure DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
   protected
   public
-    constructor Create(APreviewHandlerClass: TPreviewHandlerClass;
+    constructor Create(ATThumbnailHandlerClass: TThumbnailHandlerClass;
       const APreviewClassID: TGUID; const AName, ADescription: string);
     destructor Destroy; override;
     function CreateComObject(const Controller: IUnknown): TComObject; override;
     procedure UpdateRegistry(Register: Boolean); override;
-    property PreviewHandlerClass: TPreviewHandlerClass read FPreviewHandlerClass;
+    property TThumbnailHandlerClass: TThumbnailHandlerClass read FTThumbnailHandlerClass;
   end;
 
 
@@ -65,21 +59,21 @@ uses
   System.Win.ComConst,
   ComServ;
 
-constructor TPreviewHandlerRegister.Create(APreviewHandlerClass: TPreviewHandlerClass;
+constructor TThumbnailHandlerRegister.Create(ATThumbnailHandlerClass: TThumbnailHandlerClass;
   const APreviewClassID: TGUID;  const AName, ADescription: string);
 begin
-  inherited Create(ComServ.ComServer, APreviewHandlerClass.GetComClass,
-    APreviewClassID, AName, ADescription, ciMultiInstance, tmApartment);
-  FPreviewHandlerClass := APreviewHandlerClass;
+  inherited Create(ComServ.ComServer, ATThumbnailHandlerClass.GetComClass,
+    APreviewClassID, AName, ADescription, ciMultiInstance, tmBoth);
+  FTThumbnailHandlerClass := ATThumbnailHandlerClass;
 end;
 
-function TPreviewHandlerRegister.CreateComObject(const Controller: IUnknown): TComObject;
+function TThumbnailHandlerRegister.CreateComObject(const Controller: IUnknown): TComObject;
 begin
   result := inherited CreateComObject(Controller);
-  TComPreviewHandler(result).PreviewHandlerClass := PreviewHandlerClass;
+  TComSVGThumbnailProvider(result).ThumbnailHandlerClass := TThumbnailHandlerClass;
 end;
 
-class procedure TPreviewHandlerRegister.DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
+class procedure TThumbnailHandlerRegister.DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
 var
   RegKey: HKEY;
 begin
@@ -93,14 +87,12 @@ begin
   end;
 end;
 
-destructor TPreviewHandlerRegister.Destroy;
+destructor TThumbnailHandlerRegister.Destroy;
 begin
   inherited;
 end;
 
-//How to Register a Preview Handler
-//http://msdn.microsoft.com/en-us/library/cc144144%28v=vs.85%29.aspx
-procedure TPreviewHandlerRegister.UpdateRegistry(Register: Boolean);
+procedure TThumbnailHandlerRegister.UpdateRegistry(Register: Boolean);
 
     function IsWow64Process: Boolean;
     type
@@ -158,9 +150,6 @@ procedure TPreviewHandlerRegister.UpdateRegistry(Register: Boolean);
     if Status <> 0 then raise EOleRegistrationError.CreateRes(@SCreateRegKeyError);
   end;
 
-const
-  Prevhost_32 = '{534A1E02-D58F-44f0-B58B-36CBED287C7C}';
-  Prevhost_64 = '{6d2b5079-2f0b-48dd-ab7f-97cec514d30b}';
 var
   RootKey: HKEY;
   RootUserReg: HKEY;
@@ -175,40 +164,39 @@ begin
   if Instancing = ciInternal then
     Exit;
 
+(*
+<!-- Registry Key for Class Registration of Svg Thumbnail Provider -->
+            <RegistryValue Type="string" Key="InprocServer32" Value="[FileExplorerPreviewInstallFolder]SvgThumbnailProvider.comhost.dll" />
+            <RegistryValue Type="string" Key="InprocServer32" Name="Assembly" Value="SvgThumbnailProvider, Version=$(var.Version).0, Culture=neutral" />
+            <RegistryValue Type="string" Key="InprocServer32\$(var.Version).0" Name="Assembly" Value="SvgThumbnailProvider, Version=$(var.Version).0, Culture=neutral" />
+            <RegistryValue Type="string" Key="InprocServer32\$(var.Version).0" Name="Class" Value="Microsoft.PowerToys.ThumbnailHandler.Svg.SvgThumbnailProvider" />
+        </RegistryKey>
+*)
   ComServer.GetRegRootAndPrefix(RootKey, RootPrefix);
   RootUserReg := IfThen(ComServer.PerUserRegistration, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE);
   sClassID := SysUtils.GUIDToString(ClassID);
   ProgID := GetProgID;
   sComServerKey := Format('%sCLSID\%s\%s',[RootPrefix,sClassID,ComServer.ServerKey]);
-  sAppID := IfThen(IsWow64Process, Prevhost_32, Prevhost_64);
+  sAppID := ThumbnailProviderGUID;
   if Register then
   begin
     inherited UpdateRegistry(True);
-
     LRegKey := Format('%sCLSID\%s',[RootPrefix, sClassID]);
     CreateRegKey(LRegKey, 'AppID', sAppID, RootKey);
-    CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Preview Handler', RootKey);
-    CreateRegKeyDWORD(LRegKey, 'DisableLowILProcessIsolation', 1, RootKey);
-    CreateRegKeyREG_SZ(LRegKey, 'DllSurrogate', '%SystemRoot%\system32\prevhost.exe', RootKey);
+    CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Thumbnail Provider', RootKey);
+    CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Thumbnail Provider', RootKey);
+
+    //CreateRegKeyREG_SZ(LRegKey, 'DllSurrogate', '%SystemRoot%\system32\prevhost.exe', RootKey);
+    //CreateRegKeyDWORD(LRegKey, 'DisableLowILProcessIsolation', 1, RootKey);
 
     if ProgID <> '' then
     begin
-      //RegPrefix     HKEY_CLASSES_ROOT
-      //ServerKeyName CLSID\{AD8855FB-F908-4DDF-982C-ADB9DE5FF000}\InprocServer32
-      //ProgID        DelphiPreviewHandler.Delphi project file
-      //RootKey       2147483648
-      //sClassID      {AD8855FB-F908-4DDF-982C-ADB9DE5FF000}
-      //FileExtension .dpr
-      //RootKey2      HKEY_LOCAL_MACHINE
-
       CreateRegKey(sComServerKey, 'ProgID', ProgID, RootKey);
 
       //Add extension for .svg files
-      CreateRegKey(RootPrefix + '.svg' + '\shellex\' + SID_IPreviewHandler, '', sClassID, RootKey);
-
+      CreateRegKey(RootPrefix + '.svg' + '\shellex\' + ThumbnailProviderGUID, '', sClassID, RootKey);
       CreateRegKey(sComServerKey, 'VersionIndependentProgID', ProgID, RootKey);
-      CreateRegKey(RootPrefix + ProgID + '\shellex\' + SID_IPreviewHandler, '', sClassID, RootKey);
-      CreateRegKey('SOFTWARE\Microsoft\Windows\CurrentVersion\PreviewHandlers', sClassID, Description, RootUserReg);
+      CreateRegKey(RootPrefix + ProgID + '\shellex\' + ThumbnailProviderGUID, '', sClassID, RootKey);
     end;
   end
   else
@@ -217,10 +205,10 @@ begin
     begin
       DeleteRegValue('SOFTWARE\Microsoft\Windows\CurrentVersion\PreviewHandlers', sClassID, RootUserReg);
       DeleteRegKey(RootPrefix + ProgID + '\shellex', RootKey);
-      DeleteRegValue(Format('%sCLSID\%s',[RootPrefix, sClassID]), 'DllSurrogate', RootKey);
-      DeleteRegValue(Format('%sCLSID\%s',[RootPrefix, sClassID]), 'DisableLowILProcessIsolation', RootKey);
+      DeleteRegValue(LRegKey, 'DllSurrogate', RootKey);
+      DeleteRegValue(LRegKey, 'DisableLowILProcessIsolation', RootKey);
       //Delete extension for svg
-      DeleteRegKey(RootPrefix + '.svg' + '\shellex\' + SID_IPreviewHandler, RootKey);
+      DeleteRegKey(RootPrefix + '.svg' + '\shellex\' + ThumbnailProviderGUID, RootKey);
     end;
     inherited UpdateRegistry(False);
   end;
