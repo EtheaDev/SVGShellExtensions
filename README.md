@@ -56,3 +56,28 @@ version of SVG Shell Extensions.
 - Added SVG file Preview panel
 08 Feb 2021
 - Added SVG Thumbnail Provider
+
+## Credits ##
+
+Many thanks to (Rodrigo Ruz V.)[https://theroadtodelphi.com/] for his wonderful work on (delphi-preview-handler) [https://github.com/RRUZ/delphi-preview-handler] from which this project has used a lot of code and inspiration.
+
+## License ##
+
+Licensed under the Apache License, Version 2.0 (the "License");
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+Third Party libraries and tools used from Ethea:
+
+- SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/
+
+The Initial Developer of the Original Code is Rodrigo Ruz V. Portions created by Rodrigo Ruz V. are Copyright © 2011-2021 Rodrigo Ruz V.
+
+(https://github.com/RRUZ/delphi-preview-handler)[https://github.com/RRUZ/delphi-preview-handler]
+
+Third Party libraries and tools used:
+
+- VCLStyles Utils (https://github.com/RRUZ/vcl-styles-utils)[https://github.com/RRUZ/vcl-styles-utils]
+
+- SynEdit (http://synedit.svn.sourceforge.net/viewvc/synedit/)[http://synedit.svn.sourceforge.net/viewvc/synedit/]
+
+- TSVG Library - http://www.mwcs.de
