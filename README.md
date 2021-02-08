@@ -4,7 +4,7 @@
 
 - a [Preview handler](http://msdn.microsoft.com/en-us/magazine/cc163487.aspx)  which allows you to see the SVG image without open it, in the "Preview Panel".
  
-- (TODO) a [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image without open it, in the "Preview Panel".
+- (WORKING) [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image without open it, into Explorer.
 
 - (TODO) an SVG-XML Text Editor to manually edit and preview the text of SVG files.
 
@@ -23,7 +23,20 @@ In Windows 10 with Dark theme:
 
 ![Preview Panel Dark](./Images/PreviewPanelDark.png)
 
+### Thumbnails ###
+
+In Windows 10 with Light theme:
+
+![Preview Thumbnails Light](./Images/PreviewThumbnailsLight.png)
+
+In Windows 10 with Dark theme:
+
+![Preview Thumbnails Dark](./Images/PreviewThumbnailsDark.png)
+
 ### Important Note about installing a new version ###
+
+The work is in progress...
+
 In order to avoid problems you must follow these steps when you install or register a new 
 version of SVG Shell Extensions.
 
@@ -41,3 +54,5 @@ version of SVG Shell Extensions.
 
 31 Jan 2021
 - Added SVG file Preview panel
+08 Feb 2021
+- Added SVG Thumbnail Provider
