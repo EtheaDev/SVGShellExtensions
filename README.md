@@ -13,17 +13,7 @@
 * Supports Windows Vista, 7, 8 and 10 on 32 and 64 bits.
 * Themes (Dark and Light) according to user preferences of Windows Theme
 
-### Preview Panel ###
-
-In Windows 10 with Light theme:
-
-![Preview Panel Light](./Images/PreviewPanelLight.png)
-
-In Windows 10 with Dark theme:
-
-![Preview Panel Dark](./Images/PreviewPanelDark.png)
-
-### Thumbnails ###
+### Preview Panel and Thumbnails in action ###
 
 In Windows 10 with Light theme:
 
@@ -33,20 +23,16 @@ In Windows 10 with Dark theme:
 
 ![Preview Thumbnails Dark](./Images/PreviewThumbnailsDark.png)
 
-### Important Note about installing a new version ###
+### Setup ###
 
-The work is in progress...
-
-In order to avoid problems you must follow these steps when you install or register a new 
-version of SVG Shell Extensions.
+If you have Delphi 10.4 Sydney, you can manually build the project and install the SVGShellExtensions.dll following these steps:
 
   1. Close all the windows explorer instances which have the preview handler active or the
      preview handler was used (remember the dll remains in memory until the windows explorer 
      was closed).
   2. Unregister the previous version executing the uninstaller located in 
-     `C:\Program Files (x86)\Ethea\SVGShellExtensions` or 
      `C:\Program Files\Ethea\SVGShellExtensions`
-  3. If you install the SVG Shell Extensions manually you must unregister using the `UnRegister.bat`
+  3. If you install the SVG Shell Extensions manually you must unregister using the `UnRegister64Bit.bat`
      running as admin.
   4. Now proceed with the installation of the new version.
 
