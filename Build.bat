@@ -1,5 +1,5 @@
 call "C:\BDS\Studio\21.0\bin\rsvars.bat"
-msbuild.exe "Source\SVGShellExtensions.dproj" /target:Clean;Build /p:Platform=Win32 /p:config=release /p:DCC_DebugInformation=2 
+msbuild.exe "Source\SVGShellExtensions.dproj" /target:Clean;Build /p:Platform=Win64 /p:config=release 
 set BUILD_STATUS=%ERRORLEVEL%
 if %BUILD_STATUS%==0 GOTO INNO
 pause

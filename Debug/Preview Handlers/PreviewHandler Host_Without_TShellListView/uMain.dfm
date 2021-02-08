@@ -22,7 +22,6 @@ object FrmMain: TFrmMain
     Height = 49
     Align = alTop
     TabOrder = 0
-    ExplicitWidth = 455
     DesignSize = (
       432
       49)
@@ -34,7 +33,6 @@ object FrmMain: TFrmMain
       Anchors = [akLeft, akTop, akRight]
       Enabled = False
       TabOrder = 0
-      ExplicitWidth = 345
     end
     object Button1: TButton
       Left = 344
@@ -45,7 +43,6 @@ object FrmMain: TFrmMain
       Caption = 'Select File'
       TabOrder = 1
       OnClick = Button1Click
-      ExplicitLeft = 367
     end
   end
   object RadioGroup: TRadioGroup

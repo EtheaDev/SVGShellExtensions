@@ -41,7 +41,7 @@ uses
   ActiveX;
 
 const
-  SVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
+  MySVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
 
 type
   TSVGThumbnailProvider = class abstract

@@ -94,24 +94,6 @@ end;
 
 procedure TThumbnailHandlerRegister.UpdateRegistry(Register: Boolean);
 
-    function IsWow64Process: Boolean;
-    type
-      TIsWow64Process = function( hProcess: Windows.THandle; var Wow64Process: Windows.BOOL): Windows.BOOL; stdcall;
-    var
-      IsWow64Process: TIsWow64Process;
-      Wow64Process: Windows.BOOL;
-    begin
-      Result := False;
-      IsWow64Process := GetProcAddress(GetModuleHandle(Windows.kernel32), 'IsWow64Process');
-      if Assigned(IsWow64Process) then
-      begin
-        if not IsWow64Process(GetCurrentProcess, Wow64Process) then
-         Raise Exception.Create('Invalid handle');
-        Result := Wow64Process;
-      end;
-    end;
-
-
     procedure CreateRegKeyDWORD(const Key, ValueName: string;Value: DWORD; RootKey: HKEY);
     var
       Handle: HKey;
@@ -184,9 +166,7 @@ begin
     LRegKey := Format('%sCLSID\%s',[RootPrefix, sClassID]);
     CreateRegKey(LRegKey, 'AppID', sAppID, RootKey);
     CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Thumbnail Provider', RootKey);
-    CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Thumbnail Provider', RootKey);
-
-    //CreateRegKeyREG_SZ(LRegKey, 'DllSurrogate', '%SystemRoot%\system32\prevhost.exe', RootKey);
+    CreateRegKeyREG_SZ(LRegKey, 'DllSurrogate', '%SystemRoot%\system32\prevhost.exe', RootKey);
     //CreateRegKeyDWORD(LRegKey, 'DisableLowILProcessIsolation', 1, RootKey);
 
     if ProgID <> '' then
@@ -194,9 +174,11 @@ begin
       CreateRegKey(sComServerKey, 'ProgID', ProgID, RootKey);
 
       //Add extension for .svg files
-      CreateRegKey(RootPrefix + '.svg' + '\shellex\' + ThumbnailProviderGUID, '', sClassID, RootKey);
+      LRegKey := RootPrefix + '.svg' + '\shellex\' + ThumbnailProviderGUID;
+      CreateRegKey(LRegKey, '', sClassID, RootKey);
       CreateRegKey(sComServerKey, 'VersionIndependentProgID', ProgID, RootKey);
-      CreateRegKey(RootPrefix + ProgID + '\shellex\' + ThumbnailProviderGUID, '', sClassID, RootKey);
+      LRegKey := RootPrefix + ProgID + '\shellex\' + ThumbnailProviderGUID;
+      CreateRegKey(LRegKey, '', sClassID, RootKey);
     end;
   end
   else

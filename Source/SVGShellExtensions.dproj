@@ -1,13 +1,13 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{8F3F28E2-735C-49BE-8B07-1DB5F21482E8}</ProjectGuid>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-        <ProjectVersion>19.1</ProjectVersion>
+        <ProjectVersion>19.2</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <TargetedPlatforms>3</TargetedPlatforms>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <TargetedPlatforms>2</TargetedPlatforms>
         <AppType>Library</AppType>
         <MainSource>SVGShellExtensions.dpr</MainSource>
     </PropertyGroup>
@@ -64,17 +64,16 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
-        <Custom_Styles>&quot;Windows10|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10.vsf;&quot;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf;&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;</Custom_Styles>
+        <Custom_Styles>&quot;Glow|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glow.vsf;&quot;&quot;Windows10|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10.vsf;&quot;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf;&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;</Custom_Styles>
         <DCC_UsePackage>rtl;vcl;vclx;vclactnband;xmlrtl;VclSmp;vclimg;svnui;svn;bdertl;TeeUI;TeeDB;Tee;vcldb;dbrtl;vcldbx;vcltouch;dsnap;dsnapcon;vclib;ibxpress;adortl;IndyCore;IndySystem;IndyProtocols;inet;intrawebdb_110_150;Intraweb_110_150;vclie;websnap;webdsnap;inetdb;inetdbbde;inetdbxpress;soaprtl;vclribbon;dbexpress;DbxCommonDriver;DataSnapIndy10ServerTransport;DataSnapProviderClient;DbxClientDriver;DataSnapClient;dbxcds;DataSnapServer;AzureCloud;DBXInterBaseDriver;DBXMySQLDriver;DBXFirebirdDriver;DBXSybaseASEDriver;DBXSybaseASADriver;DBXOracleDriver;DBXMSSQLDriver;DBXInformixDriver;DBXDb2Driver;Hydra_Core_D15;SynEdit_RXE;mbColorLibDXE;JclDeveloperTools;Jcl;JclVcl;JclContainers;JvCore;JvSystem;JvStdCtrls;JvAppFrm;JvBands;JvDB;JvDlgs;JvBDE;JvControls;JvCmp;JvCrypt;JvCustom;JvDocking;JvDotNetCtrls;JvGlobus;JvHMI;JvJans;JvManagedThreads;JvMM;JvNet;JvPageComps;JvPascalInterpreter;JvPluginSystem;JvPrintPreview;JvRuntimeDesign;JvTimeFramework;JvWizards;JvXPCtrls;WinSkinDXE;bsfd2011;IceTabSet;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_DcuOutput>.\$(Config)\$(Platform)</DCC_DcuOutput>
         <GenDll>true</GenDll>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <DCC_UnitSearchPath>D:\ETHEA\UniSynEdit\Source;D:\ETHEA\SVGIconImageList\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\UniSynEdit\Source;..\..\SVGIconImageList\Source;..\..\SVGIconImageList\SVG;..\..\VCLStyleUtils\Common;..\..\VCLStyleUtils\DDetours;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>.\..</DCC_ExeOutput>
         <DCC_Define>NO_UEDITOR;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <Debugger_HostApplication>D:\ETHEA\SVGShellExtensions\Debug\Preview Handlers\PreviewHandler Host\Bin\PreviewHost.exe</Debugger_HostApplication>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -99,13 +98,13 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-        <Debugger_CWD>C:\Windows\System32\</Debugger_CWD>
+        <Debugger_CWD>c:\Windows\SysWoW64</Debugger_CWD>
         <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 32 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 32 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <Debugger_RunParams>D:\ETHEA\SVGShellExtensions\SVGShellExtensions.dll</Debugger_RunParams>
+        <Debugger_HostApplication>c:\Windows\SysWoW64\regsvr32.exe</Debugger_HostApplication>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
-        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
         <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
         <Debugger_CWD>C:\Windows</Debugger_CWD>
         <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
@@ -118,7 +117,6 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
-        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
         <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 32 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 32 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
@@ -149,7 +147,6 @@
         <DCCReference Include="dlgSearchText.pas">
             <Form>TextSearchDialog</Form>
         </DCCReference>
-        <DCCReference Include="uEditor.pas"/>
         <DCCReference Include="SVGEditor.pas">
             <Form>FrmEditor</Form>
         </DCCReference>
@@ -213,7 +210,7 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
-                <Platform value="Win32">True</Platform>
+                <Platform value="Win32">False</Platform>
                 <Platform value="Win64">True</Platform>
             </Platforms>
             <Deployment Version="3">
@@ -362,6 +359,16 @@
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>res\drawable-xxhdpi</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="Android_LauncherIcon192">
+                    <Platform Name="Android">
+                        <RemoteDir>res\drawable-xxxhdpi</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>res\drawable-xxxhdpi</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>

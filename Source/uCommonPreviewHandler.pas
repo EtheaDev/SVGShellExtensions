@@ -25,16 +25,11 @@ interface
 {$DEFINE USE_TStreamPreviewHandler}
 
 uses
-//  uStackTrace,
   Classes,
   Controls,
   StdCtrls,
   SysUtils,
-{$IFDEF UEDITOR}
-    uEditor,
-{$ELSE}
-    SVGEditor,
-{$ENDIF}
+  SVGEditor,
 {$IFDEF USE_TStreamPreviewHandler}
   uStreamAdapter,
   uStreamPreviewHandler,

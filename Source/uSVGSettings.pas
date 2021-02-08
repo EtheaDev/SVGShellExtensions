@@ -126,7 +126,8 @@ begin
       if LightTheme = 0 then
       begin
         FUseDarkStyle := True;
-        FStyleName := 'Windows10 SlateGray';
+        FStyleName := 'Glow';
+        //FStyleName := 'Windows10 SlateGray';
         //FStyleName := 'Windows10 Dark';
         //FStyleName := 'Windows';
       end

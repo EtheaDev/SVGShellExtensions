@@ -21,15 +21,12 @@ object FrmEditor: TFrmEditor
     Left = 0
     Top = 329
     Width = 888
-    Height = 8
+    Height = 6
     Cursor = crVSplit
     Align = alTop
     AutoSnap = False
     MinSize = 100
     OnMoved = SplitterMoved
-    ExplicitLeft = 2
-    ExplicitTop = 256
-    ExplicitWidth = 886
   end
   object PanelTop: TPanel
     Left = 0
@@ -152,7 +149,7 @@ object FrmEditor: TFrmEditor
         AutoSize = True
         Caption = 'Search...'
         ImageIndex = 2
-        ImageName = 'fine_print'
+        ImageName = 'search'
         Visible = False
         OnClick = ToolButtonSearchClick
         OnMouseEnter = ToolButtonMouseEnter
@@ -199,8 +196,6 @@ object FrmEditor: TFrmEditor
       Highlighter = SynXMLSyn
       ReadOnly = True
       FontSmoothing = fsmNone
-      ExplicitLeft = 0
-      ExplicitTop = -3
     end
   end
   object StatusBar: TStatusBar
@@ -219,26 +214,20 @@ object FrmEditor: TFrmEditor
   end
   object ImagePanel: TPanel
     Left = 0
-    Top = 337
+    Top = 335
     Width = 888
-    Height = 187
+    Height = 189
     Align = alClient
     BevelOuter = bvLowered
     TabOrder = 3
-    ExplicitLeft = 1
-    ExplicitTop = 264
-    ExplicitWidth = 886
-    ExplicitHeight = 224
     object SVGIconImage: TSVGIconImage
       Left = 1
       Top = 1
       Width = 886
-      Height = 185
+      Height = 187
       AutoSize = False
       Proportional = True
       Align = alClient
-      ExplicitWidth = 884
-      ExplicitHeight = 222
     end
   end
   object SynXMLSyn: TSynXMLSyn
@@ -288,25 +277,20 @@ object FrmEditor: TFrmEditor
           '/svg>'#13#10
       end
       item
-        IconName = 'fine_print'
+        IconName = 'search'
         SVGText = 
           '<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0' +
-          ' 48 48" enable-background="new 0 0 48 48">'#13#10'    <polygon fill="#' +
-          '90CAF9" points="33,42 5,42 5,4 24,4 33,13"/>'#13#10'    <polygon fill=' +
-          '"#E1F5FE" points="31.5,14 23,14 23,5.5"/>'#13#10'    <rect x="38.3" y=' +
-          '"34.8" transform="matrix(.707 -.707 .707 .707 -17.177 40.055)" f' +
-          'ill="#616161" width="2.8" height="12"/>'#13#10'    <circle fill="#6161' +
-          '61" cx="28" cy="29" r="11"/>'#13#10'    <circle fill="#90CAF9" cx="28"' +
-          ' cy="29" r="9"/>'#13#10'    <rect x="39.5" y="37.6" transform="matrix(' +
-          '.707 -.707 .707 .707 -17.661 41.223)" fill="#37474F" width="2.8"' +
-          ' height="8.7"/>'#13#10'    <g fill="#1976D2">'#13#10'        <path d="M30,31' +
-          'h-9.7c0.4,1.6,1.3,3,2.5,4H30V31z"/>'#13#10'        <path d="M20.3,27H3' +
-          '0v-4h-7.3C21.5,24,20.7,25.4,20.3,27z"/>'#13#10'        <path d="M20.1,' +
-          '20H11v2h7.3C18.8,21.3,19.4,20.6,20.1,20z"/>'#13#10'        <path d="M1' +
-          '7.1,24H11v2h5.4C16.6,25.3,16.8,24.6,17.1,24z"/>'#13#10'        <path d' +
-          '="M16,29c0-0.3,0-0.7,0.1-1H11v2h5.1C16,29.7,16,29.3,16,29z"/>'#13#10' ' +
-          '       <path d="M16.4,32H11v2h6.1C16.8,33.4,16.6,32.7,16.4,32z"/' +
-          '>'#13#10'    </g>'#13#10'</svg>'#13#10
+          ' 48 48" enable-background="new 0 0 48 48">'#13#10'    <g fill="#616161' +
+          '">'#13#10'        <rect x="34.6" y="28.1" transform="matrix(.707 -.707' +
+          ' .707 .707 -15.154 36.586)" width="4" height="17"/>'#13#10'        <ci' +
+          'rcle cx="20" cy="20" r="16"/>'#13#10'    </g>'#13#10'    <rect x="36.2" y="3' +
+          '2.1" transform="matrix(.707 -.707 .707 .707 -15.839 38.239)" fil' +
+          'l="#37474F" width="4" height="12.3"/>'#13#10'    <circle fill="#64B5F6' +
+          '" cx="20" cy="20" r="13"/>'#13#10'    <path fill="#BBDEFB" d="M26.9,14' +
+          '.2c-1.7-2-4.2-3.2-6.9-3.2s-5.2,1.2-6.9,3.2c-0.4,0.4-0.3,1.1,0.1,' +
+          '1.4c0.4,0.4,1.1,0.3,1.4-0.1 C16,13.9,17.9,13,20,13s4,0.9,5.4,2.5' +
+          'c0.2,0.2,0.5,0.4,0.8,0.4c0.2,0,0.5-0.1,0.6-0.2C27.2,15.3,27.2,14' +
+          '.6,26.9,14.2z"/>'#13#10'</svg>'#13#10
       end
       item
         IconName = 'settings'

@@ -30,9 +30,8 @@
 {  All Rights Reserved.                                                        }
 {******************************************************************************}
 library SVGShellExtensions;
-
 uses
- ComServ,
+ComServ,
   Main in 'Main.pas',
   uPreviewHandler in 'uPreviewHandler.pas',
   uMisc in 'uMisc.pas',
@@ -48,12 +47,7 @@ uses
   uThumbnailHandlerRegister in 'uThumbnailHandlerRegister.pas',
   uAbout in 'uAbout.pas' {FrmAbout},
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
-  {$IFDEF UEDITOR}
-  uEditor in 'uEditor.pas' {FrmEditor},
-  {$ELSE}
   SVGEditor in 'SVGEditor.pas' {FrmEditor},
-  {$ENDIF }
-  //uSVGThumbnailHandler in 'uSVGThumbnailHandler.pas',
   uSVGSettings in 'uSVGSettings.pas';
 
 exports
@@ -62,8 +56,6 @@ exports
   DllRegisterServer,
   DllUnregisterServer,
   DllInstall;
-
 {$R *.RES}
-
 begin
 end.

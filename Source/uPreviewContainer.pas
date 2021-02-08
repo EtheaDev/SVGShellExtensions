@@ -44,11 +44,9 @@ type
   private
     FPreviewHandler: TObject;
   public
-    //procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     procedure SetFocusTabFirst;
     procedure SetFocusTabLast;
     procedure SetBackgroundColor(color: TColorRef);
-    //procedure SetBoundsRect(const ARect: TRect);
     procedure SetBoundsRectAndPPI(const ARect: TRect;
       const AOldPPI, ANewPPI: Integer); virtual;
     procedure SetTextColor(color: TColorRef);
@@ -108,34 +106,6 @@ procedure TPreviewContainer.SetBackgroundColor(color: TColorRef);
 begin
 end;
 
-(*
-procedure TPreviewContainer.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
-begin
-  if not (csLoading in componentstate) and (AWidth <> 320) and (AHeight <> 240)
-    and (AWidth <> 0) and (AHeight <> 0) then
-  begin
-    TLogPreview.Add('TPreviewContainer.SetBounds'+
-      ' ScaleFactor: '+Self.ScaleFactor.ToString+
-      ' CurrentPPI: '+Self.CurrentPPI.ToString+
-//      ' Scaled: '+Self.Scaled.ToString+
-      ' Width: '+Width.ToString+
-      ' Height: '+Height.ToString+
-      ' AWidth: '+AWidth.ToString+
-      ' AHeight: '+AHeight.ToString);
-  end;
-  inherited;
-  if not (csLoading in componentstate) and (AWidth <> 320) and (AHeight <> 240)
-    and (AWidth <> 0) and (AHeight <> 0) then
-  begin
-    TLogPreview.Add('TPreviewContainer.SetBounds'+
-      ' ScaleFactor: '+Self.ScaleFactor.ToString+
-      ' CurrentPPI: '+Self.CurrentPPI.ToString+
-//      ' Scaled: '+Self.Scaled.ToString+
-      ' Width: '+Width.ToString+
-      ' Height: '+Height.ToString);
-  end;
-end;
-*)
 procedure TPreviewContainer.SetBoundsRectAndPPI(const ARect: TRect;
   const AOldPPI, ANewPPI: Integer);
 begin
@@ -150,7 +120,7 @@ begin
       ' ARect.Width: '+ARect.Width.ToString+
       ' ARect.Height: '+ARect.Height.ToString);
 
-      if ANewPPI > AOldPPI then
+      if ANewPPI <> AOldPPI then
       begin
         SetBounds(
           ARect.Left,
@@ -165,19 +135,11 @@ begin
           ARect.Top,
           ARect.Width,
           ARect.Height);
-        //ClientPanel.ScaleForPPI(ANewPPI);
       end;
 
     FCurrentPPI := ANewPPI;
   end;
 end;
-
-(*
-procedure TPreviewContainer.SetBoundsRect(const ARect: TRect);
-begin
-  SetBounds(ARect.Left, ARect.Top, ARect.Right - ARect.Left, ARect.Bottom - ARect.Top);
-end;
-*)
 
 procedure TPreviewContainer.SetTextColor(color: TColorRef);
 begin

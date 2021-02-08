@@ -50,7 +50,7 @@ type
       const APreviewClassID: TGUID; const AName, ADescription: string);
     destructor Destroy; override;
     function CreateComObject(const Controller: IUnknown): TComObject; override;
-    procedure UpdateRegistry(Register: Boolean); override;
+    procedure UpdateRegistry(ARegister: Boolean); override;
     property PreviewHandlerClass: TPreviewHandlerClass read FPreviewHandlerClass;
   end;
 
@@ -100,7 +100,7 @@ end;
 
 //How to Register a Preview Handler
 //http://msdn.microsoft.com/en-us/library/cc144144%28v=vs.85%29.aspx
-procedure TPreviewHandlerRegister.UpdateRegistry(Register: Boolean);
+procedure TPreviewHandlerRegister.UpdateRegistry(ARegister: Boolean);
 
     function IsWow64Process: Boolean;
     type
@@ -181,7 +181,7 @@ begin
   ProgID := GetProgID;
   sComServerKey := Format('%sCLSID\%s\%s',[RootPrefix,sClassID,ComServer.ServerKey]);
   sAppID := IfThen(IsWow64Process, Prevhost_32, Prevhost_64);
-  if Register then
+  if ARegister then
   begin
     inherited UpdateRegistry(True);
 

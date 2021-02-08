@@ -110,11 +110,7 @@ uses
     ExtCtrls,
     uMisc,
     uLogExcept,
-{$IFDEF UEDITOR}
-    uEditor,
-{$ELSE}
     SVGEditor,
-{$ENDIF}
     uPreviewHandlerRegister;
 
 
@@ -351,6 +347,7 @@ begin
   end
   else
   begin
+    FCurrentPPI := LMonitor.PixelsPerInch;
     LRect.Width := 320;
     LRect.Height := 240;
     Bounds := LRect;

@@ -45,9 +45,9 @@ uses
   uSVGPreviewHandler;
 
 initialization
-  TSVGPreviewHandler.RegisterPreview(SVG_PreviewHandlerGUID,
+  TSVGPreviewHandler.RegisterPreview(MySVG_PreviewHandlerGUID,
     'SVG.PreviewHandler', 'Delphi SVG Preview Handler');
-  TSVGThumbnailProvider.RegisterThumbnailProvider(SVG_ThumbnailProviderGUID,
+  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID,
     'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider');
 
 end.
