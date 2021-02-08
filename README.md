@@ -72,12 +72,12 @@ Third Party libraries and tools used from Ethea:
 
 The Initial Developer of the Original Code is Rodrigo Ruz V. Portions created by Rodrigo Ruz V. are Copyright © 2011-2021 Rodrigo Ruz V.
 
-(https://github.com/RRUZ/delphi-preview-handler)[https://github.com/RRUZ/delphi-preview-handler]
+https://github.com/RRUZ/delphi-preview-handler
 
 Third Party libraries and tools used:
 
-- VCLStyles Utils (https://github.com/RRUZ/vcl-styles-utils)[https://github.com/RRUZ/vcl-styles-utils]
+- VCLStyles Utils https://github.com/RRUZ/vcl-styles-utils
 
-- SynEdit (http://synedit.svn.sourceforge.net/viewvc/synedit/)[http://synedit.svn.sourceforge.net/viewvc/synedit/]
+- SynEdit http://synedit.svn.sourceforge.net/viewvc/synedit/
 
 - TSVG Library - http://www.mwcs.de
