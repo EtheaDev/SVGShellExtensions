@@ -59,11 +59,11 @@ version of SVG Shell Extensions.
 
 ## Credits ##
 
-Many thanks to (Rodrigo Ruz V.)[https://theroadtodelphi.com/] for his wonderful work on (delphi-preview-handler) [https://github.com/RRUZ/delphi-preview-handler] from which this project has used a lot of code and inspiration.
+Many thanks to **Rodrigo Ruz V.** (author of https://theroadtodelphi.com/ Blog) for his wonderful work on **delphi-preview-handler** https://github.com/RRUZ/delphi-preview-handler from which this project has used a lot of code and inspiration.
 
 ## License ##
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the "License") https://opensource.org/licenses/Apache-2.0;
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 Third Party libraries and tools used from Ethea:
@@ -78,6 +78,6 @@ Third Party libraries and tools used:
 
 - VCLStyles Utils https://github.com/RRUZ/vcl-styles-utils
 
-- SynEdit http://synedit.svn.sourceforge.net/viewvc/synedit/
+- SynEdit https://github.com/SynEdit/SynEdit
 
 - TSVG Library - http://www.mwcs.de
