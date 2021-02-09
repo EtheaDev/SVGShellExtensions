@@ -25,9 +25,11 @@ In Windows 10 with Dark theme:
 
 ### Setup using the Installer ###
 
-In the Release area you can find the Installer SVGShellExtensionsSetup.exe (only for Windows 64 Platform).
+Click to download the [SVGShellExtensionsSetup.exe](https://github.com/EtheaDev/SVGShellExtensions/releases/download/v1.0.0/SVGShellExtensionsSetup.exe) located also in the Release area. The Installer works only on a 64 bit system.
 
-For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).
+WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
+
+***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
 
 ### Manual Build and Installation (for Delphi developers) ###
 
