@@ -3,17 +3,15 @@
 #define MyAppName 'Delphi SVG Shell Extensions'
 #define MyAppVersion GetFileVersion('SVGShellExtensions.dll')
 [Files]
-Source: SVGShellExtensions.dll; DestDir: {app}; Flags : regserver sharedfile noregerror
-;Source: UnRegister.bat; DestDir: {app}
-;Source: Register.bat; DestDir: {app}
+Source: ..\SVGShellExtensions.dll; DestDir: {app}; Flags : regserver sharedfile noregerror
+;Source: UnRegister64Bit.bat; DestDir: {app}
+;Source: Register64Bit.bat; DestDir: {app}
 
 ;Andrà ripristinato
 ;Source: Updater\DownloadInfo.xml; DestDir: {app}
 ;Source: Updater\libeay32.dll; DestDir: {app}
 ;Source: Updater\ssleay32.dll; DestDir: {app}
 ;Source: Updater\updater.exe; DestDir: {app}
-
-;Source: Settings.ini; DestDir: {app}
 
 [Setup]
 UsePreviousLanguage=no
@@ -35,8 +33,7 @@ WindowVisible=false
 WizardImageFile=WizEtheaImage.bmp
 WizardSmallImageFile=WizEtheaSmallImage.bmp
 AppContact=info@ethea.it
-SetupIconFile=.\Source\EtheaMultires.ico
-;MinVersion=,6.0.6000
+SetupIconFile=..\Source\EtheaMultires.ico
 DisableProgramGroupPage=true
 AppID=SVGShellExtensions
 UsePreviousSetupType=false
@@ -45,6 +42,9 @@ AlwaysShowDirOnReadyPage=true
 AlwaysShowGroupOnReadyPage=true
 ShowTasksTreeLines=true
 DisableWelcomePage=False
+AppCopyright=Copyright © 2021 Ethea S.r.l.
+ArchitecturesInstallIn64BitMode=x64
+MinVersion=0,6.0
 
 [Languages]
 Name: ita; MessagesFile: compiler:Languages\Italian.isl
@@ -107,7 +107,7 @@ begin
   begin
     if (IsUpgrade()) then
     begin
-      MsgBox(ExpandConstant('An old version of SVG Shell extensions was detected. The uninstaller will be executed'), mbInformation, MB_OK);
+      MsgBox(ExpandConstant('An old version of SVG Shell Extensions was detected. The uninstaller will be executed'), mbInformation, MB_OK);
       UnInstallOldVersion();
     end;
   end;

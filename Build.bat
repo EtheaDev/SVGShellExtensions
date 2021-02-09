@@ -6,7 +6,7 @@ pause
 EXIT
 
 :INNO
-"C:\Program Files (x86)\Inno Setup 6\iscc.exe" "D:\ETHEA\SVGShellExtensions\SVGShellExtensions.iss"
+"C:\Program Files (x86)\Inno Setup 6\iscc.exe" "D:\ETHEA\SVGShellExtensions\Setup\SVGShellExtensions.iss"
 set INNO_STATUS=%ERRORLEVEL%
 if %INNO_STATUS%==0 GOTO END
 pause
