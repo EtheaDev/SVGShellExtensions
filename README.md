@@ -49,6 +49,8 @@ If you have Delphi 10.4 Sydney, you can manually build the project and install t
 09 Feb 2021
 - Added Setup asset
 - Fixed check for active Windows Theme
+- Released v.1.0.0
+- Released v.1.0.1
 
 08 Feb 2021
 - Added SVG Thumbnail Provider
