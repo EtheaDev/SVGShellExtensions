@@ -23,25 +23,36 @@ In Windows 10 with Dark theme:
 
 ![Preview Thumbnails Dark](./Images/PreviewThumbnailsDark.png)
 
-### Setup ###
+### Setup using the Installer ###
+
+In the Release area you can find the Installer SVGShellExtensionsSetup.exe (only for Windows 64 Platform).
+
+For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).
+
+### Manual Build and Installation (for Delphi developers) ###
 
 If you have Delphi 10.4 Sydney, you can manually build the project and install the SVGShellExtensions.dll following these steps:
 
-  1. Close all the windows explorer instances which have the preview handler active or the
-     preview handler was used (remember the dll remains in memory until the windows explorer 
-     was closed).
-  2. Unregister the previous version executing the uninstaller located in 
+1. Close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).
+  
+2. Unregister the previous version executing the uninstaller located in 
      `C:\Program Files\Ethea\SVGShellExtensions`
-  3. If you install the SVG Shell Extensions manually you must unregister using the `UnRegister64Bit.bat`
-     running as admin.
-  4. Now proceed with the installation of the new version.
+     
+3. If you install the SVG Shell Extensions manually you must unregister using the `UnRegister64Bit.bat` running as admin.
+  
+4. Now proceed with the installation of the new version.
 
 ## Release Notes ##
 
 31 Jan 2021
 - Added SVG file Preview panel
+
 08 Feb 2021
 - Added SVG Thumbnail Provider
+
+02 Feb 2021
+- Added Setup asset
+- Fixed check for active Windows Theme
 
 ## Credits ##
 
