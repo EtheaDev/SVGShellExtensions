@@ -46,15 +46,15 @@ If you have Delphi 10.4 Sydney, you can manually build the project and install t
 
 ## Release Notes ##
 
-31 Jan 2021
-- Added SVG file Preview panel
+09 Feb 2021
+- Added Setup asset
+- Fixed check for active Windows Theme
 
 08 Feb 2021
 - Added SVG Thumbnail Provider
 
-02 Feb 2021
-- Added Setup asset
-- Fixed check for active Windows Theme
+31 Jan 2021
+- Added SVG file Preview panel
 
 ## Credits ##
 
