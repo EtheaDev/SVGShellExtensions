@@ -61,9 +61,8 @@
     <PropertyGroup Condition="'$(Base)'!=''">
         <SanitizedProjectName>SVGShellExtensions</SanitizedProjectName>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;System.Win;Winapi;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions;FileVersion=1.0.1.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions;ProductVersion=1.0;Comments=;ProgramID=</VerInfo_Keys>
         <Custom_Styles>&quot;Glow|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glow.vsf;&quot;&quot;Windows10|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10.vsf;&quot;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf;&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;</Custom_Styles>
         <DCC_UsePackage>rtl;vcl;vclx;vclactnband;xmlrtl;VclSmp;vclimg;svnui;svn;bdertl;TeeUI;TeeDB;Tee;vcldb;dbrtl;vcldbx;vcltouch;dsnap;dsnapcon;vclib;ibxpress;adortl;IndyCore;IndySystem;IndyProtocols;inet;intrawebdb_110_150;Intraweb_110_150;vclie;websnap;webdsnap;inetdb;inetdbbde;inetdbxpress;soaprtl;vclribbon;dbexpress;DbxCommonDriver;DataSnapIndy10ServerTransport;DataSnapProviderClient;DbxClientDriver;DataSnapClient;dbxcds;DataSnapServer;AzureCloud;DBXInterBaseDriver;DBXMySQLDriver;DBXFirebirdDriver;DBXSybaseASEDriver;DBXSybaseASADriver;DBXOracleDriver;DBXMSSQLDriver;DBXInformixDriver;DBXDb2Driver;Hydra_Core_D15;SynEdit_RXE;mbColorLibDXE;JclDeveloperTools;Jcl;JclVcl;JclContainers;JvCore;JvSystem;JvStdCtrls;JvAppFrm;JvBands;JvDB;JvDlgs;JvBDE;JvControls;JvCmp;JvCrypt;JvCustom;JvDocking;JvDotNetCtrls;JvGlobus;JvHMI;JvJans;JvManagedThreads;JvMM;JvNet;JvPageComps;JvPascalInterpreter;JvPluginSystem;JvPrintPreview;JvRuntimeDesign;JvTimeFramework;JvWizards;JvXPCtrls;WinSkinDXE;bsfd2011;IceTabSet;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_DcuOutput>.\$(Config)\$(Platform)</DCC_DcuOutput>
@@ -72,6 +71,8 @@
         <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\SVGIconImageList\SVG;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>.\..</DCC_ExeOutput>
         <DCC_Define>NO_UEDITOR;$(DCC_Define)</DCC_Define>
+        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Debugger_HostApplication>D:\ETHEA\SVGShellExtensions\Debug\Preview Handlers\PreviewHandler Host\Bin\PreviewHost.exe</Debugger_HostApplication>
@@ -84,7 +85,7 @@
         <Manifest_File>(None)</Manifest_File>
         <Debugger_HostApplication>D:\ETHEA\SVGShellExtensions\Debug\Preview Handlers\PreviewHandler Host\Bin\PreviewHost.exe</Debugger_HostApplication>
         <Debugger_CWD>c:\temp</Debugger_CWD>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.1.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0;Comments=;ProgramID=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_MapFile>3</DCC_MapFile>
@@ -106,7 +107,7 @@
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
         <Debugger_CWD>C:\Windows</Debugger_CWD>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.1.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0.1.0;Comments=;ProgramID=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -116,10 +117,10 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 32 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 32 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 32 bit;FileVersion=1.0.1.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 32 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.0.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0.0.0;Comments=;ProgramID=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Shell Extensions 64 bit;FileVersion=1.0.1.0;InternalName=;LegalCopyright=Copyright © 2021 Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Shell Extensions 64 bit;ProductVersion=1.0;Comments=;ProgramID=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

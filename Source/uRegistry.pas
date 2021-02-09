@@ -142,7 +142,7 @@ begin
     Result := Reg.OpenKeyReadOnly('SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize');
     if Result then
     begin
-      if Reg.KeyExists('AppsUseLightTheme') then
+      if Reg.ValueExists('AppsUseLightTheme') then
         LIsLight := Reg.ReadInteger('AppsUseLightTheme');
     end;
   finally
