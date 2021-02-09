@@ -1,16 +1,16 @@
 # SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):
+**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
 - a [Preview handler](http://msdn.microsoft.com/en-us/magazine/cc163487.aspx)  which allows you to see the SVG image without open it, in the "Preview Panel".
  
-- (WORKING) [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image without open it, into Explorer.
+- a [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image into Windows Explorer.
 
 - (TODO) an SVG-XML Text Editor to manually edit and preview the text of SVG files.
 
-
 ### Features ###
-* Supports Windows Vista, 7, 8 and 10 on 32 and 64 bits.
+* Supports Windows Vista, 7, 8 and 10 (only for 64 bits).
+
 * Themes (Dark and Light) according to user preferences of Windows Theme
 
 ### Preview Panel and Thumbnails in action ###
@@ -78,3 +78,7 @@ Third Party libraries and tools used:
 - SynEdit https://github.com/SynEdit/SynEdit
 
 - TSVG Library - http://www.mwcs.de
+
+![Delphi 10.4 Sydney Support](/Setup/SupportingDelphi.jpg)
+
+Related links: https://www.embarcadero.com/ - https://learndelphi.org/
