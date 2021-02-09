@@ -32,6 +32,8 @@ function RegReadInt(const RegPath, RegValue: string; var IntValue: integer; cons
 function RegWriteStr(const RegPath, RegValue: string; const Str: string; const RootKey: HKEY): boolean;
 function RegWriteInt(const RegPath, RegValue: string; IntValue: integer; const RootKey: HKEY): boolean;
 function RegKeyExists(const RegPath: string; const RootKey: HKEY): boolean;
+function IsWindowsAppThemeLight: Boolean;
+
 
 implementation
 
@@ -126,6 +128,27 @@ begin
   except
     Result := False;
   end;
+end;
+
+function IsWindowsAppThemeLight: Boolean;
+var
+  LIsLight: Integer;
+  Reg: TRegistry;
+begin
+  LIsLight := 1;
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    Result := Reg.OpenKeyReadOnly('SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize');
+    if Result then
+    begin
+      if Reg.KeyExists('AppsUseLightTheme') then
+        LIsLight := Reg.ReadInteger('AppsUseLightTheme');
+    end;
+  finally
+    Reg.Free;
+  end;
+  Result := LIsLight = 1;
 end;
 
 end.

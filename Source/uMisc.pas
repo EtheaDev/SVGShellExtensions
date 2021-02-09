@@ -70,6 +70,7 @@ uses
   Vcl.Forms,
   Vcl.Graphics,
   Vcl.GraphUtil,
+  uRegistry,
   uLogExcept;
 
 procedure Initialize_GDI;
@@ -143,4 +144,5 @@ begin
   GetModuleFileName(HInstance, PChar(Result), MAX_PATH);
   Result:=PChar(Result);
 end;
+
 end.

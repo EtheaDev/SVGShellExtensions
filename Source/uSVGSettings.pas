@@ -45,9 +45,11 @@ type
     FUseDarkStyle: boolean;
     FFontName: string;
     FShowEditor: Boolean;
+    FPreferD2D: Boolean;
     class function GetSettingsPath: string; static;
     class function GetSettingsFileName: string; static;
     function GetUseDarkStyle: Boolean;
+    procedure SetPreferD2D(const Value: Boolean);
   public
     constructor Create;
     class property SettingsFileName: string read GetSettingsFileName;
@@ -64,12 +66,17 @@ type
     property StyleName: string read FStyleName write FStyleName;
     property ShowEditor: Boolean read FShowEditor write FShowEditor;
     property SplitterPos: Integer read FSplitterPos write FSplitterPos;
+    property PreferD2D: Boolean read FPreferD2D write SetPreferD2D;
   end;
 
 implementation
 
 uses
   IniFiles,
+  //SVGIconImageList
+  SVGInterfaces,
+  PasSVGFactory,
+  D2DSVGFactory,
   System.Types,
   System.TypInfo,
   System.Rtti,
@@ -110,7 +117,7 @@ end;
 procedure TSettings.ReadSettings;
 var
   Settings: TIniFile;
-  LightTheme: Integer;
+  LIsLightTheme: Boolean;
 begin
   try
     TLogPreview.Add('ReadSettings '+SettingsFileName);
@@ -120,21 +127,21 @@ begin
       FFontName := Settings.ReadString('Global', 'FontName', 'Consolas');
       FShowEditor := Settings.ReadInteger('Global', 'ShowEditor', 1) = 1;
       FSplitterPos := Settings.ReadInteger('Global', 'SplitterPos', 33);
+      FPreferD2D := Boolean(Settings.ReadInteger('Global', 'PreferD2D', 0));
       //Select Style based on Actual Windows Theme
-      RegReadInt('SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize',
-        'AppsUseLightTheme',LightTheme, HKEY_CURRENT_USER);
-      if LightTheme = 0 then
+      LIsLightTheme := IsWindowsAppThemeLight;
+      if LIsLightTheme then
+      begin
+        FUseDarkStyle := False;
+        FStyleName := 'Windows10';
+        //FStyleName := 'Windows';
+      end
+      else
       begin
         FUseDarkStyle := True;
         FStyleName := 'Glow';
         //FStyleName := 'Windows10 SlateGray';
         //FStyleName := 'Windows10 Dark';
-        //FStyleName := 'Windows';
-      end
-      else
-      begin
-        FUseDarkStyle := False;
-        FStyleName := 'Windows10';
         //FStyleName := 'Windows';
       end;
     finally
@@ -144,6 +151,15 @@ begin
     on E: Exception do
       TLogPreview.Add(Format('Error in TSettings.ReadSettings - Message: %s: Trace %s', [E.Message, E.StackTrace]));
   end;
+end;
+
+procedure TSettings.SetPreferD2D(const Value: Boolean);
+begin
+  FPreferD2D := Value;
+  if FPreferD2D then
+    SetGlobalSvgFactory(GetPasSVGFactory)
+  else
+    SetGlobalSvgFactory(GetD2DSVGFactory);
 end;
 
 procedure TSettings.UpdateSettings(const AFontName: string;
@@ -168,6 +184,7 @@ begin
       Settings.WriteString('Global', 'StyleName', FStyleName);
       Settings.WriteInteger('Global', 'ShowEditor', Ord(FShowEditor));
       Settings.WriteInteger('Global', 'SplitterPos', FSplitterPos);
+      Settings.WriteInteger('Global', 'PreferD2D', Ord(FPreferD2D));
     finally
       Settings.Free;
     end;

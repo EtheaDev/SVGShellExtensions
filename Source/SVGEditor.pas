@@ -302,11 +302,19 @@ begin
 end;
 
 procedure TFrmEditor.LoadFromStream(const AStream: TStream);
+var
+  LStringStream: TStringStream;
 begin
   TLogPreview.Add('TFrmEditor.LoadFromStream Init');
   AStream.Position := 0;
-  SynEdit.Lines.LoadFromStream(AStream);
-  SVGIconImage.LoadFromStream(AStream);
+  LStringStream := TStringStream.Create;
+  try
+    LStringStream.LoadFromStream(AStream);
+    SynEdit.Lines.Text := LStringStream.DataString;
+    SVGIconImage.SVGText := LStringStream.DataString;
+  finally
+    LStringStream.Free;
+  end;
   TLogPreview.Add('TFrmEditor.LoadFromStream Done');
 end;
 

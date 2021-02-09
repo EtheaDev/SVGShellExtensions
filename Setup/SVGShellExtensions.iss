@@ -45,9 +45,12 @@ DisableWelcomePage=False
 AppCopyright=Copyright © 2021 Ethea S.r.l.
 ArchitecturesInstallIn64BitMode=x64
 MinVersion=0,6.0
+CloseApplications=force
 
 [Languages]
-Name: ita; MessagesFile: compiler:Languages\Italian.isl
+Name: eng; MessagesFile: compiler:Default.isl; LicenseFile: .\License_ENG.rtf
+Name: ita; MessagesFile: compiler:Languages\Italian.isl; LicenseFile: .\Licenza_ITA.rtf
+
 
 [Code]
 function InitializeSetup(): Boolean;

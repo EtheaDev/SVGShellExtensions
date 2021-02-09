@@ -161,9 +161,7 @@ begin
   FMode := grfMode;
   Result := S_OK;
   FSVG := GlobalSVGFactory.NewSvg;
-  RegReadInt('SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize',
-    'AppsUseLightTheme',LightTheme, HKEY_CURRENT_USER);
-  FLightTheme := LightTheme <> 0;
+  FLightTheme := IsWindowsAppThemeLight;
   TLogPreview.Add('TComSVGThumbnailProvider.IInitializeWithStream_Initialize done');
 end;
 
