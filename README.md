@@ -25,7 +25,7 @@ In Windows 10 with Dark theme:
 
 ### Setup using the Installer ###
 
-Click to download the [SVGShellExtensionsSetup.exe](https://github.com/EtheaDev/SVGShellExtensions/releases/download/v1.0.0/SVGShellExtensionsSetup.exe) located also in the Release area. The Installer works only on a 64 bit system.
+Click to download the [SVGShellExtensionsSetup.exe](/Setup/Output/SVGShellExtensionsSetup.exe) located also in the Release area. The Installer works only on a 64 bit system.
 
 WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
 
