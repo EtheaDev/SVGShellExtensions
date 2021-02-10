@@ -37,16 +37,27 @@ Look at this short video (1'47'') how to dowload, setup and use it:
 
 ### Manual Build and Installation (for Delphi developers) ###
 
-If you have Delphi 10.4 Sydney, you can manually build the project and install the SVGShellExtensions.dll following these steps:
+If you have Delphi 10.4 Sydney, you can manually build the project:
+
+***Warning: To build the DLL you need also other open-source projects***
+
+- [SVGIconImageList](https://github.com/EtheaDev/SVGIconImageList)
+
+- [Synedit](https://github.com/SynEdit/SynEdit)
+
+- [VCL-Style-Utils](https://github.com/RRUZ/vcl-styles-utils)
+
+To manually install the SVGShellExtensions.dll follow these steps:
 
 1. Close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).
   
-2. Unregister the previous version executing the uninstaller located in 
-     `C:\Program Files\Ethea\SVGShellExtensions`
+2. If you have already used the installer uninstall the components from system.
      
-3. If you install the SVG Shell Extensions manually you must unregister using the `UnRegister64Bit.bat` running as admin.
-  
-4. Now proceed with the installation of the new version.
+3. To install manually the dll run the `Setup\Register64bit.bat` (run-as-administrator).
+
+4. If you wanto to uninstall the dll you use the `Setup\UnRegister64Bit.bat`
+
+5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
 
