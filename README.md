@@ -29,6 +29,10 @@ Click to download the [SVGShellExtensionsSetup.exe](https://github.com/EtheaDev/
 
 WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
 
+Look at this short video (1'47'') how to dowload, setup and use it:
+
+[![SVGShellExtensions](https://img.youtube.com/vi/B7hir4BGSJQ/0.jpg)](https://www.youtube.com/watch?v=B7hir4BGSJQ)
+
 ***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
 
 ### Manual Build and Installation (for Delphi developers) ###
