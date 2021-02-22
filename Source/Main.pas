@@ -44,6 +44,10 @@ uses
   uSVGThumbnailHandler,
   uSVGPreviewHandler;
 
+const
+  MySVG_PreviewHandlerGUID: TGUID = '{742ADF0E-3C4D-4F46-9E91-236BF0194C21}';
+  MySVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
+
 initialization
   TSVGPreviewHandler.RegisterPreview(MySVG_PreviewHandlerGUID,
     'SVG.PreviewHandler', 'Delphi SVG Preview Handler');

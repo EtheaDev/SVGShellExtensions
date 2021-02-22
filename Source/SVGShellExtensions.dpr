@@ -31,24 +31,26 @@
 {******************************************************************************}
 library SVGShellExtensions;
 uses
-ComServ,
+  ComServ,
   Main in 'Main.pas',
-  uPreviewHandler in 'uPreviewHandler.pas',
   uMisc in 'uMisc.pas',
-  uStreamPreviewHandler in 'uStreamPreviewHandler.pas',
-  uFilePreviewHandler in 'uFilePreviewHandler.pas',
-  uPreviewContainer in 'uPreviewContainer.pas' {PreviewContainer},
   uRegistry in 'uRegistry.pas',
   uLogExcept in 'uLogExcept.pas',
+  uStreamPreviewHandler in 'uStreamPreviewHandler.pas',
   uCommonPreviewHandler in 'uCommonPreviewHandler.pas',
+  uPreviewHandler in 'uPreviewHandler.pas',
+  uPreviewContainer in 'uPreviewContainer.pas' {PreviewContainer},
   uSVGPreviewHandler in 'uSVGPreviewHandler.pas',
   uPreviewHandlerRegister in 'uPreviewHandlerRegister.pas',
   uSVGThumbnailHandler in 'uSVGThumbnailHandler.pas',
   uThumbnailHandlerRegister in 'uThumbnailHandlerRegister.pas',
-  uAbout in 'uAbout.pas' {FrmAbout},
+  uSVGContextMenuHandler in 'uSVGContextMenuHandler.pas',
+  SVGPreviewForm in 'SVGPreviewForm.pas' {FrmPreview},
+  SVGSettings in 'SVGSettings.pas' {SVGSettingsForm},
+  uSVGSettings in 'uSVGSettings.pas',
+  DResources in 'DResources.pas' {dmResources: TDataModule},
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
-  SVGEditor in 'SVGEditor.pas' {FrmEditor},
-  uSVGSettings in 'uSVGSettings.pas';
+  uAbout in 'uAbout.pas' {FrmAbout};
 
 exports
   DllGetClassObject,
@@ -56,6 +58,8 @@ exports
   DllRegisterServer,
   DllUnregisterServer,
   DllInstall;
-{$R *.RES}
+
+  {$R *.res}
+
 begin
 end.

@@ -79,12 +79,12 @@ end;
 
 procedure TPreviewContainer.FormCreate(Sender: TObject);
 var
-  LSettings: TSettings;
+  LSettings: TPreviewSettings;
 begin
   TLogPreview.Add('TPreviewContainer.FormCreate'+
     'ScaleFactor: '+Self.ScaleFactor.ToString+
     'CurrentPPI '+Self.CurrentPPI.ToString);
-  LSettings := TSettings.Create;
+  LSettings := TPreviewSettings.CreateSettings(nil);
   try
     if not IsStyleHookRegistered(TCustomSynEdit, TScrollingStyleHook) then
       TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TScrollingStyleHook);

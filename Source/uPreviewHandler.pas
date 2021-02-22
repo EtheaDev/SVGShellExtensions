@@ -110,7 +110,7 @@ uses
     ExtCtrls,
     uMisc,
     uLogExcept,
-    SVGEditor,
+    SVGPreviewForm,
     uPreviewHandlerRegister;
 
 
@@ -153,7 +153,7 @@ begin
     FContainer.Visible := True;
     UpdateContainerBoundsRect;
     FContainer.PreviewHandler := Self;
-    TFrmEditor.AParent := FContainer;
+    TFrmPreview.AParent := FContainer;
   end;
   TLogPreview.Add('CheckContainer Done');
 end;

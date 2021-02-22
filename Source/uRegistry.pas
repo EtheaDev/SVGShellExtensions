@@ -32,6 +32,7 @@ function RegReadInt(const RegPath, RegValue: string; var IntValue: integer; cons
 function RegWriteStr(const RegPath, RegValue: string; const Str: string; const RootKey: HKEY): boolean;
 function RegWriteInt(const RegPath, RegValue: string; IntValue: integer; const RootKey: HKEY): boolean;
 function RegKeyExists(const RegPath: string; const RootKey: HKEY): boolean;
+function DefaultStyleName: string;
 function IsWindowsAppThemeLight: Boolean;
 
 
@@ -128,6 +129,14 @@ begin
   except
     Result := False;
   end;
+end;
+
+function DefaultStyleName: string;
+begin
+  if IsWindowsAppThemeLight then
+    Result := 'Windows10'
+  else
+    Result := 'Glow';
 end;
 
 function IsWindowsAppThemeLight: Boolean;

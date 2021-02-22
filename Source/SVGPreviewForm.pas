@@ -30,52 +30,48 @@
 {  All Rights Reserved.                                                        }
 {******************************************************************************}
 
-unit SVGEditor;
+unit SVGPreviewForm;
 
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, SynEdit, pngimage,
+  Dialogs, StdCtrls, ExtCtrls, SynEdit,
   System.Generics.Collections,
   SynEditHighlighter,
   ComCtrls, ToolWin, ImgList, SynHighlighterXML,
   Vcl.Menus, SynEditExport,
-  SynExportHTML, SynExportRTF, SynEditRegexSearch, SynEditMiscClasses,
-  SynEditSearch, uSVGSettings, System.ImageList, SynEditCodeFolding,
-  SVGIconImageList, SVGIconImageListBase, SVGIconImage;
+  SynExportHTML, SynExportRTF, SynEditMiscClasses,
+  uSVGSettings, System.ImageList, SynEditCodeFolding,
+  SVGIconImageList, SVGIconImageListBase, SVGIconImage, Vcl.VirtualImageList;
 
 type
-  TFrmEditor = class(TForm)
+  TFrmPreview = class(TForm)
     SynEdit: TSynEdit;
     PanelTop: TPanel;
     PanelEditor: TPanel;
-    SynXMLSyn: TSynXMLSyn;
     StatusBar: TStatusBar;
-    SynEditSearch: TSynEditSearch;
-    SynEditRegexSearch: TSynEditRegexSearch;
-    SVGIconImageList: TSVGIconImageList;
+    SVGIconImageList: TVirtualImageList;
     ToolButtonZoomIn: TToolButton;
     ToolButtonZommOut: TToolButton;
-    ToolButtonSearch: TToolButton;
     ToolBar: TToolBar;
-    ToolButtonFont: TToolButton;
+    ToolButtonSettings: TToolButton;
     ToolButtonAbout: TToolButton;
     SeparatorEditor: TToolButton;
     ToolButtonShowText: TToolButton;
     ToolButtonReformat: TToolButton;
-    FontDialog: TFontDialog;
-    SynXMLSynDark: TSynXMLSyn;
     ImagePanel: TPanel;
     SVGIconImage: TSVGIconImage;
     Splitter: TSplitter;
+    panelPreview: TPanel;
+    BackgroundGrayScaleLabel: TLabel;
+    BackgroundTrackBar: TTrackBar;
     procedure FormCreate(Sender: TObject);
     procedure ToolButtonZoomInClick(Sender: TObject);
     procedure ToolButtonZommOutClick(Sender: TObject);
-    procedure ToolButtonFontClick(Sender: TObject);
+    procedure ToolButtonSettingsClick(Sender: TObject);
     procedure ToolButtonAboutClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure ToolButtonSearchClick(Sender: TObject);
     procedure ToolButtonSelectModeClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure ToolButtonShowTextClick(Sender: TObject);
@@ -85,23 +81,21 @@ type
     procedure SplitterMoved(Sender: TObject);
     procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
+    procedure BackgroundTrackBarChange(Sender: TObject);
   private
     FFontSize: Integer;
     FSimpleText: string;
     FFileName: string;
-    fSearchFromCaret: boolean;
-    FSettings: TSettings;
+    FPreviewSettings: TPreviewSettings;
 
     class var FExtensions: TDictionary<TSynCustomHighlighterClass, TStrings>;
     class var FAParent: TWinControl;
 
+    function DialogPosRect: TRect;
     procedure AppException(Sender: TObject; E: Exception);
-    procedure ShowSearchDialog;
-    procedure DoSearchText(ABackwards: boolean);
     procedure UpdateGUI;
     procedure UpdateFromSettings;
     procedure SaveSettings;
-    function GetEditorFontSize: Integer;
     procedure SetEditorFontSize(const Value: Integer);
     procedure UpdateHighlighter;
   protected
@@ -113,90 +107,76 @@ type
     class property AParent: TWinControl read FAParent write FAParent;
     procedure LoadFromFile(const AFileName: string);
     procedure LoadFromStream(const AStream: TStream);
-    property EditorFontSize: Integer read GetEditorFontSize write SetEditorFontSize;
+    property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
   end;
 
 
 implementation
 
 uses
-  SynEditTypes,
-  Vcl.Clipbrd,
-  Vcl.Themes,
-  uLogExcept,
-  System.Types,
-  Registry,
-  uMisc,
-  IOUtils,
-  ShellAPI,
-  ComObj,
-  IniFiles,
-  GraphUtil,
-  uAbout,
-  Xml.XMLDoc,
-  dlgSearchText;
-
-const
-  MaxfontSize = 30;
-  MinfontSize = 8;
+  SynEditTypes
+  , Vcl.Clipbrd
+  , Vcl.Themes
+  , uLogExcept
+  , System.Types
+  , Registry
+  , uMisc
+  , IOUtils
+  , ShellAPI
+  , ComObj
+  , IniFiles
+  , GraphUtil
+  , uAbout
+  , Xml.XMLDoc
+  , SVGSettings
+  , DResources
+  ;
 
 {$R *.dfm}
   { TFrmEditor }
 
-procedure TFrmEditor.AppException(Sender: TObject; E: Exception);
+procedure TFrmPreview.AppException(Sender: TObject; E: Exception);
 begin
   // log unhandled exceptions (TSynEdit, etc)
   TLogPreview.Add('AppException');
   TLogPreview.Add(E);
 end;
 
-constructor TFrmEditor.Create(AOwner: TComponent);
-begin
-  FSettings := TSettings.Create;
-  inherited;
-end;
-
-destructor TFrmEditor.Destroy;
-begin
-  FreeAndNil(FSettings);
-  inherited;
-end;
-
-procedure TFrmEditor.DoSearchText(ABackwards: boolean);
+procedure TFrmPreview.BackgroundTrackBarChange(Sender: TObject);
 var
-  Options: TSynSearchOptions;
+  LValue: byte;
 begin
-  StatusBar.SimpleText := '';
-  Options := [];
-  if ABackwards then
-    Include(Options, ssoBackwards);
-  if gbSearchCaseSensitive then
-    Include(Options, ssoMatchCase);
-  if not fSearchFromCaret then
-    Include(Options, ssoEntireScope);
-  if gbSearchSelectionOnly then
-    Include(Options, ssoSelectedOnly);
-  if gbSearchWholeWords then
-    Include(Options, ssoWholeWord);
-
-  if gbSearchRegex then
-    SynEdit.SearchEngine := SynEditRegexSearch
-  else
-    SynEdit.SearchEngine := SynEditSearch;
-
-  if SynEdit.SearchReplace(gsSearchText, gsReplaceText, Options) = 0 then
-  begin
-    MessageBeep(MB_ICONASTERISK);
-    StatusBar.SimpleText := STextNotFound;
-    if ssoBackwards in Options then
-      SynEdit.BlockEnd := SynEdit.BlockBegin
-    else
-      SynEdit.BlockBegin := SynEdit.BlockEnd;
-    SynEdit.CaretXY := SynEdit.BlockBegin;
-  end;
+  LValue := BackgroundTrackBar.Position;
+  BackgroundGrayScaleLabel.Caption := Format(
+    Background_Grayscale_Caption,
+    [LValue * 100 div 255]);
+  ImagePanel.Color := RGB(LValue, LValue, LValue);
+  FPreviewSettings.LightBackground := BackgroundTrackBar.Position;
 end;
 
-procedure TFrmEditor.UpdateGUI;
+constructor TFrmPreview.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPreviewSettings := TPreviewSettings.CreateSettings(SynEdit.Highlighter);
+  dmResources := TdmResources.Create(nil);
+end;
+
+destructor TFrmPreview.Destroy;
+begin
+  FreeAndNil(FPreviewSettings);
+  FreeAndNil(dmResources);
+  inherited;
+end;
+
+function TFrmPreview.DialogPosRect: TRect;
+begin
+  if Self.Parent <> nil then
+    GetWindowRect(Self.Parent.ParentWindow, Result)
+  else
+    Result := TRect.Create(0,0,0,0);
+end;
+
+procedure TFrmPreview.UpdateGUI;
 begin
   if PanelEditor.Visible then
   begin
@@ -215,70 +195,49 @@ begin
   end;
   ToolButtonShowText.Visible := True;
   ToolButtonAbout.Visible := True;
-  ToolButtonFont.Visible := PanelEditor.Visible;
+  ToolButtonSettings.Visible := True;
   ToolButtonReformat.Visible := PanelEditor.Visible;
-  ToolButtonSearch.Visible := PanelEditor.Visible;
   ToolButtonZoomIn.Visible := PanelEditor.Visible;
   ToolButtonZommOut.Visible := PanelEditor.Visible;
 end;
 
-procedure TFrmEditor.UpdateHighlighter;
+procedure TFrmPreview.UpdateHighlighter;
 var
   LBackgroundColor: TColor;
 begin
-  if FSettings.UseDarkStyle then
-  begin
-    SynEdit.Highlighter := SynXMLSynDark;
-  end
-  else
-  begin
-    SynEdit. Highlighter := SynXMLSyn;
-  end;
+  LBackgroundColor := StyleServices.GetSystemColor(clWindow);
+  SynEdit.Highlighter := dmResources.GetSynHighlighter(
+    FPreviewSettings.UseDarkStyle, LBackgroundColor);
+  SynEdit.Gutter.Font.Name := SynEdit.Font.Name;
   SynEdit.Gutter.Font.Color := StyleServices.GetSystemColor(clWindowText);
   SynEdit.Gutter.Color := StyleServices.GetSystemColor(clBtnFace);
-  LBackgroundColor := StyleServices.GetSystemColor(clWindow);
-
-  SynXMLSynDark.ElementAttri.Background := LBackgroundColor;
-  SynXMLSynDark.AttributeAttri.Background := LBackgroundColor;
-  SynXMLSynDark.NamespaceAttributeAttri.Background := LBackgroundColor;
-  SynXMLSynDark.AttributeValueAttri.Background := LBackgroundColor;
-  SynXMLSynDark.NamespaceAttributeValueAttri.Background := LBackgroundColor;
-  SynXMLSynDark.TextAttri.Background := LBackgroundColor;
-  SynXMLSynDark.CDATAAttri.Background := LBackgroundColor;
-  SynXMLSynDark.EntityRefAttri.Background := LBackgroundColor;
-  SynXMLSynDark.ProcessingInstructionAttri.Background := LBackgroundColor;
-  SynXMLSynDark.CommentAttri.Background := LBackgroundColor;
-  SynXMLSynDark.DocTypeAttri.Background := LBackgroundColor;
-  SynXMLSynDark.SpaceAttri.Background := LBackgroundColor;
-  SynXMLSynDark.SymbolAttri.Background := LBackgroundColor;
 end;
 
-procedure TFrmEditor.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+procedure TFrmPreview.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
   NewDPI: Integer);
 begin
   TLogPreview.Add('TFrmEditor.FormAfterMonitorDpiChanged: '+
   '- Old: '+OldDPI.ToString+' - New: '+NewDPI.ToString);
 end;
 
-procedure TFrmEditor.FormCreate(Sender: TObject);
+procedure TFrmPreview.FormCreate(Sender: TObject);
 begin
   TLogPreview.Add('TFrmEditor.FormCreate');
   Application.OnException := AppException;
   FSimpleText := StatusBar.SimpleText;
   UpdateFromSettings;
-  UpdateHighlighter;
 end;
 
-procedure TFrmEditor.FormDestroy(Sender: TObject);
+procedure TFrmPreview.FormDestroy(Sender: TObject);
 begin
   SaveSettings;
   TLogPreview.Add('TFrmEditor.FormDestroy');
   inherited;
 end;
 
-procedure TFrmEditor.FormResize(Sender: TObject);
+procedure TFrmPreview.FormResize(Sender: TObject);
 begin
-  PanelEditor.Height := Round(Self.Height * (FSettings.SplitterPos / 100));
+  PanelEditor.Height := Round(Self.Height * (FPreviewSettings.SplitterPos / 100));
   Splitter.Top := PanelEditor.Height;
   if Self.Width < (550 * Self.ScaleFactor) then
     ToolBar.ShowCaptions := False
@@ -287,12 +246,7 @@ begin
   UpdateGUI;
 end;
 
-function TFrmEditor.GetEditorFontSize: Integer;
-begin
-  Result := FFontSize;
-end;
-
-procedure TFrmEditor.LoadFromFile(const AFileName: string);
+procedure TFrmPreview.LoadFromFile(const AFileName: string);
 begin
   TLogPreview.Add('TFrmEditor.LoadFromFile Init');
   FFileName := AFileName;
@@ -301,13 +255,13 @@ begin
   TLogPreview.Add('TFrmEditor.LoadFromFile Done');
 end;
 
-procedure TFrmEditor.LoadFromStream(const AStream: TStream);
+procedure TFrmPreview.LoadFromStream(const AStream: TStream);
 var
   LStringStream: TStringStream;
 begin
   TLogPreview.Add('TFrmEditor.LoadFromStream Init');
   AStream.Position := 0;
-  LStringStream := TStringStream.Create;
+  LStringStream := TStringStream.Create('',TEncoding.UTF8);
   try
     LStringStream.LoadFromStream(AStream);
     SynEdit.Lines.Text := LStringStream.DataString;
@@ -318,28 +272,31 @@ begin
   TLogPreview.Add('TFrmEditor.LoadFromStream Done');
 end;
 
-procedure TFrmEditor.SaveSettings;
+procedure TFrmPreview.SaveSettings;
 begin
-  if Assigned(FSettings) then
+  if Assigned(FPreviewSettings) then
   begin
-    FSettings.UpdateSettings(SynEdit.Font.Name,
+    FPreviewSettings.UpdateSettings(SynEdit.Font.Name,
       EditorFontSize,
       PanelEditor.Visible);
-    FSettings.WriteSettings;
+    FPreviewSettings.WriteSettings(SynEdit.Highlighter);
   end;
 end;
 
-procedure TFrmEditor.ScaleControls(const ANewPPI: Integer);
+procedure TFrmPreview.ScaleControls(const ANewPPI: Integer);
 var
   LCurrentPPI: Integer;
-  LScaleFactor: Integer;
+  LNewSize: Integer;
 begin
   LCurrentPPI := FCurrentPPI;
   if ANewPPI <> LCurrentPPI then
-    SVGIconImageList.Size := MulDiv(SVGIconImageList.Size, ANewPPI, LCurrentPPI);
+  begin
+    LNewSize := MulDiv(SVGIconImageList.Width, ANewPPI, LCurrentPPI);
+    SVGIconImageList.SetSize(LNewSize, LNewSize);
+  end;
 end;
 
-procedure TFrmEditor.SetEditorFontSize(const Value: Integer);
+procedure TFrmPreview.SetEditorFontSize(const Value: Integer);
 var
   LScaleFactor: Single;
 begin
@@ -359,169 +316,76 @@ begin
   end;
 end;
 
-procedure TFrmEditor.ShowSearchDialog;
-var
-  LTextSearchDialog: TTextSearchDialog;
-  LRect: TRect;
-  i: integer;
+procedure TFrmPreview.SplitterMoved(Sender: TObject);
 begin
-  for i := 0 to Screen.FormCount - 1 do
-    if Screen.Forms[i].ClassType = TTextSearchDialog then
-    begin
-      Screen.Forms[i].BringToFront;
-      exit;
-    end;
-
-  StatusBar.SimpleText := '';
-  LTextSearchDialog := TTextSearchDialog.Create(Self);
-  try
-    LTextSearchDialog.SearchBackwards := gbSearchBackwards;
-    LTextSearchDialog.SearchCaseSensitive := gbSearchCaseSensitive;
-    LTextSearchDialog.SearchFromCursor := gbSearchFromCaret;
-    LTextSearchDialog.SearchInSelectionOnly := gbSearchSelectionOnly;
-
-    LTextSearchDialog.SearchText := gsSearchText;
-    if gbSearchTextAtCaret then
-    begin
-      if SynEdit.SelAvail and (SynEdit.BlockBegin.Line = SynEdit.BlockEnd.Line) then
-        LTextSearchDialog.SearchText := SynEdit.SelText
-      else
-        LTextSearchDialog.SearchText := SynEdit.GetWordAtRowCol(SynEdit.CaretXY);
-    end;
-
-    LTextSearchDialog.SearchTextHistory := gsSearchTextHistory;
-    LTextSearchDialog.SearchWholeWords := gbSearchWholeWords;
-
-    if Self.Parent <> nil then
-    begin
-      GetWindowRect(Self.Parent.ParentWindow, LRect);
-      LTextSearchDialog.Left := (LRect.Left + LRect.Right - LTextSearchDialog.Width) div 2;
-      LTextSearchDialog.Top := (LRect.Top + LRect.Bottom - LTextSearchDialog.Height) div 2;
-    end;
-
-    if LTextSearchDialog.ShowModal() = mrOK then
-    begin
-      gbSearchBackwards := LTextSearchDialog.SearchBackwards;
-      gbSearchCaseSensitive := LTextSearchDialog.SearchCaseSensitive;
-      gbSearchFromCaret := LTextSearchDialog.SearchFromCursor;
-      gbSearchSelectionOnly := LTextSearchDialog.SearchInSelectionOnly;
-      gbSearchWholeWords := LTextSearchDialog.SearchWholeWords;
-      gbSearchRegex := LTextSearchDialog.SearchRegularExpression;
-      gsSearchText := LTextSearchDialog.SearchText;
-      gsSearchTextHistory := LTextSearchDialog.SearchTextHistory;
-      fSearchFromCaret := gbSearchFromCaret;
-
-      if gsSearchText <> '' then
-      begin
-        DoSearchText(gbSearchBackwards);
-        fSearchFromCaret := True;
-      end;
-    end;
-  finally
-    LTextSearchDialog.Free;
-  end;
-end;
-
-procedure TFrmEditor.SplitterMoved(Sender: TObject);
-begin
-  FSettings.SplitterPos := splitter.Top * 100 div
+  FPreviewSettings.SplitterPos := splitter.Top * 100 div
     (Self.Height - Toolbar.Height);
   SaveSettings;
 end;
 
-procedure TFrmEditor.ToolButtonShowTextClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonShowTextClick(Sender: TObject);
 begin
   PanelEditor.Visible := not PanelEditor.Visible;
   UpdateGUI;
   SaveSettings;
 end;
 
-procedure TFrmEditor.ToolButtonAboutClick(Sender: TObject);
-var
-  LFrm: TFrmAbout;
-  LRect: TRect;
-  i: integer;
+procedure TFrmPreview.ToolButtonAboutClick(Sender: TObject);
 begin
-
-  for i := 0 to Screen.FormCount - 1 do
-    if Screen.Forms[i].ClassType = TFrmAbout then
-    begin
-      Screen.Forms[i].BringToFront;
-      exit;
-    end;
-
-  LFrm := TFrmAbout.Create(nil);
-  try
-    if Self.Parent <> nil then
-    begin
-      GetWindowRect(Self.Parent.ParentWindow, LRect);
-      LFrm.Left := (LRect.Left + LRect.Right - LFrm.Width) div 2;
-      LFrm.Top := (LRect.Top + LRect.Bottom - LFrm.Height) div 2;
-    end;
-
-    LFrm.ShowModal();
-  finally
-    LFrm.Free;
-  end;
+  ShowAboutForm(DialogPosRect, Title_SVGPreview);
 end;
 
-procedure TFrmEditor.ToolButtonMouseEnter(Sender: TObject);
+procedure TFrmPreview.ToolButtonMouseEnter(Sender: TObject);
 begin
   StatusBar.SimpleText := (Sender as TToolButton).Hint;
 end;
 
-procedure TFrmEditor.ToolButtonMouseLeave(Sender: TObject);
+procedure TFrmPreview.ToolButtonMouseLeave(Sender: TObject);
 begin
   StatusBar.SimpleText := FSimpleText;
 end;
 
-procedure TFrmEditor.ToolButtonReformatClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonReformatClick(Sender: TObject);
 begin
   SynEdit.Lines.Text := Xml.XMLDoc.FormatXMLData(SynEdit.Lines.Text);
 end;
 
-procedure TFrmEditor.UpdateFromSettings;
+procedure TFrmPreview.UpdateFromSettings;
 begin
-  FSettings.ReadSettings;
-  if FSettings.FontSize >= MinfontSize then
-    EditorFontSize := FSettings.FontSize
+  FPreviewSettings.ReadSettings(SynEdit.Highlighter);
+  if FPreviewSettings.FontSize >= MinfontSize then
+    EditorFontSize := FPreviewSettings.FontSize
   else
     EditorFontSize := MinfontSize;
-  SynEdit.Font.Name := FSettings.FontName;
-  PanelEditor.Visible := FSettings.ShowEditor;
+  SynEdit.Font.Name := FPreviewSettings.FontName;
+  PanelEditor.Visible := FPreviewSettings.ShowEditor;
+  TStyleManager.TrySetStyle(FPreviewSettings.StyleName, False);
+  BackgroundTrackBar.Position := FPreviewSettings.LightBackground;
+  UpdateHighlighter;
   UpdateGUI;
 end;
 
-procedure TFrmEditor.ToolButtonFontClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonSettingsClick(Sender: TObject);
 begin
-  FontDialog.Font.Assign(SynEdit.Font);
-  FontDialog.Font.Size := EditorFontSize;
-  if FontDialog.Execute then
+  if ShowSettings(DialogPosRect, Title_SVGPreview, SynEdit, FPreviewSettings, True) then
   begin
-    FSettings.FontName := FontDialog.Font.Name;
-    FSettings.FontSize := FontDialog.Font.Size;
-    FSettings.WriteSettings;
+    FPreviewSettings.WriteSettings(SynEdit.Highlighter);
     UpdateFromSettings;
   end;
 end;
 
-procedure TFrmEditor.ToolButtonSearchClick(Sender: TObject);
-begin
-  ShowSearchDialog();
-end;
-
-procedure TFrmEditor.ToolButtonSelectModeClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonSelectModeClick(Sender: TObject);
 begin
   TToolButton(Sender).CheckMenuDropdown;
 end;
 
-procedure TFrmEditor.ToolButtonZommOutClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonZommOutClick(Sender: TObject);
 begin
   EditorFontSize := EditorFontSize - 1;
   SaveSettings;
 end;
 
-procedure TFrmEditor.ToolButtonZoomInClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonZoomInClick(Sender: TObject);
 begin
   EditorFontSize := EditorFontSize + 1;
   SaveSettings;

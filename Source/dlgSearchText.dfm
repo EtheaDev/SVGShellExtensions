@@ -12,11 +12,11 @@ object TextSearchDialog: TTextSearchDialog
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
-  Position = poDefault
+  Position = poOwnerFormCenter
   OnCloseQuery = FormCloseQuery
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object SearchForLabel: TLabel
     Left = 8
     Top = 12
     Width = 82
@@ -32,7 +32,7 @@ object TextSearchDialog: TTextSearchDialog
     Height = 21
     TabOrder = 0
   end
-  object gbSearchOptions: TGroupBox
+  object FSearchOptions: TGroupBox
     Left = 8
     Top = 40
     Width = 154
@@ -80,7 +80,7 @@ object TextSearchDialog: TTextSearchDialog
       TabOrder = 4
     end
   end
-  object rgSearchDirection: TRadioGroup
+  object FSearchDirection: TRadioGroup
     Left = 170
     Top = 40
     Width = 154

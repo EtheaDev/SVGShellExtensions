@@ -40,9 +40,6 @@ uses
   SVGCommon,
   ActiveX;
 
-const
-  MySVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
-
 type
   TSVGThumbnailProvider = class abstract
   public
@@ -152,16 +149,18 @@ end;
 
 function TComSVGThumbnailProvider.IInitializeWithStream_Initialize(
   const pstream: IStream; grfMode: Cardinal): HRESULT;
-var
-  LightTheme: Integer;
 begin
   TLogPreview.Add('TComSVGThumbnailProvider.IInitializeWithStream_Initialize Init');
   Initialize_GDI;
   FIStream := pstream;
-  FMode := grfMode;
+  //FMode := grfMode;
   Result := S_OK;
-  FSVG := GlobalSVGFactory.NewSvg;
-  FLightTheme := IsWindowsAppThemeLight;
+  //Result := E_NOTIMPL;
+  if Result = S_OK then
+  begin
+    FSVG := GlobalSVGFactory.NewSvg;
+    FLightTheme := IsWindowsAppThemeLight;
+  end;
   TLogPreview.Add('TComSVGThumbnailProvider.IInitializeWithStream_Initialize done');
 end;
 

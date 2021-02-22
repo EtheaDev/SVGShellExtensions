@@ -46,10 +46,10 @@ uses
 
 type
   TTextSearchDialog = class(TForm)
-    Label1: TLabel;
+    SearchForLabel: TLabel;
     cbSearchText: TComboBox;
-    rgSearchDirection: TRadioGroup;
-    gbSearchOptions: TGroupBox;
+    FSearchDirection: TRadioGroup;
+    FSearchOptions: TGroupBox;
     cbSearchCaseSensitive: TCheckBox;
     cbSearchWholeWords: TCheckBox;
     cbSearchFromCursor: TCheckBox;
@@ -97,11 +97,24 @@ implementation
 
 {$R *.DFM}
 
+(*
+var
+  gbSearchBackwards: boolean;
+  gbSearchCaseSensitive: boolean;
+  gbSearchFromCaret: boolean;
+  gbSearchSelectionOnly: boolean;
+  gbSearchTextAtCaret: boolean;
+  gbSearchWholeWords: boolean;
+  gbSearchRegex: boolean;
+
+  gsSearchText: string;
+  gsReplaceText: string;
+*)
 { TTextSearchDialog }
 
 function TTextSearchDialog.GetSearchBackwards: boolean;
 begin
-  Result := rgSearchDirection.ItemIndex = 1;
+  Result := FSearchDirection.ItemIndex = 1;
 end;
 
 function TTextSearchDialog.GetSearchCaseSensitive: boolean;
@@ -150,7 +163,7 @@ end;
 
 procedure TTextSearchDialog.SetSearchBackwards(Value: boolean);
 begin
-  rgSearchDirection.ItemIndex := Ord(Value);
+  FSearchDirection.ItemIndex := Ord(Value);
 end;
 
 procedure TTextSearchDialog.SetSearchCaseSensitive(Value: boolean);

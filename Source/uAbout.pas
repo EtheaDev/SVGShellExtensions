@@ -39,31 +39,40 @@ uses
   Dialogs, StdCtrls, ExtCtrls, pngimage, Vcl.ImgList, System.ImageList,
   Vcl.Imaging.GIFImg, SVGIconImage;
 
+resourcestring
+  Title_SVGTextEditor = 'SVG Text Editor';
+  Title_SVGPreview = 'SVG Preview';
+  FReeware_Caption = ' - Freeware';
+
 type
   TFrmAbout = class(TForm)
     Panel1:    TPanel;
-    Button1:   TButton;
+    btnOK: TButton;
     TitleLabel: TLabel;
     LabelVersion: TLabel;
     MemoCopyRights: TMemo;
-    Button3: TButton;
+    btnIssues: TButton;
     btnCheckUpdates: TButton;
     LinkLabel1: TLinkLabel;
     SVGIconImage1: TSVGIconImage;
     SVGIconImage2: TSVGIconImage;
-    procedure Button1Click(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure btnIssuesClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure LinkLabel1Click(Sender: TObject);
     procedure btnCheckUpdatesClick(Sender: TObject);
   private
+    FTitle: string;
+    procedure SetTitle(const Value: string);
     { Private declarations }
   public
-    { Public declarations }
+    procedure DisableButtons;
+    property Title: string read FTitle write SetTitle;
   end;
 
-
+procedure ShowAboutForm(const AParentRect: TRect;
+  const ATitle: string);
 
 implementation
 
@@ -71,6 +80,32 @@ uses
   ShellApi, uMisc;
 
 {$R *.dfm}
+
+procedure ShowAboutForm(const AParentRect: TRect; const ATitle: string);
+var
+  LFrm: TFrmAbout;
+  I: integer;
+begin
+  for I := 0 to Screen.FormCount - 1 do
+    if Screen.Forms[I].ClassType = TFrmAbout then
+    begin
+      Screen.Forms[I].BringToFront;
+      exit;
+    end;
+
+  LFrm := TFrmAbout.Create(nil);
+  try
+    if (AparentRect.Left <> 0) and (AparentRect.Right <> 0) then
+    begin
+      LFrm.Left := (AParentRect.Left + AParentRect.Right - LFrm.Width) div 2;
+      LFrm.Top := (AParentRect.Top + AParentRect.Bottom - LFrm.Height) div 2;
+    end;
+    LFrm.Title := ATitle;
+    LFrm.ShowModal;
+  finally
+    LFrm.Free;
+  end;
+end;
 
 procedure TFrmAbout.btnCheckUpdatesClick(Sender: TObject);
 var
@@ -82,16 +117,22 @@ begin
 end;
 
 
-procedure TFrmAbout.Button1Click(Sender: TObject);
+procedure TFrmAbout.btnOKClick(Sender: TObject);
 begin
   Close();
 end;
 
-procedure TFrmAbout.Button3Click(Sender: TObject);
+procedure TFrmAbout.btnIssuesClick(Sender: TObject);
 begin
    ShellExecute(Handle, 'open',
     PChar('https://github.com/EtheaDev/SVGShellExtensions/issues'),
     nil, nil, SW_SHOW);
+end;
+
+procedure TFrmAbout.DisableButtons;
+begin
+  btnOK.OnClick := nil;
+  btnCheckUpdates.OnClick := nil;
 end;
 
 procedure TFrmAbout.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -103,12 +144,12 @@ procedure TFrmAbout.FormCreate(Sender: TObject);
 var
   FileVersionStr: string;
 begin
-  TitleLabel.Font.Height := TitleLabel.Font.Height * 2;
+  TitleLabel.Font.Height := Round(TitleLabel.Font.Height * 1.6);
 
   FileVersionStr:=uMisc.GetFileVersion(GetModuleLocation());
   LabelVersion.Caption := Format('Version %s', [FileVersionStr]);
-  MemoCopyRights.Lines.Add(
-    'Author: Carlo Barazzetta - Ethea S.r.l.');
+  MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
+  MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');
   MemoCopyRights.Lines.Add('Copyright © 2021 all rights reserved.');
   MemoCopyRights.Lines.Add('');
@@ -131,6 +172,13 @@ procedure TFrmAbout.LinkLabel1Click(Sender: TObject);
 begin
    ShellExecute(Handle, 'open',
     PChar('https://github.com/EtheaDev/SVGShellExtensions'), nil, nil, SW_SHOW);
+end;
+
+procedure TFrmAbout.SetTitle(const Value: string);
+begin
+  FTitle := Value;
+  Caption := FTitle;
+  TitleLabel.Caption := Value + FReeware_Caption;
 end;
 
 end.

@@ -41,20 +41,6 @@ interface
   procedure Initialize_GDI;
   procedure Finalize_GDI;
 
-var
-  gbSearchBackwards: boolean;
-  gbSearchCaseSensitive: boolean;
-  gbSearchFromCaret: boolean;
-  gbSearchSelectionOnly: boolean;
-  gbSearchTextAtCaret: boolean;
-  gbSearchWholeWords: boolean;
-  gbSearchRegex: boolean;
-
-  gsSearchText: string;
-  gsSearchTextHistory: string;
-  gsReplaceText: string;
-  gsReplaceTextHistory: string;
-
 resourcestring
   STextNotFound = 'Text not found';
 

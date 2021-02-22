@@ -41,7 +41,8 @@ implementation
 
 uses
   PropSys,
-  SysUtils;
+  SysUtils,
+  uLogExcept;
 
 type
   TComStreamPreviewHandler = class(TComPreviewHandler, IInitializeWithStream)
@@ -71,13 +72,17 @@ end;
 
 function TComStreamPreviewHandler.IInitializeWithStream_Initialize(const pstream: IStream; grfMode: Cardinal): HRESULT;
 begin
+  TLogPreview.Add('TComStreamPreviewHandler.IInitializeWithStream_Initialize');
   FIStream := pstream;
   FMode := grfMode;
   Result := S_OK;
+  //Result := E_NOTIMPL;
+  TLogPreview.Add('TComStreamPreviewHandler.IInitializeWithStream_Initialize');
 end;
 
 procedure TComStreamPreviewHandler.InternalUnload;
 begin
+  TLogPreview.Add('TComStreamPreviewHandler.InternalUnload');
   FIStream := nil;
 end;
 
@@ -85,6 +90,7 @@ procedure TComStreamPreviewHandler.InternalDoPreview;
 var
   AStream: TIStreamAdapter;
 begin
+  TLogPreview.Add('TComStreamPreviewHandler.InternalDoPreview');
   AStream := TIStreamAdapter.Create(FIStream);
   try
     CheckContainer;

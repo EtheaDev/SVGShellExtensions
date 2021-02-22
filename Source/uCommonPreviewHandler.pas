@@ -29,7 +29,7 @@ uses
   Controls,
   StdCtrls,
   SysUtils,
-  SVGEditor,
+  SVGPreviewForm,
 {$IFDEF USE_TStreamPreviewHandler}
   uStreamAdapter,
   uStreamPreviewHandler,
@@ -45,7 +45,7 @@ type
   TBasePreviewHandler = class(TFilePreviewHandler)
 {$ENDIF}
   private
-    FEditor: TFrmEditor;
+    FEditor: TFrmPreview;
   public
     constructor Create(AParent: TWinControl); override;
     procedure Unload; override;
@@ -54,7 +54,7 @@ type
 {$ELSE}
     procedure DoPreview(const FilePath: string); override;
 {$ENDIF}
-    property Editor: TFrmEditor read FEditor write FEditor;
+    property Editor: TFrmPreview read FEditor write FEditor;
   end;
 
 implementation
@@ -81,9 +81,9 @@ begin
     //if (Editor <> nil) and IsWindow(Editor.Handle) then
     begin
       Initialize_GDI;
-      TLogPreview.Add('TGlobalPreviewHandler TFrmEditor.Create');
-      Editor := TFrmEditor.Create(nil);
-      Editor.Parent := TPreviewContainer(TFrmEditor.AParent);
+      TLogPreview.Add('TGlobalPreviewHandler TFrmPreview.Create');
+      Editor := TFrmPreview.Create(nil);
+      Editor.Parent := TPreviewContainer(TFrmPreview.AParent);
       Editor.Align := alClient;
       Editor.BorderStyle := bsNone;
 
@@ -106,10 +106,10 @@ begin
     //if (Editor <> nil) and IsWindow(Editor.Handle) then
     begin
       Initialize_GDI;
-      TLogPreview.Add('TGlobalPreviewHandler TFrmEditor.Create');
-      Editor := TFrmEditor.Create(nil);
+      TLogPreview.Add('TGlobalPreviewHandler TFrmPreview.Create');
+      Editor := TFrmPreview.Create(nil);
       Editor.Align := alClient;
-      Editor.Parent := TPreviewContainer(TFrmEditor.AParent).ClientPanel;
+      Editor.Parent := TPreviewContainer(TFrmPreview.AParent).ClientPanel;
       Editor.BorderStyle := bsNone;
 
       TLogPreview.Add('DoPreview Visible');
@@ -149,13 +149,13 @@ begin
        Editor:=nil;
      end;
 
-     if (TFrmEditor.AParent<>nil) then
+     if (TFrmPreview.AParent<>nil) then
      begin
-       if TPreviewContainer(TFrmEditor.AParent).PreviewHandler <> nil then
-        TComPreviewHandler(TPreviewContainer(TFrmEditor.AParent).PreviewHandler).Container := nil;
+       if TPreviewContainer(TFrmPreview.AParent).PreviewHandler <> nil then
+        TComPreviewHandler(TPreviewContainer(TFrmPreview.AParent).PreviewHandler).Container := nil;
 
-       TFrmEditor.AParent.Free;
-       TFrmEditor.AParent:=nil;
+       TFrmPreview.AParent.Free;
+       TFrmPreview.AParent:=nil;
      end;
 
 

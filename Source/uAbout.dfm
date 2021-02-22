@@ -3,7 +3,6 @@ object FrmAbout: TFrmAbout
   Top = 323
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = 'About SVG Preview'
   ClientHeight = 316
   ClientWidth = 446
   Color = clBtnFace
@@ -16,6 +15,9 @@ object FrmAbout: TFrmAbout
   Position = poDefault
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    446
+    316)
   PixelsPerInch = 96
   TextHeight = 13
   object TitleLabel: TLabel
@@ -42,16 +44,17 @@ object FrmAbout: TFrmAbout
     Color = clWindow
     ParentBackground = False
     TabOrder = 0
-    object Button1: TButton
+    object btnOK: TButton
       Left = 360
       Top = 16
       Width = 75
       Height = 25
       Caption = 'OK'
+      Default = True
       TabOrder = 0
-      OnClick = Button1Click
+      OnClick = btnOKClick
     end
-    object Button3: TButton
+    object btnIssues: TButton
       Left = 8
       Top = 16
       Width = 125
@@ -59,7 +62,7 @@ object FrmAbout: TFrmAbout
       Caption = 'Submit issue...'
       ImageIndex = 0
       TabOrder = 1
-      OnClick = Button3Click
+      OnClick = btnIssuesClick
     end
     object btnCheckUpdates: TButton
       Left = 139
@@ -77,7 +80,8 @@ object FrmAbout: TFrmAbout
     Left = 8
     Top = 83
     Width = 427
-    Height = 166
+    Height = 176
+    Anchors = [akLeft, akTop, akBottom]
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical

@@ -42,9 +42,6 @@ uses
   uStreamPreviewHandler,
   uPreviewHandler;
 
-const
-  MySVG_PreviewHandlerGUID: TGUID = '{742ADF0E-3C4D-4F46-9E91-236BF0194C21}';
-
 type
   TSVGPreviewHandler = class(TBasePreviewHandler)
   public
