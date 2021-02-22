@@ -23,6 +23,12 @@ In Windows 10 with Dark theme:
 
 ![Preview Thumbnails Dark](./Images/PreviewThumbnailsDark.png)
 
+### SVG Text Editor ###
+
+A useful Text editor with preview of SVG Image:
+
+![SVG Text Editor Dark](./Images/SVGTextEditorDark.png)
+
 ### Setup using the Installer ###
 
 Click to download the [SVGShellExtensionsSetup.exe](https://github.com/EtheaDev/SVGShellExtensions/releases/download/v1.0.1/SVGShellExtensionsSetup.exe) located also in the Release area. The Installer works only on a 64 bit system.
@@ -60,6 +66,12 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+22 Feb 2021
+- Added SVG Text Editor
+- Added new Settings dialog
+- Added Context-menu to open Editor and export to PNG
+- Added Direct2D Engine for Preview Panel
 
 09 Feb 2021
 - Added Setup asset
