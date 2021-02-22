@@ -141,8 +141,11 @@ begin
     end;
   except
     on E: Exception do
+    begin
       TLogPreview.Add(Format('Error in TComSVGThumbnailProvider.GetThumbnail - Message: %s: Trace %s',
         [E.Message, E.StackTrace]));
+        Result := E_FAIL;
+    end;
   end;
   Result := S_OK;
 end;

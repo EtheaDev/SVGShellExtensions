@@ -165,18 +165,6 @@
                     <VersionInfo Name="Locale">1033</VersionInfo>
                     <VersionInfo Name="CodePage">1252</VersionInfo>
                 </VersionInfo>
-                <VersionInfoKeys>
-                    <VersionInfoKeys Name="CompanyName">Ethea</VersionInfoKeys>
-                    <VersionInfoKeys Name="FileDescription">InstantXMLEditor: XSL-&gt;HTML and XSL-FO processing</VersionInfoKeys>
-                    <VersionInfoKeys Name="FileVersion">2.11.0.0</VersionInfoKeys>
-                    <VersionInfoKeys Name="InternalName"/>
-                    <VersionInfoKeys Name="LegalCopyright">Copyright © 2005-2010 - Ethea</VersionInfoKeys>
-                    <VersionInfoKeys Name="LegalTrademarks"/>
-                    <VersionInfoKeys Name="OriginalFilename"/>
-                    <VersionInfoKeys Name="ProductName"/>
-                    <VersionInfoKeys Name="ProductVersion">2.10</VersionInfoKeys>
-                    <VersionInfoKeys Name="Comments"/>
-                </VersionInfoKeys>
                 <Source>
                     <Source Name="MainSource">SVGTextEditor.dpr</Source>
                 </Source>

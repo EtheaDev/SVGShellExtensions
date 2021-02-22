@@ -3,12 +3,6 @@
 #define MyAppName 'SVG Shell Extensions and Text Editor'
 #define MyAppVersion '1.1.0'
 
-;Andrà ripristinato
-;Source: Updater\DownloadInfo.xml; DestDir: {app}
-;Source: Updater\libeay32.dll; DestDir: {app}
-;Source: Updater\ssleay32.dll; DestDir: {app}
-;Source: Updater\updater.exe; DestDir: {app}
-
 [Setup]
 UsePreviousLanguage=no
 AppName={#MyAppName}
@@ -16,21 +10,21 @@ AppPublisher=Ethea S.r.l.
 AppVerName={#MyAppName} {#MyAppVersion}
 VersionInfoVersion={#MyAppVersion}
 AppPublisherURL=https://www.ethea.it/
-AppSupportURL=https://www.ethea.it/supporto/
+AppSupportURL=https://github.com/EtheaDev/SVGShellExtensions/issues
 DefaultDirName={pf}\Ethea\SVGShellExtensions
 OutputBaseFileName=SVGShellExtensionsSetup
 DisableDirPage=true
+DefaultGroupName=SVG Shell Extensions
 Compression=lzma
 SolidCompression=true
 UsePreviousAppDir=false
-AppendDefaultDirName=true
+AppendDefaultDirName=false
 PrivilegesRequired=admin
 WindowVisible=false
 WizardImageFile=WizEtheaImage.bmp
 WizardSmallImageFile=WizEtheaSmallImage.bmp
 AppContact=info@ethea.it
-SetupIconFile=..\Source\EtheaMultires.ico
-DisableProgramGroupPage=true
+SetupIconFile=..\Icons\logo.ico
 AppID=SVGShellExtensions
 UsePreviousSetupType=false
 UsePreviousTasks=false
@@ -50,7 +44,6 @@ Name: ita; MessagesFile: compiler:Languages\Italian.isl; LicenseFile: .\Licenza_
 
 [Tasks]
 Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
-Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
 
 [Files]
 Source: ..\SVGTextEditor.exe; DestDir: {app}; Flags: ignoreversion; Components: Editor
@@ -59,9 +52,8 @@ Source: ..\SVGShellExtensions.dll; DestDir: {app}; Flags : regserver sharedfile 
 ;Source: Register64Bit.bat; DestDir: {app}
 
 [Icons]
-Name: {group}\SVGTextEditor; Filename: {app}\SVGTextEditor.exe
-Name: {userdesktop}\SVGTextEditor; Filename: {app}\SVGTextEditor.exe; Tasks: desktopicon
-Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\SVG Text Editor; Filename: {app}\SVGTextEditor.exe; Tasks: quicklaunchicon
+Name: "{group}\SVGTextEditor"; Filename: "{app}\SVGTextEditor.exe"; WorkingDir: "{app}"; IconFilename: "{app}\SVGTextEditor.exe"; Components: Editor
+Name: "{userdesktop}\SVGTextEditor"; Filename: "{app}\SVGTextEditor.exe"; Tasks: desktopicon; Components: Editor
 
 [Run]
 Filename: {app}\SVGTextEditor.exe; Description: {cm:LaunchProgram,'SVG Text Editor'}; Flags: nowait postinstall skipifsilent

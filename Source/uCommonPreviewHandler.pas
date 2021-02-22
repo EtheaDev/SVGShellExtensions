@@ -109,7 +109,7 @@ begin
       TLogPreview.Add('TGlobalPreviewHandler TFrmPreview.Create');
       Editor := TFrmPreview.Create(nil);
       Editor.Align := alClient;
-      Editor.Parent := TPreviewContainer(TFrmPreview.AParent).ClientPanel;
+      Editor.Parent := TPreviewContainer(TFrmPreview.AParent);
       Editor.BorderStyle := bsNone;
 
       TLogPreview.Add('DoPreview Visible');

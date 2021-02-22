@@ -215,10 +215,6 @@ object FrmPreview: TFrmPreview
       AutoSize = False
       Proportional = True
       Align = alClient
-      ExplicitLeft = 1
-      ExplicitTop = 41
-      ExplicitWidth = 529
-      ExplicitHeight = 147
     end
     object panelPreview: TPanel
       Left = 0
@@ -229,9 +225,6 @@ object FrmPreview: TFrmPreview
       ParentBackground = False
       ShowCaption = False
       TabOrder = 1
-      ExplicitLeft = 1
-      ExplicitTop = 1
-      ExplicitWidth = 529
       object BackgroundGrayScaleLabel: TLabel
         Left = 10
         Top = 6
@@ -255,7 +248,6 @@ object FrmPreview: TFrmPreview
         TabOrder = 0
         TabStop = False
         OnChange = BackgroundTrackBarChange
-        ExplicitWidth = 444
       end
     end
   end
