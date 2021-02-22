@@ -6,7 +6,7 @@
  
 - a [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image into Windows Explorer.
 
-- (TODO) an SVG-XML Text Editor to manually edit and preview the text of SVG files.
+- an SVG-XML Text Editor to manually edit and preview the text of SVG files.
 
 ### Features ###
 * Supports Windows Vista, 7, 8 and 10 (only for 64 bits).
@@ -29,7 +29,7 @@ Click to download the [SVGShellExtensionsSetup.exe](https://github.com/EtheaDev/
 
 WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
 
-Look at this short video (1'47'') how to dowload, setup and use it:
+Look at this short video (1'47'') how to download, setup and use it:
 
 [![SVGShellExtensions](https://img.youtube.com/vi/B7hir4BGSJQ/0.jpg)](https://www.youtube.com/watch?v=B7hir4BGSJQ)
 
