@@ -2,16 +2,16 @@
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
-- A [Preview handler](https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers)  which allows you to see the SVG image and text without open it, in the "Preview Panel".
+- A [Preview handler][1]  which allows you to see the SVG image and text without open it, in the "Preview Panel".
  
-- A [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image into Windows Explorer.
+- A [Thumbnail handler][2] which allows you to see the SVG image into Windows Explorer.
 
 - An SVG-XML Text Editor to manually edit and preview the text of SVG files.
 
-### Features ###
-* Supports Windows Vista, 7, 8 and 10 (only for 64 bits).
+### Features
+- Supports Windows Vista, 7, 8 and 10 (only for 64 bits).
 
-* Themes (Dark and Light) according to user preferences of Windows Theme
+- Themes (Dark and Light) according to user preferences of Windows Theme
 
 ### Preview Panel and Thumbnails in action ###
 
@@ -23,21 +23,26 @@ In Windows 10 with Dark theme:
 
 ![Preview Thumbnails Dark](./Images/PreviewThumbnailsDark.png)
 
-### SVG Text Editor ###
+### SVG Text Editor
 
 A useful Text editor with preview of SVG Image:
 
 ![SVG Text Editor Dark](./Images/SVGTextEditorDark.png)
 
-### Setup using the Installer ###
+### Setup using the Installer
 
-Click to download the [SVGShellExtensionsSetup.exe](https://github.com/EtheaDev/SVGShellExtensions/releases/latest/download/SVGShellExtensionsSetup.exe) located also in the Release area. The Installer works only on a 64 bit system.
+Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works only on a 64 bit system.
 
 WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
 
 Look at this short video (1'47'') how to download, setup and use it:
 
+<br>
+<span align="center">
+ 
 [![SVGShellExtensions](https://img.youtube.com/vi/B7hir4BGSJQ/0.jpg)](https://www.youtube.com/watch?v=B7hir4BGSJQ)
+
+</span>
 
 ***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
 
@@ -47,11 +52,11 @@ If you have Delphi 10.4 Sydney, you can manually build the project:
 
 ***Warning: To build the DLL you need also other open-source projects***
 
-- [SVGIconImageList](https://github.com/EtheaDev/SVGIconImageList)
+- [SVGIconImageList][4]
 
-- [Synedit](https://github.com/SynEdit/SynEdit)
+- [Synedit][5]
 
-- [VCL-Style-Utils](https://github.com/RRUZ/vcl-styles-utils)
+- [VCL-Style-Utils][6]
 
 To manually install the SVGShellExtensions.dll follow these steps:
 
@@ -85,31 +90,43 @@ To manually install the SVGShellExtensions.dll follow these steps:
 31 Jan 2021
 - Added SVG file Preview panel
 
-## Credits ##
+## Credits
 
-Many thanks to **Rodrigo Ruz V.** (author of https://theroadtodelphi.com/ Blog) for his wonderful work on **delphi-preview-handler** https://github.com/RRUZ/delphi-preview-handler from which this project has used a lot of code and inspiration.
+Many thanks to **Rodrigo Ruz V.** (author of [theroadtodelphi.com][7] Blog) for his wonderful work on [delphi-preview-handler][8] from which this project has used a lot of code and inspiration.
 
-## License ##
+## License
 
-Licensed under the Apache License, Version 2.0 (the "License") https://opensource.org/licenses/Apache-2.0;
+Licensed under the [Apache License, Version 2.0][9] (the "License");
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 Third Party libraries and tools used from Ethea:
 
-- SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/
+- [SVGIconImageList][4]
 
-The Initial Developer of the Original Code is Rodrigo Ruz V. Portions created by Rodrigo Ruz V. are Copyright © 2011-2021 Rodrigo Ruz V.
-
-https://github.com/RRUZ/delphi-preview-handler
+The Initial Developer of the [Original Code][8] is **Rodrigo Ruz V**. Portions created by him are Copyright © 2011-2021 Rodrigo Ruz V.
 
 Third Party libraries and tools used:
 
-- VCLStyles Utils https://github.com/RRUZ/vcl-styles-utils
+- [VCLStyles Utils][6]
 
-- SynEdit https://github.com/SynEdit/SynEdit
+- [SynEdit][5]
 
-- TSVG Library - http://www.mwcs.de
+- [TSVG Library][10]
 
-![Delphi 10.4 Sydney Support](/Setup/SupportingDelphi.jpg)
+![Delphi 10.4 Sydney Support](https://github.com/EtheaDev/SVGShellExtensions/raw/main/Setup/SupportingDelphi.jpg)
 
-Related links: https://www.embarcadero.com/ - https://learndelphi.org/
+Related links: [embarcadero.com][11] - [learndelphi.org][12]
+
+
+[1]: https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers
+[2]: https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers
+[3]: https://github.com/EtheaDev/SVGShellExtensions/releases/latest/download/SVGShellExtensionsSetup.exe
+[4]: https://github.com/EtheaDev/SVGIconImageList
+[5]: https://github.com/SynEdit/SynEdit
+[6]: https://github.com/RRUZ/vcl-styles-utils
+[7]: https://theroadtodelphi.com/
+[8]: https://github.com/RRUZ/delphi-preview-handler
+[9]: https://opensource.org/licenses/Apache-2.0
+[10]: http://www.mwcs.de
+[11]: https://www.embarcadero.com/
+[12]: https://learndelphi.org/
