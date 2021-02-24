@@ -2,7 +2,7 @@
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
-- A [Preview handler](http://msdn.microsoft.com/en-us/magazine/cc163487.aspx)  which allows you to see the SVG image and text without open it, in the "Preview Panel".
+- A [Preview handler](https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers)  which allows you to see the SVG image and text without open it, in the "Preview Panel".
  
 - A [Thumbnail handler](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers) which allows you to see the SVG image into Windows Explorer.
 
