@@ -6,7 +6,7 @@
  
 - A [Thumbnail handler][2] which allows you to see the SVG image into Windows Explorer.
 
-- An SVG-XML Text Editor to manually edit and preview the text of SVG files.
+- An [SVG-XML Text Editor][10] to manually edit and preview the text of SVG files.
 
 ### Features
 - Supports Windows Vista, 7, 8 and 10 (only for 64 bits).
@@ -72,6 +72,10 @@ To manually install the SVGShellExtensions.dll follow these steps:
 
 ## Release Notes ##
 
+27 Feb 2021
+- Added 32 bit support
+- Fixed some issue into SVG Text Editor
+
 22 Feb 2021
 - Added SVG Text Editor
 - Added new Settings dialog
@@ -127,6 +131,7 @@ Related links: [embarcadero.com][11] - [learndelphi.org][12]
 [7]: https://theroadtodelphi.com/
 [8]: https://github.com/RRUZ/delphi-preview-handler
 [9]: https://opensource.org/licenses/Apache-2.0
+[10]: https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor
 [10]: http://www.mwcs.de
 [11]: https://www.embarcadero.com/
 [12]: https://learndelphi.org/
