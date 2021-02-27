@@ -149,14 +149,14 @@ object FrmPreview: TFrmPreview
     Width = 531
     Height = 294
     Align = alTop
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     Caption = 'PanelEditor'
     TabOrder = 1
     object SynEdit: TSynEdit
-      Left = 1
-      Top = 1
-      Width = 529
-      Height = 292
+      Left = 0
+      Top = 0
+      Width = 531
+      Height = 294
       Align = alClient
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -173,6 +173,7 @@ object FrmPreview: TFrmPreview
       CodeFolding.ShowCollapsedLine = False
       CodeFolding.ShowHintMark = True
       UseCodeFolding = False
+      BorderStyle = bsNone
       Gutter.Font.Charset = DEFAULT_CHARSET
       Gutter.Font.Color = clWindowText
       Gutter.Font.Height = -11
@@ -324,7 +325,7 @@ object FrmPreview: TFrmPreview
     ImageCollection = dmResources.SVGIconImageCollection
     Width = 24
     Height = 24
-    Left = 472
-    Top = 216
+    Left = 384
+    Top = 208
   end
 end

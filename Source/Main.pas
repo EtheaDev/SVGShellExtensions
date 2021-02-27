@@ -44,17 +44,22 @@ uses
   uSVGThumbnailHandler,
   uSVGPreviewHandler;
 
-const
-  MySVG_PreviewHandlerGUID: TGUID = '{742ADF0E-3C4D-4F46-9E91-236BF0194C21}';
-  MySVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
-
 initialization
-  TSVGPreviewHandler.RegisterPreview(MySVG_PreviewHandlerGUID,
-    'SVG.PreviewHandler', 'Delphi SVG Preview Handler');
-  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID,
-    'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider');
+  {$IFDEF WIN64}
+  TSVGPreviewHandler.RegisterPreview(MySVG_PreviewHandlerGUID_64,
+    'SVG.PreviewHandler', 'Delphi SVG Preview Handler 64bit');
+  {$ELSE}
+  TSVGPreviewHandler.RegisterPreview(MySVG_PreviewHandlerGUID_32,
+    'SVG.PreviewHandler', 'Delphi SVG Preview Handler 32bit');
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID_64,
+    'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider 64bit');
+  {$ELSE}
+  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID_64,
+    'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider 32bit');
+  {$ENDIF}
 
 end.
-
-
 

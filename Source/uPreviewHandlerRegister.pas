@@ -54,7 +54,6 @@ type
     property PreviewHandlerClass: TPreviewHandlerClass read FPreviewHandlerClass;
   end;
 
-
 implementation
 
 uses
@@ -161,6 +160,7 @@ procedure TPreviewHandlerRegister.UpdateRegistry(ARegister: Boolean);
 const
   Prevhost_32 = '{534A1E02-D58F-44f0-B58B-36CBED287C7C}';
   Prevhost_64 = '{6d2b5079-2f0b-48dd-ab7f-97cec514d30b}';
+
 var
   RootKey: HKEY;
   RootUserReg: HKEY;
@@ -193,14 +193,6 @@ begin
 
     if ProgID <> '' then
     begin
-      //RegPrefix     HKEY_CLASSES_ROOT
-      //ServerKeyName CLSID\{AD8855FB-F908-4DDF-982C-ADB9DE5FF000}\InprocServer32
-      //ProgID        DelphiPreviewHandler.Delphi project file
-      //RootKey       2147483648
-      //sClassID      {AD8855FB-F908-4DDF-982C-ADB9DE5FF000}
-      //FileExtension .dpr
-      //RootKey2      HKEY_LOCAL_MACHINE
-
       CreateRegKey(sComServerKey, 'ProgID', ProgID, RootKey);
 
       //Add extension for .svg files

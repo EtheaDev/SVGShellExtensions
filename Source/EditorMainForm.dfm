@@ -77,7 +77,6 @@ object frmMain: TfrmMain
     Height = 535
     Align = alClient
     Images = VirtualImageList
-    PopupMenu = popEditor
     TabOrder = 1
     OnChange = PageControlChange
   end
@@ -115,10 +114,6 @@ object frmMain: TfrmMain
       Proportional = True
       Align = alClient
       OnMouseMove = SVGIconImageMouseMove
-      ExplicitLeft = 1
-      ExplicitTop = 173
-      ExplicitWidth = 248
-      ExplicitHeight = 323
     end
     object panelPreview: TPanel
       Left = 0
@@ -129,9 +124,6 @@ object frmMain: TfrmMain
       ParentBackground = False
       ShowCaption = False
       TabOrder = 1
-      ExplicitLeft = 1
-      ExplicitTop = 25
-      ExplicitWidth = 248
       object BackgroundGrayScaleLabel: TLabel
         Left = 10
         Top = 6
@@ -155,7 +147,6 @@ object frmMain: TfrmMain
         TabOrder = 0
         TabStop = False
         OnChange = BackgroundTrackBarChange
-        ExplicitWidth = 163
       end
     end
     object FlowPanel: TFlowPanel
@@ -169,9 +160,6 @@ object frmMain: TfrmMain
       BevelOuter = bvNone
       ParentColor = True
       TabOrder = 2
-      ExplicitLeft = 4
-      ExplicitTop = 68
-      ExplicitWidth = 242
       object SVGIconImage16: TSVGIconImage
         AlignWithMargins = True
         Left = 3
@@ -226,9 +214,6 @@ object frmMain: TfrmMain
       Caption = 'IMAGE PREVIEW'
       ParentBackground = False
       TabOrder = 3
-      ExplicitLeft = 1
-      ExplicitTop = 1
-      ExplicitWidth = 248
     end
     object StatusPanel: TPanel
       Left = 0
@@ -238,9 +223,6 @@ object frmMain: TfrmMain
       Align = alBottom
       ParentBackground = False
       TabOrder = 4
-      ExplicitLeft = 1
-      ExplicitTop = 500
-      ExplicitWidth = 248
       object StatusImage: TSVGIconImage
         Left = 1
         Top = 1
@@ -261,7 +243,6 @@ object frmMain: TfrmMain
         Align = alClient
         Alignment = taCenter
         TabOrder = 1
-        ExplicitWidth = 208
       end
     end
   end
@@ -630,7 +611,7 @@ object frmMain: TfrmMain
       Hint = 'Close application'
       ImageIndex = 22
       ImageName = 'exit'
-      ShortCut = 16472
+      ShortCut = 16465
       OnExecute = acQuitExecute
     end
     object acAbout: TAction

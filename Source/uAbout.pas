@@ -137,7 +137,7 @@ end;
 
 procedure TFrmAbout.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
- Action:=caFree;
+  Action := caFree;
 end;
 
 procedure TFrmAbout.FormCreate(Sender: TObject);
@@ -147,7 +147,11 @@ begin
   TitleLabel.Font.Height := Round(TitleLabel.Font.Height * 1.6);
 
   FileVersionStr:=uMisc.GetFileVersion(GetModuleLocation());
-  LabelVersion.Caption := Format('Version %s', [FileVersionStr]);
+  {$IFDEF WIN32}
+  LabelVersion.Caption := Format('Version %s (32bit)', [FileVersionStr]);
+  {$ELSE}
+  LabelVersion.Caption := Format('Version %s (64bit)', [FileVersionStr]);
+  {$ENDIF}
   MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');

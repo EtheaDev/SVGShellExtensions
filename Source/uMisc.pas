@@ -40,6 +40,8 @@ interface
   function  GetModuleLocation: string;
   procedure Initialize_GDI;
   procedure Finalize_GDI;
+  procedure Initialize; stdcall;
+  procedure Finalize; stdcall;
 
 resourcestring
   STextNotFound = 'Text not found';
@@ -130,5 +132,17 @@ begin
   GetModuleFileName(HInstance, PChar(Result), MAX_PATH);
   Result:=PChar(Result);
 end;
+
+procedure Initialize; stdcall;
+begin
+  Initialize_GDI;
+end;
+
+procedure Finalize; stdcall;
+begin
+  Finalize_GDI;
+end;
+
+initialization
 
 end.

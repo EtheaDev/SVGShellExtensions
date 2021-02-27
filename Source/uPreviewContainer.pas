@@ -59,9 +59,11 @@ implementation
 uses
   SynEdit,
   System.Math,
+{$IFNDEF DISABLE_STYLES}
   Vcl.Styles.Ext,
   Vcl.Styles,
   Vcl.Themes,
+{$ENDIF}
   uLogExcept,
   uSVGSettings;
 
@@ -86,11 +88,13 @@ begin
     'CurrentPPI '+Self.CurrentPPI.ToString);
   LSettings := TPreviewSettings.CreateSettings(nil);
   try
+{$IFNDEF DISABLE_STYLES}
     if not IsStyleHookRegistered(TCustomSynEdit, TScrollingStyleHook) then
       TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TScrollingStyleHook);
 
     if (Trim(LSettings.StyleName) <> '') and not SameText('Windows', LSettings.StyleName) then
       TStyleManager.TrySetStyle(LSettings.StyleName, False);
+{$ENDIF}
   finally
     LSettings.Free;
   end;

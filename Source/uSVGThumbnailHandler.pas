@@ -61,6 +61,9 @@ const
  ThumbnailProviderGUID = '{E357FCCD-A995-4576-B01F-234630154E96}';
  IID_IThumbnailProvider: TGUID = ThumbnailProviderGUID;
 
+  MySVG_ThumbNailProviderGUID_64: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
+  MySVG_ThumbNailProviderGUID_32: TGUID = '{5015C562-A542-4C10-94A1-9B337FFFB8B8}';
+
 type
   TComSVGThumbnailProvider = class(TComObject, IInitializeWithStream, IThumbnailProvider)
     function IInitializeWithStream.Initialize = IInitializeWithStream_Initialize;
@@ -139,15 +142,15 @@ begin
     finally
       AStream.Free;
     end;
+    Result := S_OK;
   except
     on E: Exception do
     begin
+      Result := E_FAIL;
       TLogPreview.Add(Format('Error in TComSVGThumbnailProvider.GetThumbnail - Message: %s: Trace %s',
         [E.Message, E.StackTrace]));
-        Result := E_FAIL;
     end;
   end;
-  Result := S_OK;
 end;
 
 function TComSVGThumbnailProvider.IInitializeWithStream_Initialize(

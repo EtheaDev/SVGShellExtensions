@@ -1,0 +1,1 @@
+%systemroot%\SysWoW64\regsvr32 /u "D:\ETHEA\SVGShellExtensions\Bin32\SVGShellExtensions32.dll"

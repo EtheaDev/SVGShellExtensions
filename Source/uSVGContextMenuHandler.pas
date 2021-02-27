@@ -73,8 +73,8 @@ type
   end;
 
 const
-  Class_SVGContextMenu: TGUID =
-    '{B763EEFC-33D1-4F23-A451-C0D9A5EED592}';
+  MyClass_SVGContextMenu_64: TGUID = '{B763EEFC-33D1-4F23-A451-C0D9A5EED592}';
+  MyClass_SVGContextMenu_32: TGUID = '{2E933706-1E1D-48CA-9DB8-4706CA13B7F8}';
 
 implementation
 
@@ -87,7 +87,9 @@ uses
   uLogExcept,
   System.Classes,
   uSVGSettings,
+{$IFNDEF DISABLE_STYLES}
   Vcl.Themes,
+{$ENDIF}
   dlgExportPNG,
   DResources,
   SVGInterfaces;
@@ -162,6 +164,12 @@ var
   LSVGText: string;
   Reg: TRegistry;
   LCommand: string;
+
+  procedure EditorNotInstalled;
+  begin
+    MessageBox(0, 'Editor not installed', 'SVG Shell Extensions', MB_OK);
+  end;
+
 begin
   Result := NOERROR;
   // Make sure we are not being called by an application
@@ -183,14 +191,20 @@ begin
     Reg := TRegistry.Create(KEY_READ);
     try
       Reg.RootKey := HKEY_CLASSES_ROOT;
+      TLogPreview.Add('TSVGContextMenuHandler: Open Registry');
       if Reg.OpenKey('Open\Shell\Open\Command', False) then
       begin
         LCommand := Reg.ReadString('');
         LCommand := StringReplace(LCommand,' "%1"','', []);
         LCommand := StringReplace(LCommand,'"','', [rfReplaceAll]);
-        if LCommand <> '' then
-          ShellExecute(0, 'Open', PChar(LCommand), PChar(FFileName), nil, SW_SHOWNORMAL) ;
-      end;
+        TLogPreview.Add(Format('TSVGContextMenuHandler: Open Editor: %s', [LCommand]));
+        if (LCommand <> '') and FileExists(LCommand) then
+          ShellExecute(0, 'Open', PChar(LCommand), PChar(FFileName), nil, SW_SHOWNORMAL)
+        else
+          EditorNotInstalled;
+      end
+      else
+        EditorNotInstalled;
     finally
       Reg.Free;
     end;
@@ -203,8 +217,10 @@ begin
       LFileName := ChangeFileExt(fFileName,'.png');
       LSettings := TPreviewSettings.CreateSettings(nil);
       try
+{$IFNDEF DISABLE_STYLES}
         if (Trim(LSettings.StyleName) <> '') and not SameText('Windows', LSettings.StyleName) then
           TStyleManager.TrySetStyle(LSettings.StyleName, False);
+{$ENDIF}
       finally
         LSettings.Free;
       end;
@@ -295,11 +311,25 @@ begin
     Exit;
   try
     if Register then
-      if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu', True) then
-        Reg.WriteString('', GUIDToString(Class_SVGContextMenu))
+    begin
+      //New registration only for .svg files
+      {$IFDEF WIN64}
+      if Reg.OpenKey('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu', True) then
+        Reg.WriteString('', GUIDToString(MyClass_SVGContextMenu_64))
+      {$ELSE}
+      if Reg.OpenKey('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu32', True) then
+        Reg.WriteString('', GUIDToString(MyClass_SVGContextMenu_32))
+      {$ENDIF}
+    end
     else
+    begin
+      //Old registration
       if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu', False) then
         Reg.DeleteKey ('\*\ShellEx\ContextMenuHandlers\SVGContextMenu');
+      //New registration only for .svg files
+      if Reg.OpenKey('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu32', False) then
+        Reg.DeleteKey ('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu32');
+    end;
   finally
     Reg.CloseKey;
     Reg.Free;
@@ -307,9 +337,16 @@ begin
 end;
 
 initialization
-  TSVGContextMenuFactory.Create (
-    ComServer, TSVGContextMenu, Class_SVGContextMenu,
+  {$IFDEF WIN64}
+  TSVGContextMenuFactory.Create(
+    ComServer, TSVGContextMenu, MyClass_SVGContextMenu_64,
     'SVGContextMenu', 'SVGContextMenu Shell Extension',
     ciMultiInstance, tmApartment);
+  {$ELSE}
+  TSVGContextMenuFactory.Create(
+    ComServer, TSVGContextMenu, MyClass_SVGContextMenu_32,
+    'SVGContextMenu32', 'SVGContextMenu Shell Extension',
+    ciMultiInstance, tmApartment);
+  {$ENDIF}
 
 end.

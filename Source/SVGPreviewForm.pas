@@ -116,7 +116,9 @@ implementation
 uses
   SynEditTypes
   , Vcl.Clipbrd
+{$IFNDEF DISABLE_STYLES}
   , Vcl.Themes
+{$ENDIF}
   , uLogExcept
   , System.Types
   , Registry
@@ -205,12 +207,23 @@ procedure TFrmPreview.UpdateHighlighter;
 var
   LBackgroundColor: TColor;
 begin
+{$IFNDEF DISABLE_STYLES}
   LBackgroundColor := StyleServices.GetSystemColor(clWindow);
+{$ELSE}
+  LBackgroundColor := clWindow;
+{$ENDIF}
   SynEdit.Highlighter := dmResources.GetSynHighlighter(
     FPreviewSettings.UseDarkStyle, LBackgroundColor);
+  //Assegna i colori "custom" all'Highlighter
+  FPreviewSettings.ReadSettings(SynEdit.Highlighter);
   SynEdit.Gutter.Font.Name := SynEdit.Font.Name;
+{$IFNDEF DISABLE_STYLES}
   SynEdit.Gutter.Font.Color := StyleServices.GetSystemColor(clWindowText);
   SynEdit.Gutter.Color := StyleServices.GetSystemColor(clBtnFace);
+{$ELSE}
+  SynEdit.Gutter.Font.Color := clWindowText;
+  SynEdit.Gutter.Color := clBtnFace;
+{$ENDIF}
 end;
 
 procedure TFrmPreview.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
@@ -359,7 +372,9 @@ begin
     EditorFontSize := MinfontSize;
   SynEdit.Font.Name := FPreviewSettings.FontName;
   PanelEditor.Visible := FPreviewSettings.ShowEditor;
+{$IFNDEF DISABLE_STYLES}
   TStyleManager.TrySetStyle(FPreviewSettings.StyleName, False);
+{$ENDIF}
   BackgroundTrackBar.Position := FPreviewSettings.LightBackground;
   UpdateHighlighter;
   UpdateGUI;

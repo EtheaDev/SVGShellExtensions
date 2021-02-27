@@ -42,11 +42,15 @@ uses
   uStreamPreviewHandler,
   uPreviewHandler;
 
-type
-  TSVGPreviewHandler = class(TBasePreviewHandler)
+  type
+    TSVGPreviewHandler = class(TBasePreviewHandler)
   public
     constructor Create(AParent: TWinControl); override;
   end;
+
+const
+  MySVG_PreviewHandlerGUID_64: TGUID = '{742ADF0E-3C4D-4F46-9E91-236BF0194C21}';
+  MySVG_PreviewHandlerGUID_32: TGUID = '{203BA25A-6765-4537-B7F9-5A617EC5E193}';
 
 implementation
 
@@ -56,7 +60,6 @@ Uses
   Windows,
   Forms,
   uMisc;
-
 type
   TWinControlClass = class(TWinControl);
 

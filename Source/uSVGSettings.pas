@@ -139,7 +139,9 @@ uses
   System.IOUtils,
   Winapi.ShlObj,
   Winapi.Windows,
+{$IFNDEF DISABLE_STYLES}
   Vcl.Themes,
+{$ENDIF}
   uLogExcept,
   uRegistry,
   uMisc
@@ -186,9 +188,11 @@ procedure InitDefaultThemesAttributes;
 begin
   ThemeAttributes := TList<TThemeAttribute>.Create;
 
+{$IFNDEF DISABLE_STYLES}
   if StyleServices.Enabled then
   begin
     //High-DPI Themes (Delphi 10.4)
+    RegisterThemeAttributes('Windows'            ,ttLight );
     RegisterThemeAttributes('Aqua Light Slate'   ,ttLight );
     RegisterThemeAttributes('Copper'             ,ttLight );
     RegisterThemeAttributes('CopperDark'         ,ttDark  );
@@ -216,6 +220,9 @@ begin
     RegisterThemeAttributes('Windows10 Clear Day',ttLight );
     RegisterThemeAttributes('Windows10 Malibu'   ,ttLight );
   end;
+{$ELSE}
+    RegisterThemeAttributes('Windows'            ,ttLight );
+{$ENDIF}
 end;
 
 { TSettings }
@@ -241,7 +248,11 @@ end;
 
 function TSettings.GetButtonTextColor: TColor;
 begin
+{$IFNDEF DISABLE_STYLES}
   Result := TStyleManager.Style[Self.StyleName].GetStyleFontColor(sfButtonTextNormal);
+{$ELSE}
+  Result := clBtnText;
+{$ENDIF}
 end;
 
 class function TSettings.GetSettingsFileName: string;
@@ -273,7 +284,7 @@ begin
   FFontName := FIniFile.ReadString('Global', 'FontName', 'Consolas');
   FShowEditor := FIniFile.ReadInteger('Global', 'ShowEditor', 1) = 1;
   FSplitterPos := FIniFile.ReadInteger('Global', 'SplitterPos', 33);
-  PreferD2D := Boolean(FIniFile.ReadInteger('Global', 'PreferD2D', 0));
+  PreferD2D := Boolean(FIniFile.ReadInteger('Global', 'PreferD2D', -1));
   FActivePageIndex := FIniFile.ReadInteger('Global', 'ActivePageIndex', 0);
   FStyleName := FIniFile.ReadString('Global', 'StyleName', DefaultStyleName);
   FThemeSelection := TThemeSelection(FIniFile.ReadInteger('Global', 'ThemeSelection', 0));
@@ -469,9 +480,12 @@ procedure FreeThemesAttributes;
 var
   LThemeAttribute: TThemeAttribute;
 begin
-  for LThemeAttribute in ThemeAttributes do
-    LThemeAttribute.Free;
-  ThemeAttributes.Free;
+  if Assigned(ThemeAttributes) then
+  begin
+    for LThemeAttribute in ThemeAttributes do
+      LThemeAttribute.Free;
+    FreeAndNil(ThemeAttributes);
+  end;
 end;
 
 initialization

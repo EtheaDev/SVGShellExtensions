@@ -149,7 +149,9 @@ function ShowSettings(const AParentRect: TRect;
 implementation
 
 uses
+{$IFNDEF DISABLE_STYLES}
   Vcl.Themes,
+{$ENDIF}
   uRegistry;
 
 {$R *.dfm}
@@ -288,7 +290,11 @@ procedure TSVGSettingsForm.ResetButtonClick(Sender: TObject);
 var
   LBackGroundColor: TColor;
 begin
+{$IFNDEF DISABLE_STYLES}
   LBackGroundColor := TStyleManager.Style[SelectedStyleName].GetSystemColor(clWindow);
+{$ELSE}
+  LBackGroundColor := clWindow;
+{$ENDIF}
   SynEdit.Highlighter.Assign(dmResources.GetSynHighlighter(
     SelectedStyleIsDark, LBackGroundColor));
 end;
@@ -586,6 +592,7 @@ begin
     IsLight := TThemeSelection(ThemesRadioGroup.ItemIndex) = tsLightTheme;
 
   SelectThemeRadioGroup.Items.Clear;
+{$IFNDEF DISABLE_STYLES}
   for I := 0 to High(TStyleManager.StyleNames) do
   begin
     LStyleName := TStyleManager.StyleNames[I];
@@ -596,11 +603,19 @@ begin
       (not IsLight and (LThemeAttributes.ThemeType = ttDark)) then
       SelectThemeRadioGroup.Items.Add(LStyleName);
   end;
+{$ELSE}
+    LStyleName := 'Windows';
+    TThemeAttribute.GetStyleAttributes(LStyleName, LThemeAttributes);
+{$ENDIF}
   SelectThemeRadioGroup.OnClick := nil;
   try
     TStringList(SelectThemeRadioGroup.Items).Sort;
+{$IFNDEF DISABLE_STYLES}
     SelectThemeRadioGroup.ItemIndex :=
       SelectThemeRadioGroup.Items.IndexOf(TStyleManager.ActiveStyle.Name);
+{$ELSE}
+    SelectThemeRadioGroup.ItemIndex := 0;
+{$ENDIF}
     if SelectThemeRadioGroup.ItemIndex = -1 then
       SelectThemeRadioGroup.ItemIndex := 0;
   finally

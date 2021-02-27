@@ -10,7 +10,6 @@ object PreviewContainer: TPreviewContainer
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Visible = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96

@@ -166,7 +166,6 @@ begin
     LRegKey := Format('%sCLSID\%s',[RootPrefix, sClassID]);
     CreateRegKey(LRegKey, 'AppID', sAppID, RootKey);
     CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Thumbnail Provider', RootKey);
-    //CreateRegKeyREG_SZ(LRegKey, 'DllSurrogate', '%SystemRoot%\system32\prevhost.exe', RootKey);
     //CreateRegKeyDWORD(LRegKey, 'DisableLowILProcessIsolation', 1, RootKey);
 
     if ProgID <> '' then

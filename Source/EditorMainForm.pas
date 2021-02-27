@@ -274,6 +274,7 @@ type
     gsReplaceTextHistory: string;
     EditorOptions: TSynEditorOptionsContainer;
     FFontSize: Integer;
+    procedure CloseSplitViewMenu;
     procedure UpdateHighlighters;
     procedure UpdateFromSettings(AEditor: TSynEdit);
     function DialogPosRect: TRect;
@@ -798,7 +799,7 @@ begin
   OpenDialog.InitialDir := InitialDir;
   SaveDialog.InitialDir := InitialDir;
 
-  //Aggiorna le impostazioni dell'editor
+  //Aggiorna le impostazioni di tutti gli editor aperti
   UpdateEditorsOptions;
 end;
 
@@ -816,6 +817,8 @@ begin
   EditingFile := TEditingFile.Create(CurrentDir+'New.'+NewExt);
   Try
     AddEditingFile(EditingFile);
+    if EditingFile.SynEditor.CanFocus then
+      EditingFile.SynEditor.SetFocus;
   Except
     EditingFile.Free;
     raise;
@@ -883,7 +886,7 @@ end;
 
 procedure TfrmMain.SynEditEnter(Sender: TObject);
 begin
-  SV.Close;
+  CloseSplitViewMenu;
 end;
 
 function TfrmMain.AddEditingFile(EditingFile: TEditingFile): Integer;
@@ -915,6 +918,7 @@ begin
     Editor.Align := alClient;
     Editor.Parent := ts;
     Editor.SearchEngine := SynEditSearch;
+    Editor.PopupMenu := popEditor;
     //Assegna le preferenze dell'utente
     EditorOptions.AssignTo(Editor);
     Editor.MaxScrollWidth := 3000;
@@ -998,6 +1002,12 @@ end;
 procedure TfrmMain.acSaveUpdate(Sender: TObject);
 begin
   acSave.Enabled := (CurrentEditor <> nil) and (CurrentEditor.Modified);
+end;
+
+procedure TfrmMain.CloseSplitViewMenu;
+begin
+  SV.Close;
+  Screen.Cursor := crDefault;
 end;
 
 function TfrmMain.CurrentEditFile: TEditingFile;
@@ -1208,9 +1218,7 @@ begin
   LEditOptionsDialog := TSynEditOptionsDialog.Create(nil);
   try
     if LEditOptionsDialog.Execute(EditorOptions) then
-    begin
       UpdateEditorsOptions;
-    end;
   finally
     LEditOptionsDialog.Free;
   end;
@@ -1241,6 +1249,7 @@ begin
   else
     EditorFontSize := MinfontSize;
   InitEditorOptions;
+  UpdateEditorsOptions;
   UpdateApplicationStyle(FEditorSettings.StyleName);
   UpdateHighlighter(AEditor);
   BackgroundTrackBar.Position := FEditorSettings.LightBackground;
@@ -1293,6 +1302,7 @@ begin
   EditorOptions := TSynEditorOptionsContainer.create(self);
   with EditorOptions do
   begin
+    Font.Name := FEditorSettings.FontName;
     Font.Size := EditorFontSize;
     TabWidth := 2;
     WantTabs := True;
@@ -1378,7 +1388,7 @@ procedure TfrmMain.ActionListExecute(Action: TBasicAction;
   var Handled: Boolean);
 begin
   if (Action <> actMenu) and (Action <> OpenRecentAction) then
-    SV.Close;
+    CloseSplitViewMenu;
   Handled := False;
 end;
 
@@ -1391,7 +1401,7 @@ end;
 procedure TfrmMain.actMenuExecute(Sender: TObject);
 begin
   if SV.Opened then
-    SV.Close
+    CloseSplitViewMenu
   else
     SV.Open;
 end;
@@ -1497,8 +1507,7 @@ end;
 procedure TfrmMain.catMenuItemsMouseLeave(Sender: TObject);
 begin
   inherited;
-  if Screen.cursor = crNo then
-    Screen.cursor := crDefault;
+  Screen.cursor := crDefault;
 end;
 
 procedure TfrmMain.catMenuItemsMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -1530,7 +1539,6 @@ begin
   end
   else
     Screen.Cursor := crDefault;
-
 end;
 
 procedure TfrmMain.HistoryListClick(Sender: TObject);
@@ -1543,7 +1551,7 @@ begin
   AssignSVGToImage;
   if (CurrentEditor <> nil) and (CurrentEditor.CanFocus) then
     (CurrentEditor.SetFocus);
-  SV.Close;
+  CloseSplitViewMenu;
 end;
 
 procedure TfrmMain.FormShow(Sender: TObject);
