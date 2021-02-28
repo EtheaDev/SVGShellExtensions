@@ -97,7 +97,8 @@ uses
   uStreamAdapter,
   WinAPI.GDIPObj,
   WinAPI.GDIPApi,
-  uThumbnailHandlerRegister;
+  uThumbnailHandlerRegister,
+  SVGIconUtils;
 
 { TComSVGThumbnailProvider }
 
@@ -132,9 +133,6 @@ begin
         LAntiAliasColor := clWebDarkSlategray;
       LBitmap.Canvas.Brush.Color := ColorToRGB(LAntiAliasColor);
       LBitmap.SetSize(cx, cx);
-      {$IFDEF IgnoreAntiAliasedColor}
-      MakeTransparent(LBitmap.Canvas.Handle);
-      {$ENDIF}
       TLogPreview.Add('TComSVGThumbnailProvider.PaintTo start');
       FSVG.PaintTo(LBitmap.Canvas.Handle, TRectF.Create(0, 0, cx, cx));
       TLogPreview.Add('TComSVGThumbnailProvider.PaintTo end');

@@ -32,7 +32,12 @@ unit uSVGContextMenuHandler;
 interface
 
 uses
-  Winapi.Windows, ActiveX, ComObj, ShlObj, ShellApi;
+  Winapi.Windows
+  , ActiveX
+  , ComObj
+  , ShlObj
+  , ShellApi
+  , SVGInterfaces;
 
 const
   MENU_ITEM_OPEN_WITH_EDITOR = 0;
@@ -79,20 +84,21 @@ const
 implementation
 
 uses
-  Vcl.Graphics,
-  ComServ,
-  Messages,
-  SysUtils,
-  Registry,
-  uLogExcept,
-  System.Classes,
-  uSVGSettings,
+  Vcl.Graphics
+  , System.Types
+  , ComServ
+  , Messages
+  , SysUtils
+  , Registry
+  , uLogExcept
+  , System.Classes
+  , uSVGSettings
 {$IFNDEF DISABLE_STYLES}
-  Vcl.Themes,
+  , Vcl.Themes
 {$ENDIF}
-  dlgExportPNG,
-  DResources,
-  SVGInterfaces;
+  , dlgExportPNG
+  , DResources
+  , SVGIconUtils;
 
 // IShellExtInit method
 function TSVGContextMenu.InitShellExt(pidlFolder: PItemIDList;
@@ -245,14 +251,14 @@ function TSVGContextMenu.HandleMenuMsg(uMsg: UINT; WParam: WPARAM; LParam: LPARA
 var
  res: Winapi.Windows.LPARAM;
 begin
- //log('HandleMenuMsg');
+ TLogPreview.Add('HandleMenuMsg: HandleMenuMsg');
  Result:=MenuMessageHandler ( uMsg, wParam, lParam, res);
 end;
 
 //IContextMenu3
 function TSVGContextMenu.HandleMenuMsg2(uMsg: UINT; wParam: WPARAM; lParam: LPARAM; var lpResult: LRESULT): HResult; stdcall;
 begin
-  //log('HandleMenuMsg2');
+  TLogPreview.Add('HandleMenuMsg: HandleMenuMsg2');
   Result:= MenuMessageHandler( uMsg, wParam, lParam, lpResult);
 end;
 
@@ -270,6 +276,7 @@ var
   FSVG: ISVG;
   Found: Boolean;
 begin
+  TLogPreview.Add('HandleMenuMsg: MenuMessageHandler');
   try
     case uMsg of
       WM_DRAWITEM:
@@ -314,10 +321,10 @@ begin
     begin
       //New registration only for .svg files
       {$IFDEF WIN64}
-      if Reg.OpenKey('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu', True) then
+      if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu', True) then
         Reg.WriteString('', GUIDToString(MyClass_SVGContextMenu_64))
       {$ELSE}
-      if Reg.OpenKey('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu32', True) then
+      if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu32', True) then
         Reg.WriteString('', GUIDToString(MyClass_SVGContextMenu_32))
       {$ENDIF}
     end
@@ -325,10 +332,15 @@ begin
     begin
       //Old registration
       if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu', False) then
-        Reg.DeleteKey ('\*\ShellEx\ContextMenuHandlers\SVGContextMenu');
+        Reg.DeleteKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu');
       //New registration only for .svg files
-      if Reg.OpenKey('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu32', False) then
-        Reg.DeleteKey ('\.svg\ShellEx\ContextMenuHandlers\SVGContextMenu32');
+      {$IFDEF WIN64}
+      if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu', True) then
+        Reg.DeleteKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu');
+      {$ELSE}
+      if Reg.OpenKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu32', False) then
+        Reg.DeleteKey('\*\ShellEx\ContextMenuHandlers\SVGContextMenu32');
+      {$ENDIF}
     end;
   finally
     Reg.CloseKey;
