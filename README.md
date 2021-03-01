@@ -11,7 +11,7 @@
 - An [SVG-XML Text Editor][10] to manually edit and preview the text of SVG files.
 
 ### Features
-- Supports Windows Vista, 7, 8 and 10 (only for 64 bits).
+- Supports Windows Vista, 7, 8 and 10 (for 32 bits and 64 bits).
 
 - Themes (Dark and Light) according to user preferences of Windows Theme
 
