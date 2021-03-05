@@ -43,6 +43,12 @@ WARNING: currently the installer is not signed with a certificate: beware of blo
 
 ***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
 
+### New 32 Bit Support for XYplorer ###
+
+As requested by many users of popular shell alternative, the new version supports XYplorer with Thumbnail and Preview Panel: follow the [configuration guide:](https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support)
+
+![XYplorer](./Images/XYplorer_Preview.png)
+
 ### Manual Build and Installation (for Delphi developers) ###
 
 If you have Delphi 10.4 Sydney, you can manually build the project:
@@ -68,6 +74,11 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+05 Mar 2021
+- Fixed SVG XML Editor preview after loading file
+- Added support for storing/remember Editor options
+- Some minor fixes
 
 28 Feb 2021
 - Fixed Context-Menu
