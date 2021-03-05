@@ -1,6 +1,6 @@
 # SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 1.2.1 - 28 Feb 2021**
+**Latest Version 1.2.2 - 5 Mar 2021**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
@@ -35,18 +35,11 @@ A useful Text editor with preview of SVG Image:
 
 ### Setup using the Installer
 
-Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works only on a 64 bit system.
+Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works both for 32 and 64 bit system.
 
 WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
 
-Look at this short video (1'47'') how to download, setup and use it:
-
-<br>
-<span align="center">
- 
-[![SVGShellExtensions](https://img.youtube.com/vi/B7hir4BGSJQ/0.jpg)](https://www.youtube.com/watch?v=B7hir4BGSJQ)
-
-</span>
+![SVG Setup_Program](./Images/Setup.png)
 
 ***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
 
