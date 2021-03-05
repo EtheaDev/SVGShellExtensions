@@ -61,8 +61,7 @@ const
  ThumbnailProviderGUID = '{E357FCCD-A995-4576-B01F-234630154E96}';
  IID_IThumbnailProvider: TGUID = ThumbnailProviderGUID;
 
-  MySVG_ThumbNailProviderGUID_64: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
-  MySVG_ThumbNailProviderGUID_32: TGUID = '{5015C562-A542-4C10-94A1-9B337FFFB8B8}';
+  MySVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
 
 type
   TComSVGThumbnailProvider = class(TComObject, IInitializeWithStream, IThumbnailProvider)

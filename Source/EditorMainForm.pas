@@ -272,7 +272,7 @@ type
     gsSearchTextHistory: string;
     gsReplaceText: string;
     gsReplaceTextHistory: string;
-    EditorOptions: TSynEditorOptionsContainer;
+    FEditorOptions: TSynEditorOptionsContainer;
     FFontSize: Integer;
     procedure CloseSplitViewMenu;
     procedure UpdateHighlighters;
@@ -510,6 +510,7 @@ begin
   EditFileList.Free;
   SynEditPrint.Free;
   FEditorSettings.Free;
+  FEditorOptions.Free;
   inherited;
 end;
 
@@ -717,7 +718,7 @@ begin
     else
       LCurrentFileName := '';
     FEditorSettings.UpdateOpenedFiles(LFileList, LCurrentFileName);
-    FEditorSettings.WriteSettings(nil);
+    FEditorSettings.WriteSettings(nil, FEditorOptions);
   finally
     LFileList.Free;
   end;
@@ -748,8 +749,8 @@ var
 begin
   //creo la lista dei files aperti
   EditFileList := TObjectList.Create(True);
-
-  FEditorSettings := TEditorSettings.CreateSettings(nil);
+  FEditorOptions := TSynEditorOptionsContainer.create(self);
+  FEditorSettings := TEditorSettings.CreateSettings(nil, FEditorOptions);
   if not IsStyleHookRegistered(TCustomSynEdit, TScrollingStyleHook) then
     TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TScrollingStyleHook);
 
@@ -792,6 +793,7 @@ begin
     //Carico l'eventuale file esterno
     InitialDir := ParamStr(1);
     OpenFile(ParamStr(1));
+    AssignSVGToImage;
   end
   else
     InitialDir := '.';
@@ -920,7 +922,7 @@ begin
     Editor.SearchEngine := SynEditSearch;
     Editor.PopupMenu := popEditor;
     //Assegna le preferenze dell'utente
-    EditorOptions.AssignTo(Editor);
+    FEditorOptions.AssignTo(Editor);
     Editor.MaxScrollWidth := 3000;
     EditingFile.SynEditor := Editor;
     UpdateFromSettings(Editor);
@@ -1214,11 +1216,13 @@ var
   LEditOptionsDialog: TSynEditOptionsDialog;
 begin
   if CurrentEditor <> nil then
-    EditorOptions.Assign(CurrentEditor);
+    FEditorOptions.Assign(CurrentEditor);
   LEditOptionsDialog := TSynEditOptionsDialog.Create(nil);
   try
-    if LEditOptionsDialog.Execute(EditorOptions) then
+    if LEditOptionsDialog.Execute(FEditorOptions) then
+    begin
       UpdateEditorsOptions;
+    end;
   finally
     LEditOptionsDialog.Free;
   end;
@@ -1229,21 +1233,24 @@ var
   i : integer;
   EditingFile : TEditingFile;
 begin
+  FEditorSettings.FontName := FEditorOptions.Font.Name;
+  EditorFontSize := FEditorOptions.Font.Size;
+
   for i := 0 to EditFileList.Count -1 do
   begin
     EditingFile := TEditingFile(EditFileList.items[i]);
-    EditorOptions.AssignTo(EditingFile.SynEditor);
+    FEditorOptions.AssignTo(EditingFile.SynEditor);
   end;
-  Statusbar.Panels[STATUSBAR_PANEL_FONTNAME].Text := EditorOptions.Font.Name;
-  Statusbar.Panels[STATUSBAR_PANEL_FONTSIZE].Text := IntToStr(EditorOptions.Font.Size);
+  Statusbar.Panels[STATUSBAR_PANEL_FONTNAME].Text := FEditorOptions.Font.Name;
+  Statusbar.Panels[STATUSBAR_PANEL_FONTSIZE].Text := IntToStr(FEditorOptions.Font.Size);
 end;
 
 procedure TfrmMain.UpdateFromSettings(AEditor: TSynEdit);
 begin
   if AEditor <> nil then
-    FEditorSettings.ReadSettings(AEditor.Highlighter)
+    FEditorSettings.ReadSettings(AEditor.Highlighter, self.FEditorOptions)
   else
-    FEditorSettings.ReadSettings(nil);
+    FEditorSettings.ReadSettings(nil, self.FEditorOptions);
   if FEditorSettings.FontSize >= MinfontSize then
     EditorFontSize := FEditorSettings.FontSize
   else
@@ -1265,7 +1272,7 @@ begin
   ASynEditor.Highlighter := dmResources.GetSynHighlighter(
     FEditorSettings.UseDarkStyle, LBackgroundColor);
   //Assegna i colori "custom" all'Highlighter
-  FEditorSettings.ReadSettings(ASynEditor.Highlighter);
+  FEditorSettings.ReadSettings(ASynEditor.Highlighter, self.FEditorOptions);
 end;
 
 procedure TfrmMain.UpdateHighlighters;
@@ -1288,28 +1295,26 @@ end;
 procedure TfrmMain.actnFontExecute(Sender: TObject);
 begin
   if Sender = actnEnlargeFont then
-    EditorFontSize := EditorOptions.Font.Size+1
+    EditorFontSize := FEditorOptions.Font.Size+1
   else if Sender = actnReduceFont then
-    EditorFontSize := EditorOptions.Font.Size-1
+    EditorFontSize := FEditorOptions.Font.Size-1
   else
     Exit;
-  EditorOptions.Font.Size := EditorFontSize;
+  FEditorOptions.Font.Size := EditorFontSize;
   UpdateEditorsOptions;
 end;
 
 procedure TfrmMain.InitEditorOptions;
 begin
-  EditorOptions := TSynEditorOptionsContainer.create(self);
-  with EditorOptions do
+  with FEditorOptions do
   begin
     Font.Name := FEditorSettings.FontName;
     Font.Size := EditorFontSize;
     TabWidth := 2;
-    WantTabs := True;
+    WantTabs := False;
     Options := Options - [eoSmartTabs];
     Gutter.Font.Name := Font.Name;
     Gutter.Font.Size := Font.Size;
-    Gutter.ShowLineNumbers := True;
   end;
 end;
 
@@ -1414,7 +1419,7 @@ begin
       Title_SVGTextEditor,
       CurrentEditor, FEditorSettings, True) then
     begin
-      FEditorSettings.WriteSettings(CurrentEditor.Highlighter);
+      FEditorSettings.WriteSettings(CurrentEditor.Highlighter, FEditorOptions);
       UpdateFromSettings(CurrentEditor);
       UpdateHighlighters;
     end;

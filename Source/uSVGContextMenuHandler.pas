@@ -52,6 +52,7 @@ type
   private
     fFileName: string;
     FOwnerDrawId: UINT;
+    FSVG: ISVG;
   protected
     {Declare IContextMenu methods here}
     function QueryContextMenu(Menu: HMENU; indexMenu, idCmdFirst, idCmdLast,
@@ -63,13 +64,13 @@ type
     function IShellExtInit.Initialize = InitShellExt;
     function InitShellExt(pidlFolder: PItemIDList; lpdobj: IDataObject;
       hKeyProgID: HKEY): HResult; stdcall;
-    (*
     //IContextMenu2
+(*
     function HandleMenuMsg(uMsg: UINT; WParam: WPARAM; LParam: LPARAM): HResult; stdcall;
     //IContextMenu3
     function HandleMenuMsg2(uMsg: UINT; wParam: WPARAM; lParam: LPARAM; var lpResult: LRESULT): HResult; stdcall;
     function MenuMessageHandler(uMsg: UINT; wParam: WPARAM; lParam: LPARAM; var lpResult: LRESULT): HResult; stdcall;
-    *)
+*)
   end;
 
   TSVGContextMenuFactory = class (TComObjectFactory)

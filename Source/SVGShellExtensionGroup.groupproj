@@ -3,10 +3,10 @@
         <ProjectGuid>{4F73178F-31F0-4189-979A-9A66BE38E029}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="SVGShellExtensions.dproj">
+        <Projects Include="SVGShellExtensions32.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="SVGShellExtensions32.dproj">
+        <Projects Include="SVGShellExtensions.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="SVGTextEditor.dproj">
@@ -20,15 +20,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="SVGShellExtensions">
-        <MSBuild Projects="SVGShellExtensions.dproj"/>
-    </Target>
-    <Target Name="SVGShellExtensions:Clean">
-        <MSBuild Projects="SVGShellExtensions.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="SVGShellExtensions:Make">
-        <MSBuild Projects="SVGShellExtensions.dproj" Targets="Make"/>
-    </Target>
     <Target Name="SVGShellExtensions32">
         <MSBuild Projects="SVGShellExtensions32.dproj"/>
     </Target>
@@ -37,6 +28,15 @@
     </Target>
     <Target Name="SVGShellExtensions32:Make">
         <MSBuild Projects="SVGShellExtensions32.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SVGShellExtensions">
+        <MSBuild Projects="SVGShellExtensions.dproj"/>
+    </Target>
+    <Target Name="SVGShellExtensions:Clean">
+        <MSBuild Projects="SVGShellExtensions.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SVGShellExtensions:Make">
+        <MSBuild Projects="SVGShellExtensions.dproj" Targets="Make"/>
     </Target>
     <Target Name="SVGTextEditor">
         <MSBuild Projects="SVGTextEditor.dproj"/>
@@ -48,13 +48,13 @@
         <MSBuild Projects="SVGTextEditor.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="SVGShellExtensions;SVGShellExtensions32;SVGTextEditor"/>
+        <CallTarget Targets="SVGShellExtensions32;SVGShellExtensions;SVGTextEditor"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="SVGShellExtensions:Clean;SVGShellExtensions32:Clean;SVGTextEditor:Clean"/>
+        <CallTarget Targets="SVGShellExtensions32:Clean;SVGShellExtensions:Clean;SVGTextEditor:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="SVGShellExtensions:Make;SVGShellExtensions32:Make;SVGTextEditor:Make"/>
+        <CallTarget Targets="SVGShellExtensions32:Make;SVGShellExtensions:Make;SVGTextEditor:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

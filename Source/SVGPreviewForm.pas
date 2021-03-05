@@ -215,7 +215,7 @@ begin
   SynEdit.Highlighter := dmResources.GetSynHighlighter(
     FPreviewSettings.UseDarkStyle, LBackgroundColor);
   //Assegna i colori "custom" all'Highlighter
-  FPreviewSettings.ReadSettings(SynEdit.Highlighter);
+  FPreviewSettings.ReadSettings(SynEdit.Highlighter, nil);
   SynEdit.Gutter.Font.Name := SynEdit.Font.Name;
 {$IFNDEF DISABLE_STYLES}
   SynEdit.Gutter.Font.Color := StyleServices.GetSystemColor(clWindowText);
@@ -243,6 +243,7 @@ end;
 
 procedure TFrmPreview.FormDestroy(Sender: TObject);
 begin
+  HideAboutForm;
   SaveSettings;
   TLogPreview.Add('TFrmEditor.FormDestroy');
   inherited;
@@ -292,7 +293,7 @@ begin
     FPreviewSettings.UpdateSettings(SynEdit.Font.Name,
       EditorFontSize,
       PanelEditor.Visible);
-    FPreviewSettings.WriteSettings(SynEdit.Highlighter);
+    FPreviewSettings.WriteSettings(SynEdit.Highlighter, nil);
   end;
 end;
 
@@ -365,7 +366,7 @@ end;
 
 procedure TFrmPreview.UpdateFromSettings;
 begin
-  FPreviewSettings.ReadSettings(SynEdit.Highlighter);
+  FPreviewSettings.ReadSettings(SynEdit.Highlighter, nil);
   if FPreviewSettings.FontSize >= MinfontSize then
     EditorFontSize := FPreviewSettings.FontSize
   else
@@ -384,7 +385,7 @@ procedure TFrmPreview.ToolButtonSettingsClick(Sender: TObject);
 begin
   if ShowSettings(DialogPosRect, Title_SVGPreview, SynEdit, FPreviewSettings, True) then
   begin
-    FPreviewSettings.WriteSettings(SynEdit.Highlighter);
+    FPreviewSettings.WriteSettings(SynEdit.Highlighter, nil);
     UpdateFromSettings;
   end;
 end;

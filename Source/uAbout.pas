@@ -73,6 +73,7 @@ type
 
 procedure ShowAboutForm(const AParentRect: TRect;
   const ATitle: string);
+procedure HideAboutForm;
 
 implementation
 
@@ -81,17 +82,38 @@ uses
 
 {$R *.dfm}
 
-procedure ShowAboutForm(const AParentRect: TRect; const ATitle: string);
+function GetAboutForm: TFrmAbout;
 var
-  LFrm: TFrmAbout;
   I: integer;
 begin
+  Result := Nil;
   for I := 0 to Screen.FormCount - 1 do
     if Screen.Forms[I].ClassType = TFrmAbout then
     begin
-      Screen.Forms[I].BringToFront;
+      Result := Screen.Forms[I] as TFrmAbout;
       exit;
     end;
+end;
+
+procedure HideAboutForm;
+var
+  LFrm: TFrmAbout;
+begin
+  LFrm := GetAboutForm;
+  if LFrm <> nil then
+    LFrm.Close;
+end;
+
+procedure ShowAboutForm(const AParentRect: TRect; const ATitle: string);
+var
+  LFrm: TFrmAbout;
+begin
+  LFrm := GetAboutForm;
+  if LFrm <> nil then
+  begin
+    LFrm.BringToFront;
+    exit;
+  end;
 
   LFrm := TFrmAbout.Create(nil);
   try

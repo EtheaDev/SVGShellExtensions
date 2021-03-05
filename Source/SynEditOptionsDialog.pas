@@ -94,13 +94,8 @@ type
   TfmEditorOptionsDialog = class(TForm)
     btnAddKey: TButton;
     btnFont: TButton;
-    btnGutterColor: TPanel;
-    btnGutterFont: TButton;
     btnRemKey: TButton;
-    btnRightEdge: TPanel;
     btnUpdateKey: TButton;
-    cbGutterFont: TCheckBox;
-    cInsertCaret: TComboBox;
     ckAltSetsColumnMode: TCheckBox;
     ckAutoIndent: TCheckBox;
     ckAutoSizeMaxWidth: TCheckBox;
@@ -135,36 +130,27 @@ type
     ckWantTabs: TCheckBox;
     ColorDialog: TColorDialog;
     ColorPopup: TPopupMenu;
-    cOverwriteCaret: TComboBox;
     Display: TTabSheet;
     eLineSpacing: TEdit;
     eRightEdge: TEdit;
     eTabWidth: TEdit;
     FontDialog: TFontDialog;
     gbBookmarks: TGroupBox;
-    gbCaret: TGroupBox;
     gbEditorFont: TGroupBox;
     gbGutter: TGroupBox;
     gbKeyStrokes: TGroupBox;
     gbLineSpacing: TGroupBox;
     gbOptions: TGroupBox;
     gbRightEdge: TGroupBox;
-    Image1: TImage;
-    Image2: TImage;
     ImageList: TImageList;
     KeyList: TListView;
     Keystrokes: TTabSheet;
     lblCommand: TLabel;
-    lblEdgeColor: TLabel;
     lblEdgeColumn: TLabel;
     lblExtraLines: TLabel;
     lblFont: TLabel;
-    lblGutterColor: TLabel;
-    lblGutterFont: TLabel;
-    lblInsertCaret: TLabel;
     lblKeystroke: TLabel;
     lblKeystroke2: TLabel;
-    lblOverwriteCaret: TLabel;
     lblTabWidth: TLabel;
     Menu2: TMenuItem;
     mnu3dDarkShadow: TMenuItem;
@@ -194,20 +180,12 @@ type
     mnuWindowText: TMenuItem;
     Options: TTabSheet;
     PageControl: TPageControl;
-    pnlGutterBack: TPanel;
-    pnlGutterColor: TPanel;
     pnlCommands: TPanel;
     pnlEditorFont: TPanel;
-    pnlGutterFontDisplay: TPanel;
-    pnlRightEdgeBack: TPanel;
-    pnlRightEdgeColor: TPanel;
     BottomPanel: TPanel;
     btnOk: TButton;
     btnCancel: TButton;
-    procedure PopupMenuClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure pnlGutterColorClick(Sender: TObject);
-    procedure pnlRightEdgeColorClick(Sender: TObject);
     procedure btnFontClick(Sender: TObject);
     procedure KeyListSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -218,12 +196,6 @@ type
     procedure KeyListEditing(Sender: TObject; Item: TListItem;
       var AllowEdit: Boolean);
     procedure btnOkClick(Sender: TObject);
-    procedure btnGutterFontClick(Sender: TObject);
-    procedure cbGutterFontClick(Sender: TObject);
-    procedure btnRightEdgeMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure btnGutterColorMouseDown(Sender: TObject;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure cKeyCommandExit(Sender: TObject);
     procedure cKeyCommandKeyPress(Sender: TObject; var Key: Char);
     procedure cKeyCommandKeyUp(Sender: TObject; var Key: Word;
@@ -550,13 +522,8 @@ begin
   ckGutterShowLineNumbers.Checked := FSynEdit.Gutter.ShowLineNumbers;
   ckGutterShowLeaderZeros.Checked := FSynEdit.Gutter.LeadingZeros;
   ckGutterStartAtZero.Checked := FSynEdit.Gutter.ZeroStart;
-  cbGutterFont.Checked := FSynEdit.Gutter.UseFontStyle;
-  pnlGutterColor.Color := FSynEdit.Gutter.Color;
-  lblGutterFont.Font.Assign(FSynEdit.Gutter.Font);
-  lblGutterFont.Caption := lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';
   //Right Edge
   eRightEdge.Text := IntToStr(FSynEdit.RightEdge);
-  pnlRightEdgeColor.Color := FSynEdit.RightEdgeColor;
   //Line Spacing
   eLineSpacing.Text := IntToStr(FSynEdit.ExtraLineSpacing);
   eTabWidth.Text := IntToStr(FSynEdit.TabWidth);
@@ -590,11 +557,6 @@ begin
   ckDisableScrollArrows.Checked := eoDisableScrollArrows in FSynEdit.Options;
   ckHideShowScrollbars.Checked := eoHideShowScrollbars in FSynEdit.Options;
   ckShowSpecialChars.Checked := eoShowSpecialChars in FSynEdit.Options;
-
-  //Caret
-  cInsertCaret.ItemIndex := ord(FSynEdit.InsertCaret);
-  cOverwriteCaret.ItemIndex := ord(FSynEdit.OverwriteCaret);
-
 
   KeyList.Items.BeginUpdate;
   try
@@ -630,12 +592,8 @@ begin
   FSynEdit.Gutter.ShowLineNumbers := ckGutterShowLineNumbers.Checked;
   FSynEdit.Gutter.LeadingZeros := ckGutterShowLeaderZeros.Checked;
   FSynEdit.Gutter.ZeroStart := ckGutterStartAtZero.Checked;
-  FSynEdit.Gutter.Color := pnlGutterColor.Color;
-  FSynEdit.Gutter.UseFontStyle := cbGutterFont.Checked;
-  FSynEdit.Gutter.Font.Assign(lblGutterFont.Font);
   //Right Edge
   FSynEdit.RightEdge := StrToIntDef(eRightEdge.Text, 80);
-  FSynEdit.RightEdgeColor := pnlRightEdgeColor.Color;
   //Line Spacing
   FSynEdit.ExtraLineSpacing := StrToIntDef(eLineSpacing.Text, 0);
   FSynEdit.TabWidth := StrToIntDef(eTabWidth.Text, 8);
@@ -670,9 +628,6 @@ begin
   SetFlag(eoHideShowScrollbars, ckHideShowScrollbars.Checked);
   SetFlag(eoShowSpecialChars, ckShowSpecialChars.Checked);
   FSynEdit.Options := vOptions;
-  //Caret
-  FSynEdit.InsertCaret := TSynEditCaretType(cInsertCaret.ItemIndex);
-  FSynEdit.OverwriteCaret := TSynEditCaretType(cOverwriteCaret.ItemIndex);
 end;
 
 function TfmEditorOptionsDialog.GetColor(Item: TMenuItem): TColor;
@@ -681,17 +636,6 @@ begin
   Result := clNone
  else
   Result := TColor(Byte(Item.Tag) or $80000000);
-end;
-
-procedure TfmEditorOptionsDialog.PopupMenuClick(Sender: TObject);
-var C : TColor;
-begin
-  C := GetColor(TMenuItem(Sender));
-  //Set the color based on where it was "popped from"
-  if (FPoppedFrom = cpGutter) then
-    pnlGutterColor.Color := C
-  else if (FPoppedFrom = cpRightEdge) then
-    pnlRightEdgeColor.Color := C;
 end;
 
 procedure TfmEditorOptionsDialog.FormCreate(Sender: TObject);
@@ -758,20 +702,6 @@ begin
     Modifiers := [];
     TabOrder := 2;
   end;
-end;
-
-procedure TfmEditorOptionsDialog.pnlGutterColorClick(Sender: TObject);
-begin
-  ColorDialog.Color := pnlGutterColor.Color;
-  if (ColorDialog.Execute) then
-    pnlGutterColor.Color := ColorDialog.Color;
-end;
-
-procedure TfmEditorOptionsDialog.pnlRightEdgeColorClick(Sender: TObject);
-begin
-  ColorDialog.Color := pnlRightEdgeColor.Color;
-  if (ColorDialog.Execute) then
-    pnlRightEdgeColor.Color := ColorDialog.Color;
 end;
 
 procedure TfmEditorOptionsDialog.btnFontClick(Sender: TObject);
@@ -890,44 +820,6 @@ procedure TfmEditorOptionsDialog.btnOkClick(Sender: TObject);
 begin
   btnUpdateKey.Click;
   ModalResult := mrOk;
-end;
-
-procedure TfmEditorOptionsDialog.btnGutterFontClick(Sender: TObject);
-begin
-  FontDialog.Font.Assign(lblGutterFont.Font);
-  if FontDialog.Execute then
-  begin
-    lblGutterFont.Font.Assign(FontDialog.Font);
-    lblGutterFont.Caption := lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';
-  end;
-end;
-
-procedure TfmEditorOptionsDialog.cbGutterFontClick(Sender: TObject);
-begin
-  lblGutterFont.Enabled := cbGutterFont.Checked;
-  btnGutterFont.Enabled := cbGutterFont.Checked;
-end;
-
-procedure TfmEditorOptionsDialog.btnRightEdgeMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var P : TPoint;
-begin
-  FPoppedFrom := cpRightEdge;
-  P := pnlRightEdgeColor.ClientToScreen(Point(-1, pnlRightEdgeColor.Height - 1));
-  btnRightEdge.BevelOuter := bvLowered;
-  ColorPopup.Popup(P.X, P.Y);
-  btnRightEdge.BevelOuter := bvNone;
-end;
-
-procedure TfmEditorOptionsDialog.btnGutterColorMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var P : TPoint;
-begin
-  FPoppedFrom := cpGutter;
-  P := pnlGutterColor.ClientToScreen(Point(-1, pnlGutterColor.Height - 1));
-  btnGutterColor.BevelOuter := bvLowered;
-  ColorPopup.Popup(P.X, P.Y);
-  btnGutterColor.BevelOuter := bvNone;
 end;
 
 procedure TfmEditorOptionsDialog.FillInKeystrokeInfo(

@@ -22,7 +22,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     Top = 0
     Width = 369
     Height = 359
-    ActivePage = Display
+    ActivePage = Keystrokes
     Align = alClient
     TabOrder = 0
     object Display: TTabSheet
@@ -34,15 +34,6 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 88
         Caption = 'Right Edge'
         TabOrder = 1
-        object lblEdgeColor: TLabel
-          Left = 4
-          Top = 56
-          Width = 76
-          Height = 13
-          Alignment = taRightJustify
-          AutoSize = False
-          Caption = 'Edge color:'
-        end
         object lblEdgeColumn: TLabel
           Left = 4
           Top = 26
@@ -51,49 +42,6 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Alignment = taRightJustify
           AutoSize = False
           Caption = 'Edge Column:'
-        end
-        object pnlRightEdgeBack: TPanel
-          Left = 84
-          Top = 54
-          Width = 62
-          Height = 21
-          BorderWidth = 1
-          TabOrder = 1
-          object pnlRightEdgeColor: TPanel
-            Left = 2
-            Top = 2
-            Width = 48
-            Height = 17
-            Align = alClient
-            BevelOuter = bvLowered
-            Color = clGray
-            TabOrder = 0
-            OnClick = pnlRightEdgeColorClick
-          end
-          object btnRightEdge: TPanel
-            Left = 50
-            Top = 2
-            Width = 10
-            Height = 17
-            Align = alRight
-            BevelOuter = bvNone
-            TabOrder = 1
-            OnMouseDown = btnRightEdgeMouseDown
-            object Image1: TImage
-              Left = 3
-              Top = 6
-              Width = 5
-              Height = 5
-              Picture.Data = {
-                07544269746D61708A000000424D8A0000000000000076000000280000000500
-                0000050000000100040000000000140000000000000000000000100000001000
-                0000000000000000800000800000008080008000000080008000808000008080
-                8000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFF
-                FF00DDDDD000DD0DD000D000D00000000000DDDDD000}
-              Transparent = True
-              OnMouseDown = btnRightEdgeMouseDown
-            end
-          end
         end
         object eRightEdge: TEdit
           Left = 84
@@ -111,19 +59,10 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 121
         Caption = 'Gutter'
         TabOrder = 0
-        object lblGutterColor: TLabel
-          Left = 186
-          Top = 89
-          Width = 76
-          Height = 13
-          Alignment = taRightJustify
-          AutoSize = False
-          Caption = 'Gutter color:'
-        end
         object ckGutterAutosize: TCheckBox
           Left = 9
           Top = 37
-          Width = 120
+          Width = 134
           Height = 17
           Caption = 'Autosize'
           TabOrder = 1
@@ -131,7 +70,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         object ckGutterShowLineNumbers: TCheckBox
           Left = 9
           Top = 56
-          Width = 120
+          Width = 134
           Height = 17
           Caption = 'Show line numbers'
           TabOrder = 2
@@ -139,7 +78,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         object ckGutterShowLeaderZeros: TCheckBox
           Left = 9
           Top = 94
-          Width = 120
+          Width = 134
           Height = 17
           Caption = 'Show leading zeros'
           TabOrder = 4
@@ -147,7 +86,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         object ckGutterStartAtZero: TCheckBox
           Left = 9
           Top = 75
-          Width = 120
+          Width = 134
           Height = 17
           Caption = 'Start at zero'
           TabOrder = 3
@@ -155,94 +94,12 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         object ckGutterVisible: TCheckBox
           Left = 9
           Top = 18
-          Width = 120
+          Width = 134
           Height = 17
           Caption = 'Visible'
           Checked = True
           State = cbChecked
           TabOrder = 0
-        end
-        object cbGutterFont: TCheckBox
-          Left = 174
-          Top = 18
-          Width = 103
-          Height = 17
-          Caption = 'Use Gutter Font'
-          TabOrder = 5
-          OnClick = cbGutterFontClick
-        end
-        object btnGutterFont: TButton
-          Left = 280
-          Top = 13
-          Width = 49
-          Height = 25
-          Caption = 'Font'
-          TabOrder = 6
-          OnClick = btnGutterFontClick
-        end
-        object pnlGutterBack: TPanel
-          Left = 266
-          Top = 85
-          Width = 62
-          Height = 21
-          BorderWidth = 1
-          TabOrder = 8
-          object pnlGutterColor: TPanel
-            Left = 2
-            Top = 2
-            Width = 48
-            Height = 17
-            Align = alClient
-            BevelOuter = bvLowered
-            Color = clGray
-            TabOrder = 0
-            OnClick = pnlGutterColorClick
-          end
-          object btnGutterColor: TPanel
-            Left = 50
-            Top = 2
-            Width = 10
-            Height = 17
-            Align = alRight
-            BevelOuter = bvNone
-            TabOrder = 1
-            OnMouseDown = btnGutterColorMouseDown
-            object Image2: TImage
-              Left = 3
-              Top = 6
-              Width = 5
-              Height = 5
-              Picture.Data = {
-                07544269746D61708A000000424D8A0000000000000076000000280000000500
-                0000050000000100040000000000140000000000000000000000100000001000
-                0000000000000000800000800000008080008000000080008000808000008080
-                8000C0C0C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFF
-                FF00DDDDD000DD0DD000D000D00000000000DDDDD000}
-              Transparent = True
-              OnMouseDown = btnGutterColorMouseDown
-            end
-          end
-        end
-        object pnlGutterFontDisplay: TPanel
-          Left = 176
-          Top = 40
-          Width = 145
-          Height = 33
-          BevelOuter = bvNone
-          TabOrder = 7
-          object lblGutterFont: TLabel
-            Left = 19
-            Top = 9
-            Width = 91
-            Height = 15
-            Caption = 'Consolas 10pt'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -13
-            Font.Name = 'Consolas'
-            Font.Style = []
-            ParentFont = False
-          end
         end
       end
       object gbBookmarks: TGroupBox
@@ -255,7 +112,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         object ckBookmarkKeys: TCheckBox
           Left = 9
           Top = 24
-          Width = 97
+          Width = 130
           Height = 17
           Caption = 'Bookmark keys'
           TabOrder = 0
@@ -263,7 +120,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         object ckBookmarkVisible: TCheckBox
           Left = 9
           Top = 48
-          Width = 121
+          Width = 130
           Height = 17
           Caption = 'Bookmarks visible'
           TabOrder = 1
@@ -271,7 +128,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
       end
       object gbEditorFont: TGroupBox
         Left = 180
-        Top = 232
+        Top = 230
         Width = 172
         Height = 79
         Caption = 'Editor Font'
@@ -604,58 +461,6 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           TabOrder = 18
         end
       end
-      object gbCaret: TGroupBox
-        Left = 8
-        Top = 249
-        Width = 346
-        Height = 62
-        Caption = 'Caret'
-        TabOrder = 1
-        object lblInsertCaret: TLabel
-          Left = 16
-          Top = 17
-          Width = 100
-          Height = 13
-          Alignment = taRightJustify
-          AutoSize = False
-          Caption = 'Insert caret:'
-        end
-        object lblOverwriteCaret: TLabel
-          Left = 16
-          Top = 41
-          Width = 100
-          Height = 13
-          Alignment = taRightJustify
-          AutoSize = False
-          Caption = 'Overwrite caret:'
-        end
-        object cInsertCaret: TComboBox
-          Left = 120
-          Top = 13
-          Width = 216
-          Height = 21
-          Style = csDropDownList
-          TabOrder = 0
-          Items.Strings = (
-            'Vertical Line'
-            'Horizontal Line'
-            'Half Block'
-            'Block')
-        end
-        object cOverwriteCaret: TComboBox
-          Left = 120
-          Top = 37
-          Width = 216
-          Height = 21
-          Style = csDropDownList
-          TabOrder = 1
-          Items.Strings = (
-            'Vertical Line'
-            'Horizontal Line'
-            'Half Block'
-            'Block')
-        end
-      end
     end
     object Keystrokes: TTabSheet
       Caption = 'Keystrokes'
@@ -750,11 +555,11 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Columns = <
             item
               Caption = 'Command'
-              Width = 190
+              Width = 160
             end
             item
               Caption = 'Keystroke'
-              Width = 142
+              Width = 160
             end>
           ColumnClick = False
           HideSelection = False
@@ -806,131 +611,105 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     object mnuNone: TMenuItem
       Tag = -1
       Caption = 'None'
-      OnClick = PopupMenuClick
     end
     object mnuScrollBar: TMenuItem
       Caption = 'Scrollbar'
-      OnClick = PopupMenuClick
     end
     object mnuBackground: TMenuItem
       Tag = 1
       Caption = 'Background'
-      OnClick = PopupMenuClick
     end
     object mnuActiveCaption: TMenuItem
       Tag = 2
       Caption = 'Active Caption'
-      OnClick = PopupMenuClick
     end
     object mnuInactiveCaption: TMenuItem
       Tag = 3
       Caption = 'Inactive Caption'
-      OnClick = PopupMenuClick
     end
     object mnuMenu: TMenuItem
       Tag = 4
       Caption = 'Menu'
-      OnClick = PopupMenuClick
     end
     object mnuWindow: TMenuItem
       Tag = 5
       Caption = 'Window'
-      OnClick = PopupMenuClick
     end
     object mnuWindowFrame: TMenuItem
       Tag = 6
       Caption = 'Window Frame'
-      OnClick = PopupMenuClick
     end
     object Menu2: TMenuItem
       Tag = 7
       Caption = 'Menu Text'
-      OnClick = PopupMenuClick
     end
     object mnuWindowText: TMenuItem
       Tag = 8
       Caption = 'Window Text'
-      OnClick = PopupMenuClick
     end
     object mnuCaptionText: TMenuItem
       Tag = 9
       Caption = 'Caption Text'
-      OnClick = PopupMenuClick
     end
     object mnuActiveBorder: TMenuItem
       Tag = 10
       Caption = 'Active Border'
-      OnClick = PopupMenuClick
     end
     object mnuInactiveBorder: TMenuItem
       Tag = 11
       Caption = 'Inactive Border'
-      OnClick = PopupMenuClick
     end
     object mnuApplicationWorkspace: TMenuItem
       Tag = 12
       Caption = 'Application Workspace'
-      OnClick = PopupMenuClick
     end
     object mnuHighlight: TMenuItem
       Tag = 13
       Caption = 'Highlight'
-      OnClick = PopupMenuClick
     end
     object mnuHighlightText: TMenuItem
       Tag = 14
       Caption = 'Highlight Text'
-      OnClick = PopupMenuClick
     end
     object mnuButtonFace: TMenuItem
       Tag = 15
       Caption = 'Button Face'
-      OnClick = PopupMenuClick
     end
     object mnuButtonShadow: TMenuItem
       Tag = 16
       Caption = 'Button Shadow'
-      OnClick = PopupMenuClick
     end
     object mnuGrayText: TMenuItem
       Tag = 17
       Caption = 'Gray Text'
-      OnClick = PopupMenuClick
     end
     object mnuButtonText: TMenuItem
       Tag = 18
       Caption = 'Button Text'
-      OnClick = PopupMenuClick
     end
     object mnuInactiveCaptionText: TMenuItem
       Tag = 19
       Caption = 'Inactive Caption Text'
-      OnClick = PopupMenuClick
     end
     object mnuHighlight2: TMenuItem
       Tag = 20
       Caption = 'Highlight'
-      OnClick = PopupMenuClick
     end
     object mnu3dDarkShadow: TMenuItem
       Tag = 21
       Caption = '3D Dark Shadow'
-      OnClick = PopupMenuClick
     end
     object mnu3DLight: TMenuItem
       Tag = 22
       Caption = '3D Light'
-      OnClick = PopupMenuClick
     end
     object mnuInfoTipText: TMenuItem
       Tag = 23
       Caption = 'Info Tip Text'
-      OnClick = PopupMenuClick
     end
     object mnuInfoTipBackground: TMenuItem
       Tag = 24
       Caption = 'Info Tip Background'
-      OnClick = PopupMenuClick
     end
   end
   object ImageList: TImageList

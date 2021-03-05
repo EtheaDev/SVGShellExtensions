@@ -46,6 +46,7 @@ uses
   uMisc in 'uMisc.pas',
   Vcl.Themes,
   Vcl.Styles,
+  SynEditOptionsDialog in 'SynEditOptionsDialog.pas' {fmEditorOptionsDialog},
   uSVGSettings in 'uSVGSettings.pas',
   SVGSettings in 'SVGSettings.pas' {SVGSettingsForm},
   uRegistry in 'uRegistry.pas';

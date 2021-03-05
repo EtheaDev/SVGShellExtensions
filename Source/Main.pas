@@ -54,10 +54,10 @@ initialization
   {$ENDIF}
 
   {$IFDEF WIN64}
-  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID_64,
+  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID,
     'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider 64bit');
   {$ELSE}
-  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID_64,
+  TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID,
     'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider 32bit');
   {$ENDIF}
 

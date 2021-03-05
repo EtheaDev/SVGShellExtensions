@@ -39,6 +39,7 @@ uses
   VCL.Graphics,
   SynEditHighlighter,
   System.Generics.Collections,
+  SynEditOptionsDialog,
   IniFiles;
 
 const
@@ -84,7 +85,8 @@ type
   public
     LightBackground: Integer;
     constructor CreateSettings(const ASettingFileName: string;
-      ASynEditHighilighter: TSynCustomHighlighter);
+      const ASynEditHighilighter: TSynCustomHighlighter;
+      const ASynEditorOptions: TSynEditorOptionsContainer);
     destructor Destroy; override;
 
     class var FSettingsFileName: string;
@@ -93,8 +95,10 @@ type
 
     procedure UpdateSettings(const AFontName: string;
       AFontSize: Integer; AEditorVisible: Boolean);
-    procedure ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter); virtual;
-    procedure WriteSettings(const ASynEditHighilighter: TSynCustomHighlighter); virtual;
+    procedure ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+      const ASynEditorOptions: TSynEditorOptionsContainer); virtual;
+    procedure WriteSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+      const ASynEditorOptions: TSynEditorOptionsContainer); virtual;
 
     property UseDarkStyle: Boolean read GetUseDarkStyle;
     property ButtonTextColor: TColor read GetButtonTextColor;
@@ -110,17 +114,25 @@ type
 
   TPreviewSettings = class(TSettings)
   public
-    constructor CreateSettings(ASynEditHighilighter: TSynCustomHighlighter);
+    constructor CreateSettings(const ASynEditHighilighter: TSynCustomHighlighter);
   end;
 
   TEditorSettings = class(TSettings)
+  private
+    procedure WriteSynEditorOptions(
+      const ASynEditorOptions: TSynEditorOptionsContainer);
+    procedure ReadSynEditorOptions(
+      const ASynEditorOptions: TSynEditorOptionsContainer);
   public
     HistoryFileList: TStrings;
     OpenedFileList: TStrings;
     CurrentFileName: string;
-    procedure ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter); override;
-    procedure WriteSettings(const ASynEditHighilighter: TSynCustomHighlighter); override;
-    constructor CreateSettings(ASynEditHighilighter: TSynCustomHighlighter);
+    procedure ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+      const ASynEditorOptions: TSynEditorOptionsContainer); override;
+    procedure WriteSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+      const ASynEditorOptions: TSynEditorOptionsContainer); override;
+    constructor CreateSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+      const ASynEditorOptions: TSynEditorOptionsContainer);
     destructor Destroy; override;
     procedure UpdateOpenedFiles(AFileList: TStrings; const ACurrentFileName: string);
   end;
@@ -144,12 +156,18 @@ uses
 {$ENDIF}
   uLogExcept,
   uRegistry,
-  uMisc
+  uMisc,
+  SynEdit
   ;
 
 const
   LAST_OPENED_SECTION = 'LastOpened';
   FILES_OPENED_SECTION = 'FilesOpened';
+  EDITOPTION_GUTTER = 'EditorOptions_Gutter';
+  EDITOPTION_RIGHTEDGE = 'EditorOptions_RightEdge';
+  EDITOPTION_LINESPACING = 'EditorOptions_LineSpacing';
+  EDITOPTION_BOOKMARK = 'EditorOptions_Bookmark';
+  EDITOPTION_OPTIONS = 'EditorOptions_Options';
   default_lightbackground = 200;
   default_darkbackground = 55;
 
@@ -228,7 +246,8 @@ end;
 { TSettings }
 
 constructor TSettings.CreateSettings(const ASettingFileName: string;
-  ASynEditHighilighter: TSynCustomHighlighter);
+  const ASynEditHighilighter: TSynCustomHighlighter;
+  const ASynEditorOptions: TSynEditorOptionsContainer);
 begin
   inherited Create;
   FIniFile := TIniFile.Create(ASettingFileName);
@@ -236,7 +255,7 @@ begin
   FSettingsPath := ExtractFilePath(ASettingFileName);
   System.SysUtils.ForceDirectories(FSettingsPath);
 
-  ReadSettings(ASynEditHighilighter);
+  ReadSettings(ASynEditHighilighter, ASynEditorOptions);
 end;
 
 destructor TSettings.Destroy;
@@ -273,7 +292,8 @@ begin
   Result := FUseDarkStyle;
 end;
 
-procedure TSettings.ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter);
+procedure TSettings.ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+  const ASynEditorOptions: TSynEditorOptionsContainer);
 var
   LThemeSection: string;
   I: Integer;
@@ -335,8 +355,8 @@ begin
   ShowEditor := AEditorVisible;
 end;
 
-procedure TSettings.WriteSettings(
-  const ASynEditHighilighter: TSynCustomHighlighter);
+procedure TSettings.WriteSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+  const ASynEditorOptions: TSynEditorOptionsContainer);
 var
   I: Integer;
   LAttribute: TSynHighlighterAttributes;
@@ -371,24 +391,26 @@ end;
 { TPreviewSettings }
 
 constructor TPreviewSettings.CreateSettings(
-  ASynEditHighilighter: TSynCustomHighlighter);
+  const ASynEditHighilighter: TSynCustomHighlighter);
 begin
   inherited CreateSettings(
     IncludeTrailingPathDelimiter(
       GetSpecialFolder(CSIDL_APPDATA)) +'SVGPreviewHandler\Settings.ini',
-    ASynEditHighilighter);
+    ASynEditHighilighter, nil);
 end;
 
 { TEditorSettings }
 
-constructor TEditorSettings.CreateSettings(ASynEditHighilighter: TSynCustomHighlighter);
+constructor TEditorSettings.CreateSettings(const ASynEditHighilighter: TSynCustomHighlighter;
+  const ASynEditorOptions: TSynEditorOptionsContainer);
 begin
   HistoryFileList := TStringList.Create;
   OpenedFileList := TStringList.Create;
   inherited CreateSettings(
     IncludeTrailingPathDelimiter(
       GetSpecialFolder(CSIDL_APPDATA)) +'SVGTextEditor\Settings.ini',
-    ASynEditHighilighter);
+    ASynEditHighilighter, ASynEditorOptions);
+  ReadSynEditorOptions(ASynEditorOptions);
 end;
 
 destructor TEditorSettings.Destroy;
@@ -399,7 +421,8 @@ begin
 end;
 
 procedure TEditorSettings.ReadSettings(
-  const ASynEditHighilighter: TSynCustomHighlighter);
+  const ASynEditHighilighter: TSynCustomHighlighter;
+  const ASynEditorOptions: TSynEditorOptionsContainer);
 var
   I: Integer;
   LValue: string;
@@ -429,7 +452,86 @@ begin
   CurrentFileName := FIniFile.ReadString('Global', 'CurrentFileName', '');
 end;
 
-procedure TEditorSettings.UpdateOpenedFiles(AFileList: TStrings; 
+procedure TeditorSettings.ReadSynEditorOptions(
+  const ASynEditorOptions: TSynEditorOptionsContainer);
+var
+  I : Integer;
+  //Item : TListItem;
+
+  procedure UpdateEditorOptions(const AName: string; const AValue: TSynEditorOption);
+  begin
+    if FIniFile.ReadBool(EDITOPTION_OPTIONS, AName, True) then
+      ASynEditorOptions.Options := ASynEditorOptions.Options + [AValue];
+  end;
+
+begin
+  if not Assigned(ASynEditorOptions) then
+    Exit;
+
+  //Gutter
+  ASynEditorOptions.Gutter.Visible := FIniFile.ReadBool(EDITOPTION_GUTTER, 'Visible', True);
+  ASynEditorOptions.Gutter.AutoSize := FIniFile.ReadBool(EDITOPTION_GUTTER, 'AutoSize', True);
+  ASynEditorOptions.Gutter.ShowLineNumbers := FIniFile.ReadBool(EDITOPTION_GUTTER, 'ShowLineNumbers', True);
+  ASynEditorOptions.Gutter.LeadingZeros := FIniFile.ReadBool(EDITOPTION_GUTTER, 'LeadingZeros', False);
+  ASynEditorOptions.Gutter.ZeroStart := FIniFile.ReadBool(EDITOPTION_GUTTER, 'ZeroStart', False);
+  ASynEditorOptions.Gutter.UseFontStyle := FIniFile.ReadBool(EDITOPTION_GUTTER, 'UseFontStyle', True);
+  ASynEditorOptions.Gutter.Font.Name := FIniFile.ReadString(EDITOPTION_GUTTER, 'Font.Name', 'Consolas');
+  ASynEditorOptions.Gutter.Font.Size := FIniFile.ReadInteger(EDITOPTION_GUTTER, 'Font.Size', 11);
+  //Right Edge
+  ASynEditorOptions.RightEdge := FIniFile.ReadInteger(EDITOPTION_RIGHTEDGE,'RightEdge',80);
+  //Line Spacing
+  ASynEditorOptions.ExtraLineSpacing := FIniFile.ReadInteger(EDITOPTION_LINESPACING,'ExtraLineSpacing', 0);
+  ASynEditorOptions.TabWidth := FIniFile.ReadInteger(EDITOPTION_LINESPACING,'TabWidth',4);
+  //Bookmarks
+  ASynEditorOptions.BookMarkOptions.EnableKeys := FIniFile.ReadBool(EDITOPTION_BOOKMARK,'EnableKeys', True);
+  ASynEditorOptions.BookMarkOptions.GlyphsVisible := FIniFile.ReadBool(EDITOPTION_BOOKMARK,'GlyphsVisible', True);
+  //Options
+  ASynEditorOptions.Options := [];
+  UpdateEditorOptions('AutoIndent', eoAutoIndent);
+  UpdateEditorOptions('AutoSizeMaxScrollWidth', eoAutoSizeMaxScrollWidth);
+  UpdateEditorOptions('DragDropEditing',  eoDragDropEditing);
+  UpdateEditorOptions('SmartTabs',  eoSmartTabs);
+  UpdateEditorOptions('AltSetsColumnMode',  eoAltSetsColumnMode);
+  UpdateEditorOptions('HalfPageScroll',  eoHalfPageScroll);
+  UpdateEditorOptions('ScrollByOneLess',  eoScrollByOneLess);
+  UpdateEditorOptions('ScrollPastEof',  eoScrollPastEof);
+  UpdateEditorOptions('ScrollPastEol',  eoScrollPastEol);
+  UpdateEditorOptions('ShowScrollHint',  eoShowScrollHint);
+  UpdateEditorOptions('TabsToSpaces',  eoTabsToSpaces);
+  UpdateEditorOptions('TrimTrailingSpaces',  eoTrimTrailingSpaces);
+  UpdateEditorOptions('KeepCaretX',  eoKeepCaretX);
+  UpdateEditorOptions('SmartTabDelete',  eoSmartTabDelete);
+  UpdateEditorOptions('RightMouseMovesCursor',  eoRightMouseMovesCursor);
+  UpdateEditorOptions('EnhanceHomeKey',  eoEnhanceHomeKey);
+  UpdateEditorOptions('EnhanceEndKey',  eoEnhanceEndKey);
+  UpdateEditorOptions('GroupUndo',  eoGroupUndo);
+  UpdateEditorOptions('TabIndent',  eoTabIndent);
+  UpdateEditorOptions('DisableScrollArrows',  eoDisableScrollArrows);
+  UpdateEditorOptions('HideShowScrollbars',  eoHideShowScrollbars);
+  UpdateEditorOptions('ShowSpecialChars',  eoShowSpecialChars);
+  ASynEditorOptions.WantTabs := FIniFile.ReadBool(EDITOPTION_OPTIONS, 'WantTabs', False);
+(*
+  //Caret
+  cInsertCaret.ItemIndex := ord(ASynEditorOptions.InsertCaret);
+  cOverwriteCaret.ItemIndex := ord(ASynEditorOptions.OverwriteCaret);
+
+  KeyList.Items.BeginUpdate;
+  try
+    KeyList.Items.Clear;
+    for I := 0 to ASynEditorOptions.Keystrokes.Count-1 do
+    begin
+      Item := KeyList.Items.Add;
+      FillInKeystrokeInfo(ASynEditorOptions.Keystrokes.Items[I], Item);
+      Item.Data := ASynEditorOptions.Keystrokes.Items[I];
+    end;
+    if (KeyList.Items.Count > 0) then KeyList.Items[0].Selected := True;
+  finally
+    KeyList.Items.EndUpdate;
+  end;
+*)
+end;
+
+procedure TEditorSettings.UpdateOpenedFiles(AFileList: TStrings;
   const ACurrentFileName: string);
 begin
   OpenedFileList.Assign(AFileList);
@@ -437,7 +539,8 @@ begin
 end;
 
 procedure TEditorSettings.WriteSettings(
-  const ASynEditHighilighter: TSynCustomHighlighter);
+  const ASynEditHighilighter: TSynCustomHighlighter;
+  const ASynEditorOptions: TSynEditorOptionsContainer);
 var
   I: Integer;
 begin
@@ -455,6 +558,60 @@ begin
       OpenedFileList.strings[i]);
   end;
   FIniFile.WriteString('Global', 'CurrentFileName', CurrentFileName);
+  WriteSynEditorOptions(ASynEditorOptions);
+end;
+
+procedure TEditorSettings.WriteSynEditorOptions(
+  const ASynEditorOptions: TSynEditorOptionsContainer);
+
+  procedure WriteEditorOptions(const AName: string; const AValue: TSynEditorOption);
+  begin
+    FIniFile.WriteBool(EDITOPTION_OPTIONS, AName, AValue in ASynEditorOptions.Options);
+  end;
+
+begin
+  if not Assigned(ASynEditorOptions) then
+    Exit;
+  //Gutter
+  FIniFile.WriteBool(EDITOPTION_GUTTER, 'Visible', ASynEditorOptions.Gutter.Visible);
+  FIniFile.WriteBool(EDITOPTION_GUTTER, 'AutoSize', ASynEditorOptions.Gutter.AutoSize);
+  FIniFile.WriteBool(EDITOPTION_GUTTER, 'ShowLineNumbers', ASynEditorOptions.Gutter.ShowLineNumbers);
+  FIniFile.WriteBool(EDITOPTION_GUTTER, 'LeadingZeros', ASynEditorOptions.Gutter.LeadingZeros);
+  FIniFile.WriteBool(EDITOPTION_GUTTER, 'ZeroStart', ASynEditorOptions.Gutter.ZeroStart);
+  FIniFile.WriteBool(EDITOPTION_GUTTER, 'UseFontStyle', ASynEditorOptions.Gutter.UseFontStyle);
+  FIniFile.WriteString(EDITOPTION_GUTTER, 'Font.Name', ASynEditorOptions.Gutter.Font.Name);
+  FIniFile.WriteInteger(EDITOPTION_GUTTER, 'Font.Size', ASynEditorOptions.Gutter.Font.Size);
+  //Right Edge
+  FIniFile.WriteInteger(EDITOPTION_RIGHTEDGE,'RightEdge', ASynEditorOptions.RightEdge);
+  //Line Spacing
+  FIniFile.WriteInteger(EDITOPTION_LINESPACING,'ExtraLineSpacing', ASynEditorOptions.ExtraLineSpacing);
+  FIniFile.WriteInteger(EDITOPTION_LINESPACING,'TabWidth', ASynEditorOptions.TabWidth);
+  //Bookmarks
+  FIniFile.WriteBool(EDITOPTION_BOOKMARK,'EnableKeys', ASynEditorOptions.BookMarkOptions.EnableKeys);
+  FIniFile.WriteBool(EDITOPTION_BOOKMARK,'GlyphsVisible', ASynEditorOptions.BookMarkOptions.GlyphsVisible);
+  WriteEditorOptions('AutoIndent', eoAutoIndent);
+  WriteEditorOptions('AutoSizeMaxScrollWidth', eoAutoSizeMaxScrollWidth);
+  WriteEditorOptions('DragDropEditing',  eoDragDropEditing);
+  WriteEditorOptions('SmartTabs',  eoSmartTabs);
+  WriteEditorOptions('AltSetsColumnMode',  eoAltSetsColumnMode);
+  WriteEditorOptions('HalfPageScroll',  eoHalfPageScroll);
+  WriteEditorOptions('ScrollByOneLess',  eoScrollByOneLess);
+  WriteEditorOptions('ScrollPastEof',  eoScrollPastEof);
+  WriteEditorOptions('ScrollPastEol',  eoScrollPastEol);
+  WriteEditorOptions('ShowScrollHint',  eoShowScrollHint);
+  WriteEditorOptions('TabsToSpaces',  eoTabsToSpaces);
+  WriteEditorOptions('TrimTrailingSpaces',  eoTrimTrailingSpaces);
+  WriteEditorOptions('KeepCaretX',  eoKeepCaretX);
+  WriteEditorOptions('SmartTabDelete',  eoSmartTabDelete);
+  WriteEditorOptions('RightMouseMovesCursor',  eoRightMouseMovesCursor);
+  WriteEditorOptions('EnhanceHomeKey',  eoEnhanceHomeKey);
+  WriteEditorOptions('EnhanceEndKey',  eoEnhanceEndKey);
+  WriteEditorOptions('GroupUndo',  eoGroupUndo);
+  WriteEditorOptions('TabIndent',  eoTabIndent);
+  WriteEditorOptions('DisableScrollArrows',  eoDisableScrollArrows);
+  WriteEditorOptions('HideShowScrollbars',  eoHideShowScrollbars);
+  WriteEditorOptions('ShowSpecialChars',  eoShowSpecialChars);
+  FIniFile.WriteBool(EDITOPTION_OPTIONS, 'WantTabs', ASynEditorOptions.WantTabs);
 end;
 
 { TThemeAttribute }
