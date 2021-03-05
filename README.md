@@ -45,7 +45,7 @@ WARNING: currently the installer is not signed with a certificate: beware of blo
 
 ### New 32 Bit Support for XYplorer ###
 
-As requested by many users of popular shell alternative, the new version supports XYplorer with Thumbnail and Preview Panel: follow the [configuration guide:](https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support)
+As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the [configuration guide...](https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support)
 
 ![XYplorer](./Images/XYplorer_Preview.png)
 
