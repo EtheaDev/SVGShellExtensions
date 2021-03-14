@@ -17,6 +17,16 @@
 
 - Integrated also with other Shell Applications (like XYplorer)
 
+### Setup using the Installer
+
+Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works both for 32 and 64 bit system.
+
+WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
+
+![SVG Setup_Program](./Images/Setup.png)
+
+***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
+
 ### Preview Panel and Thumbnails in action ###
 
 In Windows 10 with Light theme:
@@ -32,16 +42,6 @@ In Windows 10 with Dark theme:
 A useful Text editor with preview of SVG Image:
 
 ![SVG Text Editor Dark](./Images/SVGTextEditorDark.png)
-
-### Setup using the Installer
-
-Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works both for 32 and 64 bit system.
-
-WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
-
-![SVG Setup_Program](./Images/Setup.png)
-
-***For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).***
 
 ### New 32 Bit Support for XYplorer ###
 
