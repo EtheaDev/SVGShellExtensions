@@ -235,7 +235,7 @@ begin
     finally
       LStringStream.Free;
     end;
-    ExportToPNG(TRect.Create(0,0,0,0), fFileName,
+    ExportToPNG(TRect.Create(0,0,0,0), LFileName,
       LSVGText, False);
   end;
 end;

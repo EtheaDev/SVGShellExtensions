@@ -47,12 +47,10 @@ uses
   , Vcl.Styles.Utils
   , Vcl.Styles.Utils.SysControls
   , Vcl.Styles.UxTheme
-//  {$IFDEF WIN32}
   , Vcl.Styles.Hooks
   , Vcl.Styles.Utils.Forms
   , Vcl.Styles.Utils.ComCtrls
   , Vcl.Styles.Utils.StdCtrls
-//  {$ENDIF}
   , Vcl.Styles.Ext
   ;
 
@@ -441,7 +439,7 @@ begin
     FProcessingFiles := True;
     if FileExists(FileName) then
     begin
-      //ciclo per cercare se il file è già aperto
+      //looking for the file already opened
       EditingFile := nil;
       I := -1;
       for J := 0 to EditFileList.Count -1 do
@@ -454,16 +452,15 @@ begin
           break;
         end;
       end;
-      //Creo l'oggetto EditingFile
+      //searching EditingFile object
       Try
         if not Assigned(EditingFile) then
         begin
           EditingFile := TEditingFile.Create(FileName);
-          //Aggiungo il file alla lista
+          //Add file to list
           I := AddEditingFile(EditingFile);
         end;
 
-        //Apro il file
         EditingFile.ReadFromFile;
 
         Result := True;
@@ -747,7 +744,7 @@ var
   InitialDir : string;
   FileVersionStr: string;
 begin
-  //creo la lista dei files aperti
+  //Build opened-files list
   EditFileList := TObjectList.Create(True);
   FEditorOptions := TSynEditorOptionsContainer.create(self);
   FEditorSettings := TEditorSettings.CreateSettings(nil, FEditorOptions);
@@ -763,7 +760,7 @@ begin
   //Bold font for image preview panel
   ImagePreviewPanel.Font.Style := ImagePreviewPanel.Font.Style + [fsBold];
 
-  //Versione
+  //Version
   FileVersionStr := uMisc.GetFileVersion(GetModuleLocation());
   Application.Title := Application.Title + ' (Ver.'+FileVersionStr+')';
   Caption := Application.Title;
@@ -772,25 +769,21 @@ begin
 
   UpdateFromSettings(nil);
 
-  //Aggancia l'imagelist che si sgancia
+  //Explicit attach imagelist
   ActionList.Images := VirtualImageList;
 
-  //directory di partenza
+  //staring folder
   CurrentDir := IncludeTrailingPathDelimiter(TPath.GetDocumentsPath);
 
-//  PageControl.Images := dmResources.Images;
-//  PageControl.Images := IconList;
-
-  //Inizializza output di stampa
+  //Initialize print output
   InitSynEditPrint;
 
-  //Carico i files che erano rimasti aperti
+  //Load previous opened-files
   LoadOpenedFiles;
 
-  //Inizializza Open e Save Dialog dalla Dir di lancio del programma
   if ParamStr(1) <> '' then
   begin
-    //Carico l'eventuale file esterno
+    //Load file passed at command line
     InitialDir := ParamStr(1);
     OpenFile(ParamStr(1));
     AssignSVGToImage;
@@ -801,7 +794,7 @@ begin
   OpenDialog.InitialDir := InitialDir;
   SaveDialog.InitialDir := InitialDir;
 
-  //Aggiorna le impostazioni di tutti gli editor aperti
+  //Update all editor options
   UpdateEditorsOptions;
 end;
 
@@ -811,11 +804,10 @@ var
   EditingFile : TEditingFile;
   NewFileType : TEditFileType;
 begin
-  //Chiedo che tipo di file vuoto voglio aggiungere
   NewExt := 'svg';
   NewFileType := dmResources.GetEditFileType(NewExt);
 
-  //Aggiungo un file vuoto
+  //Create object to manage new file
   EditingFile := TEditingFile.Create(CurrentDir+'New.'+NewExt);
   Try
     AddEditingFile(EditingFile);
@@ -839,7 +831,6 @@ end;
 
 procedure TfrmMain.acCloseExecute(Sender: TObject);
 begin
-  //Rimuovo il file da editare
   RemoveEditingFile(CurrentEditFile);
 end;
 
@@ -896,15 +887,15 @@ var
   ts : TTabSheet;
   Editor : TSynEdit;
 begin
-  //lo aggiungo alla lista dei file aperti
+  //Add file to opened-list
   Result := EditFileList.Add(EditingFile);
-  //Appena aggiungo un'oggetto alla lista creo la pagina Associata
+  //Create the Tabsheet page associated to the file
   ts := nil;
   Editor := nil;
   Try
     ts := TTabSheet.Create(self);
     ts.PageControl := PageControl;
-    //Attacco al TAG del tabsheet l'oggetto del file da editare
+    //Use TAG of tabsheet to store the object pointer
     ts.Tag := Integer(EditingFile);
     ts.Caption := EditingFile.Name;
     ts.Imagename := 'svg-logo-gray';
@@ -912,7 +903,7 @@ begin
     ts.TabVisible := True;
     EditingFile.TabSheet := ts;
 
-    //Creo l'oggetto dell'editor all'interno della pagina con l'owner la pagina
+    //Create the SynEdit object editor into the TabSheet that is the owner
     Editor := TSynEdit.Create(ts);
     Editor.OnChange := SynEditChange;
     Editor.OnEnter := SynEditEnter;
@@ -921,7 +912,7 @@ begin
     Editor.Parent := ts;
     Editor.SearchEngine := SynEditSearch;
     Editor.PopupMenu := popEditor;
-    //Assegna le preferenze dell'utente
+    //Assign user preferences to the editor
     FEditorOptions.AssignTo(Editor);
     Editor.MaxScrollWidth := 3000;
     EditingFile.SynEditor := Editor;
@@ -929,19 +920,18 @@ begin
     UpdateHighlighter(Editor);
     Editor.Visible := True;
 
-    //Visualizzo il tabsheet
+    //Show the tabsheet
     ts.Visible := True;
+
+    //Make the Tabsheet the current page
+    //and call "change" of pagecontrol
+    PageControl.ActivePage := ts;
+    PageControl.OnChange(PageControl);
   Except
     ts.Free;
     Editor.Free;
     raise;
   End;
-
-  //Attivo la pagina appena creata
-  PageControl.ActivePage := ts;
-
-  //Forzo "change" della pagina
-  PageControl.OnChange(PageControl);
 end;
 
 procedure TfrmMain.AssignSVGToImage;
@@ -950,7 +940,7 @@ var
 begin
   if FProcessingFiles then
     Exit;
-  //Assegna l'immagine SVG
+  //Assign SVG image
   try
     if CurrentEditor <> nil then
     begin
@@ -995,7 +985,7 @@ end;
 
 procedure TfrmMain.PageControlChange(Sender: TObject);
 begin
-  //Imposto la caption dell'Editor
+  //Setting the Editor caption as the actual file opened
   if CurrentEditFile <> nil then
     Caption := Application.Title+' - '+CurrentEditFile.FileName;
   AssignSVGToImage;
@@ -1044,7 +1034,7 @@ begin
   if pos = -1 then
     raise EComponentError.Create(CLOSING_PROBLEMS);
 
-  //Richiesta di abbandono delle modifiche pendenti
+  //Confirm abandon changes
   if EditingFile.SynEditor.Modified then
   begin
     if MessageDlg(Format(CONFIRM_ABANDON,[EditingFile.FileName]),
@@ -1052,17 +1042,16 @@ begin
       Abort;
   end;
 
-  //Elimino il file dalla lista
+  //Delete the file from the Opened-List
   EditFileList.Delete(pos);
 
-  //Elimino la pagina
+  //Delete the TabSheet
   PageControl.Pages[pos].Free;
 
-  //Attivo la pagina nuova che ha preso il posto della precedente
+  //Activate the previous page and
+  //call "change" of pagecontrol
   if pos > 0 then
     PageControl.ActivePageIndex := pos-1;
-
-  //Forzo "change" della pagina
   PageControl.OnChange(PageControl);
 end;
 
@@ -1079,6 +1068,7 @@ begin
       RemoveEditingFile(TEditingFile(EditFileList.items[0]));
   finally
     FProcessingFiles := False;
+    AssignSVGToImage;
   end;
 end;
 
@@ -1271,7 +1261,7 @@ begin
   LBackgroundColor := StyleServices.GetSystemColor(clWindow);
   ASynEditor.Highlighter := dmResources.GetSynHighlighter(
     FEditorSettings.UseDarkStyle, LBackgroundColor);
-  //Assegna i colori "custom" all'Highlighter
+  //Assign custom colors to the Highlighter
   FEditorSettings.ReadSettings(ASynEditor.Highlighter, self.FEditorOptions);
 end;
 
@@ -1328,8 +1318,7 @@ begin
       CurrentEditFile.FileName := SaveDialog.FileName;
     end;
     CurrentEditFile.SaveToFile;
-
-    //Forzo "change" della pagina
+    //call the "onchange" event of PageControl
     PageControl.OnChange(PageControl);
   end;
 end;
@@ -1435,7 +1424,7 @@ procedure TfrmMain.actnFormatXMLExecute(Sender: TObject);
 var
   OldText, NewText : string;
 begin
-  //formatta XML
+  //format XML text
   OldText := CurrentEditor.Text;
   NewText := Xml.XMLDoc.FormatXMLData(OldText);
   if OldText <> NewText then
@@ -1455,14 +1444,14 @@ procedure TfrmMain.AddOpenedFile(const AFileName: string);
 var
   i : integer;
 begin
-  //se esiste già la voce la cancello
+  //Add the opened file to the opened-file list
   i := FEditorSettings.HistoryFileList.IndexOf(AFileName);
   if i >= 0 then
     FEditorSettings.HistoryFileList.Delete(i);
-  //massimo 15 voci
+  //max 15 items
   if FEditorSettings.HistoryFileList.Count > 15 then
     FEditorSettings.HistoryFileList.Delete(14);
-  //Aggiungo la voce in prima posizione
+  //add the last opened-file at first position
   FEditorSettings.HistoryFileList.Insert(0, AFileName);
 end;
 
@@ -1551,7 +1540,7 @@ var
   LFileName : string;
 begin
   LFilename := (Sender as TMenuItem).Hint;
-  //Carico il file selezionato
+  //Load the selected file
   OpenFile(LFileName);
   AssignSVGToImage;
   if (CurrentEditor <> nil) and (CurrentEditor.CanFocus) then
@@ -1565,7 +1554,9 @@ begin
 end;
 
 initialization
+  {$IFDEF DEBUG}
   ReportMemoryLeaksOnShutdown := True;
+  {$ENDIF}
 
 end.
 
