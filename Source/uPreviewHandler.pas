@@ -192,8 +192,9 @@ end;
 function TComPreviewHandler.GetWindow(out wnd: HWND): HRESULT;
 begin
   TLogPreview.Add('GetWindow Init');
-  if Container = nil then
+  if (Container = nil) or (Container.Handle = 0) then
   begin
+    wnd := 0;
     result := E_FAIL;
   end
   else

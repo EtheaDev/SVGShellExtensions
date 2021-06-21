@@ -204,7 +204,6 @@ type
       Change: TItemChange; var AllowChange: Boolean);
   private
     FSynEdit: TSynEditorOptionsContainer;
-    FPoppedFrom : TColorPopup;
     FUserCommand: TSynEditorOptionsUserCommand;
     FAllUserCommands: TSynEditorOptionsAllUserCommands;
 

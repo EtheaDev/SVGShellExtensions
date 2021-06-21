@@ -157,8 +157,6 @@ begin
        TFrmPreview.AParent.Free;
        TFrmPreview.AParent:=nil;
      end;
-
-
     inherited;
     Finalize_GDI;
     TLogPreview.Add('Unload  Done ' + Self.ClassName);

@@ -461,6 +461,7 @@ begin
           I := AddEditingFile(EditingFile);
         end;
 
+        //Open the file
         EditingFile.ReadFromFile;
 
         Result := True;
@@ -781,6 +782,7 @@ begin
   //Load previous opened-files
   LoadOpenedFiles;
 
+  //Initialize Open and Save Dialog with application path
   if ParamStr(1) <> '' then
   begin
     //Load file passed at command line
@@ -922,16 +924,17 @@ begin
 
     //Show the tabsheet
     ts.Visible := True;
-
-    //Make the Tabsheet the current page
-    //and call "change" of pagecontrol
-    PageControl.ActivePage := ts;
-    PageControl.OnChange(PageControl);
   Except
     ts.Free;
     Editor.Free;
     raise;
   End;
+
+    //Make the Tabsheet the current page
+    PageControl.ActivePage := ts;
+
+    //and call "change" of pagecontrol
+    PageControl.OnChange(PageControl);
 end;
 
 procedure TfrmMain.AssignSVGToImage;
@@ -1048,10 +1051,11 @@ begin
   //Delete the TabSheet
   PageControl.Pages[pos].Free;
 
-  //Activate the previous page and
-  //call "change" of pagecontrol
+  //Activate the previous page and call "change" of pagecontrol
   if pos > 0 then
     PageControl.ActivePageIndex := pos-1;
+
+  //Force "change" of Page
   PageControl.OnChange(PageControl);
 end;
 
@@ -1250,6 +1254,11 @@ begin
   UpdateApplicationStyle(FEditorSettings.StyleName);
   UpdateHighlighter(AEditor);
   BackgroundTrackBar.Position := FEditorSettings.LightBackground;
+  SVGIconImage.UpdateSVGFactory;
+  SVGIconImage16.UpdateSVGFactory;
+  SVGIconImage32.UpdateSVGFactory;
+  SVGIconImage48.UpdateSVGFactory;
+  SVGIconImage96.UpdateSVGFactory;
 end;
 
 procedure TfrmMain.UpdateHighlighter(ASynEditor: TSynEdit);
@@ -1318,6 +1327,7 @@ begin
       CurrentEditFile.FileName := SaveDialog.FileName;
     end;
     CurrentEditFile.SaveToFile;
+
     //call the "onchange" event of PageControl
     PageControl.OnChange(PageControl);
   end;

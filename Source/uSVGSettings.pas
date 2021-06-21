@@ -454,9 +454,6 @@ end;
 
 procedure TeditorSettings.ReadSynEditorOptions(
   const ASynEditorOptions: TSynEditorOptionsContainer);
-var
-  I : Integer;
-  //Item : TListItem;
 
   procedure UpdateEditorOptions(const AName: string; const AValue: TSynEditorOption);
   begin

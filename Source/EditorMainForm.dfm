@@ -5,8 +5,6 @@ object frmMain: TfrmMain
   ClientHeight = 590
   ClientWidth = 907
   Color = clWindow
-  Constraints.MinHeight = 400
-  Constraints.MinWidth = 600
   Ctl3D = False
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -679,8 +677,8 @@ object frmMain: TfrmMain
       Category = 'Settings'
       Caption = 'Editor Options ...'
       Hint = 'Editor Options'
-      ImageIndex = 28
-      ImageName = 'preferences-desktop'
+      ImageIndex = 41
+      ImageName = 'Support'
       OnExecute = actnEditOptionsExecute
     end
     object actnEnlargeFont: TAction
@@ -702,7 +700,7 @@ object frmMain: TfrmMain
     object actnSaveAs: TAction
       Category = 'File'
       Caption = 'Save As ...'
-      Hint = 'Save As ...'
+      Hint = 'Save File As ...'
       ImageIndex = 14
       ImageName = 'Save-as'
       OnExecute = actnSaveAsExecute
@@ -711,9 +709,9 @@ object frmMain: TfrmMain
     object actnColorSettings: TAction
       Category = 'Settings'
       Caption = 'Theme settings'
-      Hint = 'Theme settings (colors, font)'
-      ImageIndex = 0
-      ImageName = 'Style'
+      Hint = 'Theme settings (colors, font, themes)'
+      ImageIndex = 28
+      ImageName = 'preferences-desktop'
       OnExecute = actnColorSettingsExecute
       OnUpdate = actnColorSettingsUpdate
     end
@@ -754,6 +752,7 @@ object frmMain: TfrmMain
   end
   object SaveDialog: TSaveDialog
     Filter = 'SVG Image files (.svg)|*.svg'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 300
     Top = 264
   end
@@ -1102,6 +1101,12 @@ object frmMain: TfrmMain
         CollectionName = 'info'
         Disabled = False
         Name = 'info'
+      end
+      item
+        CollectionIndex = 41
+        CollectionName = 'Support'
+        Disabled = False
+        Name = 'Support'
       end>
     ImageCollection = dmResources.SVGIconImageCollection
     Width = 24

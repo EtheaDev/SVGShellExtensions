@@ -377,6 +377,7 @@ begin
   TStyleManager.TrySetStyle(FPreviewSettings.StyleName, False);
 {$ENDIF}
   BackgroundTrackBar.Position := FPreviewSettings.LightBackground;
+  SVGIconImage.UpdateSVGFactory;
   UpdateHighlighter;
   UpdateGUI;
 end;

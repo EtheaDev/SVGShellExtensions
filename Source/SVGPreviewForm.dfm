@@ -65,8 +65,22 @@ object FrmPreview: TFrmPreview
         OnMouseEnter = ToolButtonMouseEnter
         OnMouseLeave = ToolButtonMouseLeave
       end
-      object ToolButtonAbout: TToolButton
+      object ToolButtonSettings: TToolButton
         Left = 85
+        Top = 0
+        Cursor = crHandPoint
+        Hint = 'Preview settings...'
+        AutoSize = True
+        Caption = 'Settings...'
+        ImageIndex = 11
+        ImageName = 'preferences-desktop'
+        Visible = False
+        OnClick = ToolButtonSettingsClick
+        OnMouseEnter = ToolButtonMouseEnter
+        OnMouseLeave = ToolButtonMouseLeave
+      end
+      object ToolButtonAbout: TToolButton
+        Left = 175
         Top = 0
         Cursor = crHandPoint
         Hint = 'Show about...'
@@ -76,20 +90,6 @@ object FrmPreview: TFrmPreview
         ImageName = 'about'
         Visible = False
         OnClick = ToolButtonAboutClick
-        OnMouseEnter = ToolButtonMouseEnter
-        OnMouseLeave = ToolButtonMouseLeave
-      end
-      object ToolButtonSettings: TToolButton
-        Left = 165
-        Top = 0
-        Cursor = crHandPoint
-        Hint = 'Preview settings...'
-        AutoSize = True
-        Caption = 'Settings...'
-        ImageIndex = 4
-        ImageName = 'Style'
-        Visible = False
-        OnClick = ToolButtonSettingsClick
         OnMouseEnter = ToolButtonMouseEnter
         OnMouseLeave = ToolButtonMouseLeave
       end
@@ -321,6 +321,12 @@ object FrmPreview: TFrmPreview
         CollectionName = 'Reformat'
         Disabled = False
         Name = 'Reformat'
+      end
+      item
+        CollectionIndex = 28
+        CollectionName = 'preferences-desktop'
+        Disabled = False
+        Name = 'preferences-desktop'
       end>
     ImageCollection = dmResources.SVGIconImageCollection
     Width = 24

@@ -22,7 +22,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     Top = 0
     Width = 369
     Height = 359
-    ActivePage = Keystrokes
+    ActivePage = Display
     Align = alClient
     TabOrder = 0
     object Display: TTabSheet
