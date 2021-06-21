@@ -1,6 +1,6 @@
 # SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 1.2.3 - 3 Apr 2021**
+**Latest Version 1.3.0 - 21 Jun 2021**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
@@ -75,6 +75,10 @@ To manually install the SVGShellExtensions.dll follow these steps:
 
 ## Release Notes ##
 
+21 Jun 2021
+- Updated some icons
+- Update icon preview when SVGFactory changes
+
 03 Apr 2021
 - Fixed Close-All (Editor): clear preview
 - Fixed save to png file extensions
@@ -133,7 +137,7 @@ Third Party libraries and tools used:
 
 - [TSVG Library][10]
 
-![Delphi 10.4 Sydney Support](https://github.com/EtheaDev/SVGShellExtensions/raw/main/Setup/SupportingDelphi.jpg)
+![Delphi 10.4 Sydney Support](https://raw.githubusercontent.com/EtheaDev/SVGShellExtensions/main/Setup/SupportingDelphi.jpg)
 
 Related links: [embarcadero.com][11] - [learndelphi.org][12]
 
