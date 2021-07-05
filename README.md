@@ -1,6 +1,6 @@
 # SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 1.3.0 - 21 Jun 2021**
+**Latest Version 1.4.0 - 05 Jul 2021**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
@@ -21,7 +21,7 @@
 
 Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works both for 32 and 64 bit system.
 
-WARNING: currently the installer is not signed with a certificate: beware of blocking by Windows or antivirus.
+INFO: currently the installer is signed with a public certificate!
 
 ![SVG Setup_Program](./Images/Setup.png)
 
@@ -74,6 +74,10 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+05 Jul 2021
+- Added drag-drop support for external files into editor
+- Updated Setup with certificate
 
 21 Jun 2021
 - Updated some icons
