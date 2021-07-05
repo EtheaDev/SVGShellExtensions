@@ -455,9 +455,10 @@ end;
 procedure TeditorSettings.ReadSynEditorOptions(
   const ASynEditorOptions: TSynEditorOptionsContainer);
 
-  procedure UpdateEditorOptions(const AName: string; const AValue: TSynEditorOption);
+  procedure UpdateEditorOptions(const AName: string; const AValue: TSynEditorOption;
+    const ADefault: Boolean = True);
   begin
-    if FIniFile.ReadBool(EDITOPTION_OPTIONS, AName, True) then
+    if FIniFile.ReadBool(EDITOPTION_OPTIONS, AName, ADefault) then
       ASynEditorOptions.Options := ASynEditorOptions.Options + [AValue];
   end;
 
@@ -505,7 +506,7 @@ begin
   UpdateEditorOptions('TabIndent',  eoTabIndent);
   UpdateEditorOptions('DisableScrollArrows',  eoDisableScrollArrows);
   UpdateEditorOptions('HideShowScrollbars',  eoHideShowScrollbars);
-  UpdateEditorOptions('ShowSpecialChars',  eoShowSpecialChars);
+  UpdateEditorOptions('ShowSpecialChars',  eoShowSpecialChars, False);
   ASynEditorOptions.WantTabs := FIniFile.ReadBool(EDITOPTION_OPTIONS, 'WantTabs', False);
 (*
   //Caret

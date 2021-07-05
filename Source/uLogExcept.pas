@@ -76,10 +76,6 @@ class procedure TLogPreview.Add(const AMessage: string);
 begin
 {$IFDEF DEBUG}
   try
-    //if Copy(AMessage,1,27) = 'TPreviewContainer.SetBounds' then
-    //if Copy(AMessage,1,10) = 'SetWindow:' then
-    //if (Copy(AMessage,1,24) = 'TComStreamPreviewHandler') or
-    //if (Copy(AMessage,1,24) = 'TComSVGThumbnailProvider') then
     if (Copy(AMessage,1,15) = 'TSVGContextMenu') then
       AppendAllText(sLogFile, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + AMessage + sLineBreak);
   except

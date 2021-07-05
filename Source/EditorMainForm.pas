@@ -52,6 +52,7 @@ uses
   , Vcl.Styles.Utils.ComCtrls
   , Vcl.Styles.Utils.StdCtrls
   , Vcl.Styles.Ext
+  , uDragDropUtils
   ;
 
 const
@@ -96,7 +97,7 @@ type
     property Extension : string read FExtension;
   end;
 
-  TfrmMain = class(TForm)
+  TfrmMain = class(TForm, IDragDrop)
     OpenDialog: TOpenDialog;
     ActionList: TActionList;
     acOpenFile: TAction;
@@ -182,6 +183,7 @@ type
     StatusStaticText: TStaticText;
     StatusSplitter: TSplitter;
     CloseAll1: TMenuItem;
+    procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure acOpenFileExecute(Sender: TObject);
     procedure acSaveExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -255,6 +257,7 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
+    MinFormWidth, MinFormHeight, MaxFormWidth, MaxFormHeight: Integer;
     FProcessingFiles: Boolean;
     FEditorSettings: TEditorSettings;
     currentDir: string;
@@ -272,6 +275,10 @@ type
     gsReplaceTextHistory: string;
     FEditorOptions: TSynEditorOptionsContainer;
     FFontSize: Integer;
+    FDropTarget: TDropTarget;
+    // implement IDragDrop
+    function DropAllowed(const FileNames: array of string): Boolean;
+    procedure Drop(const FileNames: array of string);
     procedure CloseSplitViewMenu;
     procedure UpdateHighlighters;
     procedure UpdateFromSettings(AEditor: TSynEdit);
@@ -297,7 +304,12 @@ type
     procedure UpdateHighlighter(ASynEditor: TSynEdit);
     procedure SetEditorFontSize(const Value: Integer);
     procedure LoadOpenedFiles;
+    function CanAcceptFileName(const AFileName: string): Boolean;
+    function AcceptedExtensions: string;
     property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
+  protected
+    procedure CreateWindowHandle(const Params: TCreateParams); override;
+    procedure DestroyWindowHandle; override;
   end;
 
 var
@@ -428,6 +440,17 @@ begin
   AssignSVGToImage;
 end;
 
+function TfrmMain.CanAcceptFileName(const AFileName: string): Boolean;
+begin
+  Result := pos(ExtractFileExt(AFileName), AcceptedExtensions) <> 0;
+end;
+
+function TfrmMain.AcceptedExtensions: string;
+begin
+  //Check file extension
+  Result := '.svg;.xml';
+end;
+
 function TfrmMain.OpenFile(const FileName : string;
   const ARaiseError: Boolean = True): Boolean;
 var
@@ -439,6 +462,10 @@ begin
     FProcessingFiles := True;
     if FileExists(FileName) then
     begin
+      if not CanAcceptFileName(FileName) then
+        raise Exception.CreateFmt('Cannot open file with extensions different from "%s"',
+        [AcceptedExtensions]);
+
       //looking for the file already opened
       EditingFile := nil;
       I := -1;
@@ -505,10 +532,10 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  EditFileList.Free;
-  SynEditPrint.Free;
-  FEditorSettings.Free;
-  FEditorOptions.Free;
+  FreeAndNil(EditFileList);
+  FreeAndNil(SynEditPrint);
+  FreeAndNil(FEditorSettings);
+  FreeAndNil(FEditorOptions);
   inherited;
 end;
 
@@ -632,6 +659,12 @@ begin
   catMenuItems.ButtonOptions := catMenuItems.ButtonOptions + [boShowCaptions];
 end;
 
+procedure TfrmMain.DestroyWindowHandle;
+begin
+  FreeAndNil(FDropTarget);
+  inherited;
+end;
+
 function TfrmMain.DialogPosRect: TRect;
 begin
   GetWindowRect(Self.Handle, Result);
@@ -668,6 +701,32 @@ begin
 
   if ConfirmReplaceDialog <> nil then
     ConfirmReplaceDialog.Free;
+end;
+
+procedure TfrmMain.Drop(const FileNames: array of string);
+var
+  LFileName: string;
+  i: Integer;
+begin
+  for i := 0 to Length(FileNames)-1 do
+  begin
+    if CanAcceptFileName(FileNames[i]) then
+      OpenFile(FileNames[i], False);
+  end;
+  AssignSVGToImage;
+end;
+
+function TfrmMain.DropAllowed(const FileNames: array of string): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  for i := 0 to Length(FileNames)-1 do
+  begin
+    Result := CanAcceptFileName(FileNames[i]);
+    if Result then
+      Break;
+  end;
 end;
 
 procedure TfrmMain.ExportToPNGActionExecute(Sender: TObject);
@@ -1003,6 +1062,12 @@ procedure TfrmMain.CloseSplitViewMenu;
 begin
   SV.Close;
   Screen.Cursor := crDefault;
+end;
+
+procedure TfrmMain.CreateWindowHandle(const Params: TCreateParams);
+begin
+  inherited;
+  FDropTarget := TDropTarget.Create(WindowHandle, Self);
 end;
 
 function TfrmMain.CurrentEditFile: TEditingFile;
@@ -1386,6 +1451,32 @@ begin
     StatusBar.Panels[STATUSBAR_PANEL_MODIFIED].Text := '';
     StatusBar.Panels[STATUSBAR_PANEL_STATE].Text := '';
   end;
+end;
+
+procedure TfrmMain.WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo);
+var
+  LMinMaxInfo: PMinMaxInfo;
+begin
+  if not (csReading in ComponentState) then
+  begin
+    LMinMaxInfo := Message.MinMaxInfo;
+    with LMinMaxInfo^ do
+    begin
+      with ptMinTrackSize do
+      begin
+        if MinFormWidth > 0 then X := MinFormWidth;
+        if MinFormHeight > 0 then Y := MinFormHeight;
+      end;
+      with ptMaxTrackSize do
+      begin
+        if MaxFormWidth > 0 then X := MaxFormWidth;
+        if MaxFormHeight > 0 then Y := MaxFormHeight;
+      end;
+      ConstrainedResize(ptMinTrackSize.X, ptMinTrackSize.Y, ptMaxTrackSize.X,
+        ptMaxTrackSize.Y);
+    end;
+  end;
+  inherited;
 end;
 
 procedure TfrmMain.ActionListExecute(Action: TBasicAction;

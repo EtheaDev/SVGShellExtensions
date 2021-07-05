@@ -6,9 +6,12 @@ msbuild.exe "Source\SVGTextEditor.dproj" /target:Clean;Build /p:Platform=Win64 /
 :INNO
 "C:\Program Files (x86)\Inno Setup 6\iscc.exe" "D:\ETHEA\SVGShellExtensions\Setup\SVGShellExtensions.iss"
 set INNO_STATUS=%ERRORLEVEL%
-if %INNO_STATUS%==0 GOTO END
+if %INNO_STATUS%==0 GOTO SIGNSETUP
 pause
 EXIT
+
+:SIGNSETUP
+call D:\ETHEA\Certificate\SignFileWithSectico.bat D:\ETHEA\SVGShellExtensions\Setup\Output\SVGShellExtensionsSetup.exe
 
 :END
 pause
