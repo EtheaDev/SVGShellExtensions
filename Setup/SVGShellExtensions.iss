@@ -46,9 +46,10 @@ Name: ita; MessagesFile: compiler:Languages\Italian.isl; LicenseFile: .\Licenza_
 Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked; Components: Editor
 
 [Files]
-Source: "..\Bin64\SVGTextEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: Editor
+Source: "..\Bin32\SVGTextEditor.exe"; DestDir: "{app}"; Flags: ignoreversion 32bit; Components: Editor
 Source: "..\Bin32\SVGShellExtensions32.dll"; DestDir: {app}; Flags : regserver sharedfile noregerror; Components: ShellExtensions
-Source: "..\Bin64\SVGShellExtensions.dll"; DestDir: {app}; Flags : regserver sharedfile noregerror; Components: ShellExtensions
+Source: "..\Bin64\SVGTextEditor.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit; Components: Editor
+Source: "..\Bin64\SVGShellExtensions.dll"; DestDir: {app}; Flags : 64bit regserver sharedfile noregerror; Components: ShellExtensions
 
 [Icons]
 Name: "{group}\SVGTextEditor"; Filename: "{app}\SVGTextEditor.exe"; WorkingDir: "{app}"; IconFilename: "{app}\SVGTextEditor.exe"; Components: Editor

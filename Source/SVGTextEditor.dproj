@@ -138,7 +138,6 @@
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
-        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_DebugInformation>2</DCC_DebugInformation>
         <DCC_IntegerOverflowCheck>false</DCC_IntegerOverflowCheck>
