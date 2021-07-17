@@ -392,17 +392,28 @@ object SVGSettingsForm: TSVGSettingsForm
       object RenderingGroupBox: TGroupBox
         Left = 3
         Top = 3
-        Width = 238
-        Height = 62
+        Width = 310
+        Height = 158
         Caption = 'Rendering options'
         TabOrder = 0
         object PreferD2DCheckBox: TCheckBox
           Left = 13
-          Top = 21
-          Width = 156
-          Height = 17
-          Caption = 'Prefer Direct 2D Engine'
+          Top = 127
+          Width = 284
+          Height = 18
+          Caption = 'Prefer Direct 2D Engine (if available in Windows)'
           TabOrder = 0
+        end
+        object EngineRadioGroup: TRadioGroup
+          Left = 13
+          Top = 19
+          Width = 284
+          Height = 102
+          Caption = 'Engine'
+          Items.Strings = (
+            'Delphi Image32'
+            'Delphi TSVG')
+          TabOrder = 1
         end
       end
     end
@@ -469,8 +480,8 @@ object SVGSettingsForm: TSVGSettingsForm
     TabOrder = 3
   end
   object OpenDialog: TOpenDialog
-    Left = 152
-    Top = 120
+    Left = 584
+    Top = 312
   end
   object SettingsImageList: TSVGIconImageList
     Size = 36

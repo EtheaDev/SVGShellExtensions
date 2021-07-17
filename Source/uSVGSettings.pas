@@ -52,6 +52,7 @@ resourcestring
 type
   TThemeSelection = (tsAsWindows, tsDarkTheme, tsLightTheme);
   TThemeType = (ttLight, ttDark);
+  TSVGEngine = (enImage32, enTSVG);
 
   //Class to register Theme attributes (like dark or light)
   TThemeAttribute = class
@@ -75,11 +76,14 @@ type
     FPreferD2D: Boolean;
     FActivePageIndex: Integer;
     FThemeSelection: TThemeSelection;
+    FSVGEngine: TSVGEngine;
     function GetUseDarkStyle: Boolean;
+    procedure SetSVGEngine(const Value: TSVGEngine);
     procedure SetPreferD2D(const Value: Boolean);
     function GetThemeSectionName: string;
     function GetButtonTextColor: TColor;
     class function GetSettingsFileName: string; static;
+    procedure UpdateEngine;
   protected
     FIniFile: TIniFile;
   public
@@ -108,6 +112,7 @@ type
     property ShowEditor: Boolean read FShowEditor write FShowEditor;
     property SplitterPos: Integer read FSplitterPos write FSplitterPos;
     property PreferD2D: Boolean read FPreferD2D write SetPreferD2D;
+    property SVGEngine: TSVGEngine read FSVGEngine write SetSVGEngine;
     property ActivePageIndex: Integer read FActivePageIndex write FActivePageIndex;
     property ThemeSelection: TThemeSelection read FThemeSelection write FThemeSelection;
   end;
@@ -144,6 +149,7 @@ uses
   SVGInterfaces,
   PasSVGFactory,
   D2DSVGFactory,
+  Image32SVGFactory,
   System.Types,
   System.TypInfo,
   System.Rtti,
@@ -338,13 +344,32 @@ begin
   end;
 end;
 
-procedure TSettings.SetPreferD2D(const Value: Boolean);
+procedure TSettings.UpdateEngine;
 begin
-  FPreferD2D := Value;
-  if FPreferD2D then
+  if WinSvgSupported and FPreferD2D then
     SetGlobalSvgFactory(GetD2DSVGFactory)
+  else if FSVGEngine = enImage32 then
+    SetGlobalSvgFactory(GetImage32SVGFactory)
   else
     SetGlobalSvgFactory(GetPasSVGFactory);
+end;
+
+procedure TSettings.SetPreferD2D(const Value: Boolean);
+begin
+  if FPreferD2D <> Value then
+  begin
+    FPreferD2D := Value;
+    UpdateEngine;
+  end;
+end;
+
+procedure TSettings.SetSVGEngine(const Value: TSVGEngine);
+begin
+  if FSVGEngine <> Value then
+  begin
+    FSVGEngine := Value;
+    UpdateEngine;
+  end;
 end;
 
 procedure TSettings.UpdateSettings(const AFontName: string;

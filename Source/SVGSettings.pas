@@ -86,6 +86,7 @@ type
     stGeneral: TTabSheet;
     RenderingGroupBox: TGroupBox;
     PreferD2DCheckBox: TCheckBox;
+    EngineRadioGroup: TRadioGroup;
     procedure BoxElementsClick(Sender: TObject);
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
@@ -152,6 +153,7 @@ uses
 {$IFNDEF DISABLE_STYLES}
   Vcl.Themes,
 {$ENDIF}
+  D2DSVGFactory,
   uRegistry;
 
 {$R *.dfm}
@@ -519,7 +521,14 @@ begin
   ThemesRadioGroup.ItemIndex := Ord(ASettings.ThemeSelection);
   CbFont.ItemIndex := CbFont.Items.IndexOf(ASettings.FontName);
   FontSizeUpDown.Position := ASettings.FontSize;
-  PreferD2DCheckBox.Checked := ASettings.PreferD2D;
+  if not WinSvgSupported then
+  begin
+    PreferD2DCheckBox.Visible := False;
+    PreferD2DCheckBox.Checked := False;
+  end
+  else
+    PreferD2DCheckBox.Checked := ASettings.PreferD2D;
+  EngineRadioGroup.ItemIndex := Ord(ASettings.SVGEngine);
   PopulateAvailThemes;
 end;
 
@@ -550,6 +559,7 @@ begin
   ASettings.FontSize := FontSizeUpDown.Position;
   ASettings.StyleName := SelectedStyleName;
   ASettings.PreferD2D := PreferD2DCheckBox.Checked;
+  ASettings.SVGEngine := TSVGEngine(EngineRadioGroup.ItemIndex);
 end;
 
 procedure TSVGSettingsForm.MenuButtonGroupButtonClicked(Sender: TObject;

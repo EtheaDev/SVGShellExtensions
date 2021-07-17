@@ -192,6 +192,9 @@ begin
   MemoCopyRights.Lines.Add('TSVG Library - http://www.mwcs.de');
   MemoCopyRights.Lines.Add('Original version © 2005, 2008 Martin Walter.');
   MemoCopyRights.Lines.Add('');
+  MemoCopyRights.Lines.Add('Image32 Library - http://www.angusj.com/delphi/image32/Docs/_Body.htm');
+  MemoCopyRights.Lines.Add('Copyright ©2019-2021 Angus Johnson.');
+  MemoCopyRights.Lines.Add('');
 end;
 
 procedure TFrmAbout.LinkLabel1Click(Sender: TObject);
