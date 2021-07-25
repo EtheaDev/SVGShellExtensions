@@ -64,7 +64,7 @@
         <DCC_DcuOutput>.\$(Config)\$(Platform)</DCC_DcuOutput>
         <GenDll>true</GenDll>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\SVGIconImageList\Svg;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;..\Ext\SVGIconImageList\Image32\Source\Image32_SVG;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\SVGIconImageList\Svg;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>..\Bin32</DCC_ExeOutput>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>2</VerInfo_MajorVer>

@@ -72,7 +72,7 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
         <DCC_ImportedDataReferences>false</DCC_ImportedDataReferences>
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\SVGIconImageList\Svg;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;..\Ext\SVGIconImageList\Image32\Source\Image32_SVG;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\SVGIconImageList\Svg;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>..\Dcu\D10_4</DCC_DcuOutput>
         <DCC_DependencyCheckOutputName>..\..\exe\InstantXMLEditor.exe</DCC_DependencyCheckOutputName>
         <DCC_Define>NO_VCLSTYLEUTILS;$(DCC_Define)</DCC_Define>

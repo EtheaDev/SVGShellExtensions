@@ -311,6 +311,7 @@ begin
   FShowEditor := FIniFile.ReadInteger('Global', 'ShowEditor', 1) = 1;
   FSplitterPos := FIniFile.ReadInteger('Global', 'SplitterPos', 33);
   PreferD2D := Boolean(FIniFile.ReadInteger('Global', 'PreferD2D', -1));
+  SVGEngine := TSVGEngine(FIniFile.ReadInteger('Global', 'SVGEngine', 0));
   FActivePageIndex := FIniFile.ReadInteger('Global', 'ActivePageIndex', 0);
   FStyleName := FIniFile.ReadString('Global', 'StyleName', DefaultStyleName);
   FThemeSelection := TThemeSelection(FIniFile.ReadInteger('Global', 'ThemeSelection', 0));
@@ -393,6 +394,7 @@ begin
   FIniFile.WriteInteger('Global', 'ShowEditor', Ord(FShowEditor));
   FIniFile.WriteInteger('Global', 'SplitterPos', FSplitterPos);
   FIniFile.WriteInteger('Global', 'PreferD2D', Ord(FPreferD2D));
+  FIniFile.WriteInteger('Global', 'SVGEngine', Ord(FSVGEngine));
   FIniFile.WriteInteger('Global', 'ActivePageIndex', FActivePageIndex);
   FIniFile.WriteInteger('Global', 'ThemeSelection', Ord(FThemeSelection));
   if (FUseDarkStyle and (LightBackground <> default_darkbackground)) or

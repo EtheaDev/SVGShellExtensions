@@ -127,10 +127,10 @@ begin
       [Printer.Printers[Printer.PrinterIndex],
       Printer.Printers[Printer.PrinterIndex]]);
   SetBounds(
-    Screen.DesktopRect.Left,
-    Screen.DesktopRect.Top,
-    Screen.DesktopRect.Right-Screen.DesktopRect.Left+1,
-    Screen.DesktopRect.Bottom-Screen.DesktopRect.Top+1);
+    Self.Monitor.Left,
+    Self.Monitor.Top,
+    Self.Monitor.Right-Self.Monitor.Left+1,
+    Self.Monitor.Bottom-Self.Monitor.Top+1);
   SynEditPrintPreview.SynEditPrint.Font.Name := 'Consolas';
   SynEditPrintPreview.SynEditPrint.Font.Size := 8;
   SynEditPrintPreview.UpdatePreview;
