@@ -705,7 +705,6 @@ end;
 
 procedure TfrmMain.Drop(const FileNames: array of string);
 var
-  LFileName: string;
   i: Integer;
 begin
   for i := 0 to Length(FileNames)-1 do
