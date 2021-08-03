@@ -1,6 +1,6 @@
 # SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 2.1.0 - 31 Jul 2021**
+**Latest Version 2.2.0 - 03 Aug 2021**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
@@ -74,6 +74,10 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+03 Aug 2021
+- Version 2.2
+- Fixed PreferDirect2D default to false
 
 31 Jul 2021
 - Version 2.1
