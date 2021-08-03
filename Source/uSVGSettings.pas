@@ -303,6 +303,7 @@ procedure TSettings.ReadSettings(const ASynEditHighilighter: TSynCustomHighlight
 var
   LThemeSection: string;
   I: Integer;
+  LPreferD2D: Integer;
   LAttribute: TSynHighlighterAttributes;
 begin
   TLogPreview.Add('ReadSettings '+SettingsFileName);
@@ -310,7 +311,8 @@ begin
   FFontName := FIniFile.ReadString('Global', 'FontName', 'Consolas');
   FShowEditor := FIniFile.ReadInteger('Global', 'ShowEditor', 1) = 1;
   FSplitterPos := FIniFile.ReadInteger('Global', 'SplitterPos', 33);
-  PreferD2D := Boolean(FIniFile.ReadInteger('Global', 'PreferD2D', -1));
+  LPreferD2D := FIniFile.ReadInteger('Global', 'PreferD2D', 0);
+  PreferD2D := not ((LPreferD2D = 0) or (LPreferD2D = 255));
   SVGEngine := TSVGEngine(FIniFile.ReadInteger('Global', 'SVGEngine', 0));
   FActivePageIndex := FIniFile.ReadInteger('Global', 'ActivePageIndex', 0);
   FStyleName := FIniFile.ReadString('Global', 'StyleName', DefaultStyleName);
