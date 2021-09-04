@@ -256,6 +256,7 @@ type
     procedure FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure acEditCopyUpdate(Sender: TObject);
   private
     MinFormWidth, MinFormHeight, MaxFormWidth, MaxFormHeight: Integer;
     FProcessingFiles: Boolean;
@@ -488,7 +489,7 @@ begin
           I := AddEditingFile(EditingFile);
         end;
 
-        //Open the file
+        //Opens the file
         EditingFile.ReadFromFile;
 
         Result := True;
@@ -899,6 +900,12 @@ begin
   CurrentEditor.CopyToClipboard;
 end;
 
+procedure TfrmMain.acEditCopyUpdate(Sender: TObject);
+begin
+  acEditCopy.Enabled := (CurrentEditFile <> nil) and
+    (CurrentEditFile.SynEditor.SelEnd - CurrentEditFile.SynEditor.SelStart > 0);
+end;
+
 procedure TfrmMain.acEditCutExecute(Sender: TObject);
 begin
   CurrentEditor.CutToClipboard;
@@ -1046,9 +1053,12 @@ end;
 
 procedure TfrmMain.PageControlChange(Sender: TObject);
 begin
+  CloseSplitViewMenu;
   //Setting the Editor caption as the actual file opened
   if CurrentEditFile <> nil then
+  begin
     Caption := Application.Title+' - '+CurrentEditFile.FileName;
+  end;
   AssignSVGToImage;
 end;
 

@@ -537,7 +537,7 @@ object frmMain: TfrmMain
       ImageName = 'Copy'
       ShortCut = 16451
       OnExecute = acEditCopyExecute
-      OnUpdate = actionForFileUpdate
+      OnUpdate = acEditCopyUpdate
     end
     object acEditPaste: TEditPaste
       Category = 'Edit'

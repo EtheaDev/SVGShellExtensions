@@ -458,25 +458,28 @@ var
   LFileName: string;
 begin
   inherited;
-  //Leggo la lista dei files aperti di recente
-  FIniFile.ReadSectionValues(LAST_OPENED_SECTION, HistoryFileList);
-  for I := 0 to HistoryFileList.Count -1 do
+  if ASynEditHighilighter = nil then
   begin
-    LValue := HistoryFileList.strings[i];
-    //tolgo la chiave
-    LFileName := Copy(LValue, pos('=',LValue)+1,MaxInt);
-    if FileExists(LFileName) then
-      HistoryFileList.strings[i] := LFileName;
-  end;
-  //Leggo la lista dei files aperti l'ultima volta
-  FIniFile.ReadSectionValues(FILES_OPENED_SECTION, OpenedFileList);
-  for I := 0 to OpenedFileList.Count -1 do
-  begin
-    LValue := OpenedFileList.strings[i];
-    //tolgo la chiave
-    LFileName := Copy(LValue, pos('=',LValue)+1,MaxInt);
-    if FileExists(LFileName) then
-      OpenedFileList.strings[i] := LFileName;
+    //Leggo la lista dei files aperti di recente
+    FIniFile.ReadSectionValues(LAST_OPENED_SECTION, HistoryFileList);
+    for I := 0 to HistoryFileList.Count -1 do
+    begin
+      LValue := HistoryFileList.strings[i];
+      //tolgo la chiave
+      LFileName := Copy(LValue, pos('=',LValue)+1,MaxInt);
+      if FileExists(LFileName) then
+        HistoryFileList.strings[i] := LFileName;
+    end;
+    //Leggo la lista dei files aperti l'ultima volta
+    FIniFile.ReadSectionValues(FILES_OPENED_SECTION, OpenedFileList);
+    for I := 0 to OpenedFileList.Count -1 do
+    begin
+      LValue := OpenedFileList.strings[i];
+      //tolgo la chiave
+      LFileName := Copy(LValue, pos('=',LValue)+1,MaxInt);
+      if FileExists(LFileName) then
+        OpenedFileList.strings[i] := LFileName;
+    end;
   end;
   CurrentFileName := FIniFile.ReadString('Global', 'CurrentFileName', '');
 end;
