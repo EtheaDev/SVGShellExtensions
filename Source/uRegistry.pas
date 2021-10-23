@@ -131,12 +131,49 @@ begin
   end;
 end;
 
+function IsWindows11: Boolean;
+var
+  Reg: TRegistry;
+  VersionInfo: TOSVersionInfo;
+begin
+  VersionInfo.dwOSVersionInfoSize := sizeOf(TOSVersionInfo);
+  Reg := TRegistry.Create;
+  Try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    case VersionInfo.dwPlatformID of
+      VER_PLATFORM_WIN32_WINDOWS:
+      begin
+        Reg.OpenKeyReadOnly('\Software\Microsoft\Windows\CurrentVersion');
+        Result := Reg.ReadString('CurrentBuild') = '22000';
+      end;
+    else
+      begin
+        Reg.OpenKeyReadOnly('\Software\Microsoft\Windows NT\CurrentVersion');
+        Result := Reg.ReadString('CurrentBuild') = '22000';
+      end;
+    end;
+    Reg.CloseKey;
+  Finally
+    Reg.Free;
+  End;
+end;
+
 function DefaultStyleName: string;
 begin
   if IsWindowsAppThemeLight then
-    Result := 'Windows10'
+  begin
+    if IsWindows11 then
+      Result := 'Windows11 Modern Light'
+    else
+      Result := 'Windows10';
+  end
   else
-    Result := 'Glow';
+  begin
+    if IsWindows11 then
+      Result := 'Windows11 Modern Dark'
+    else
+      Result := 'Windows10 SlateGray';
+  end;
 end;
 
 function IsWindowsAppThemeLight: Boolean;

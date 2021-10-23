@@ -45,7 +45,7 @@ object FrmMain: TFrmMain
       Width = 415
       Height = 557
       ObjectTypes = [otFolders, otNonFolders]
-      Root = 'D:\ETHEA\SVGIconImageList\Demo\NewSydneyVectors'
+      Root = 'D:\ETHEA\SVGIconImageList\Demo\svg_examples'
       Sorted = True
       Align = alClient
       ReadOnly = False

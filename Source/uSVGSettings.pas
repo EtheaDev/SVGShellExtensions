@@ -22,8 +22,6 @@
 {  See the License for the specific language governing permissions and         }
 {  limitations under the License.                                              }
 {                                                                              }
-{  The Original Code is:                                                       }
-{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
 {                                                                              }
 {  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
 {  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
@@ -215,34 +213,36 @@ begin
 {$IFNDEF DISABLE_STYLES}
   if StyleServices.Enabled then
   begin
-    //High-DPI Themes (Delphi 10.4)
-    RegisterThemeAttributes('Windows'            ,ttLight );
-    RegisterThemeAttributes('Aqua Light Slate'   ,ttLight );
-    RegisterThemeAttributes('Copper'             ,ttLight );
-    RegisterThemeAttributes('CopperDark'         ,ttDark  );
-    RegisterThemeAttributes('Coral'              ,ttLight );
-    RegisterThemeAttributes('Diamond'            ,ttLight );
-    RegisterThemeAttributes('Emerald'            ,ttLight );
-    RegisterThemeAttributes('Flat UI Light'      ,ttLight );
-    RegisterThemeAttributes('Glow'               ,ttDark  );
-    RegisterThemeAttributes('Iceberg Classico'   ,ttLight );
-    RegisterThemeAttributes('Lavender Classico'  ,ttLight );
-    RegisterThemeAttributes('Sky'                ,ttLight );
-    RegisterThemeAttributes('Slate Classico'     ,ttLight );
-    RegisterThemeAttributes('Sterling'           ,ttLight );
-    RegisterThemeAttributes('Tablet Dark'        ,ttDark  );
-    RegisterThemeAttributes('Tablet Light'       ,ttLight );
-    RegisterThemeAttributes('Windows10'          ,ttLight );
-    RegisterThemeAttributes('Windows10 Blue'     ,ttDark  );
-    RegisterThemeAttributes('Windows10 Dark'     ,ttDark  );
-    RegisterThemeAttributes('Windows10 Green'    ,ttDark  );
-    RegisterThemeAttributes('Windows10 Purple'   ,ttDark  );
-    RegisterThemeAttributes('Windows10 SlateGray',ttDark  );
-    RegisterThemeAttributes('Glossy'             ,ttDark  );
-    RegisterThemeAttributes('Windows10 BlackPearl',ttDark );
-    RegisterThemeAttributes('Windows10 Blue Whale',ttDark );
-    RegisterThemeAttributes('Windows10 Clear Day',ttLight );
-    RegisterThemeAttributes('Windows10 Malibu'   ,ttLight );
+    //High-DPI Themes (Delphi 11.0)
+    RegisterThemeAttributes('Windows'               ,ttLight );
+    RegisterThemeAttributes('Aqua Light Slate'      ,ttLight );
+    RegisterThemeAttributes('Copper'                ,ttLight );
+    RegisterThemeAttributes('CopperDark'            ,ttDark  );
+    RegisterThemeAttributes('Coral'                 ,ttLight );
+    RegisterThemeAttributes('Diamond'               ,ttLight );
+    RegisterThemeAttributes('Emerald'               ,ttLight );
+    RegisterThemeAttributes('Flat UI Light'         ,ttLight );
+    RegisterThemeAttributes('Glow'                  ,ttDark  );
+    RegisterThemeAttributes('Iceberg Classico'      ,ttLight );
+    RegisterThemeAttributes('Lavender Classico'     ,ttLight );
+    RegisterThemeAttributes('Sky'                   ,ttLight );
+    RegisterThemeAttributes('Slate Classico'        ,ttLight );
+    RegisterThemeAttributes('Sterling'              ,ttLight );
+    RegisterThemeAttributes('Tablet Dark'           ,ttDark  );
+    RegisterThemeAttributes('Tablet Light'          ,ttLight );
+    RegisterThemeAttributes('Windows10'             ,ttLight );
+    RegisterThemeAttributes('Windows10 Blue'        ,ttDark  );
+    RegisterThemeAttributes('Windows10 Dark'        ,ttDark  );
+    RegisterThemeAttributes('Windows10 Green'       ,ttDark  );
+    RegisterThemeAttributes('Windows10 Purple'      ,ttDark  );
+    RegisterThemeAttributes('Windows10 SlateGray'   ,ttDark  );
+    RegisterThemeAttributes('Glossy'                ,ttDark  );
+    RegisterThemeAttributes('Windows10 BlackPearl'  ,ttDark  );
+    RegisterThemeAttributes('Windows10 Blue Whale'  ,ttDark  );
+    RegisterThemeAttributes('Windows10 Clear Day'   ,ttLight );
+    RegisterThemeAttributes('Windows10 Malibu'      ,ttLight );
+    RegisterThemeAttributes('Windows11 Modern Dark' ,ttDark  );
+    RegisterThemeAttributes('Windows11 Modern Light',ttLight );
   end;
 {$ELSE}
     RegisterThemeAttributes('Windows'            ,ttLight );
@@ -260,7 +260,11 @@ begin
   FSettingsFileName := ASettingFileName;
   FSettingsPath := ExtractFilePath(ASettingFileName);
   System.SysUtils.ForceDirectories(FSettingsPath);
-
+  {$IFDEF Image32_SVGEngine}
+  FSVGEngine := enImage32;
+  {$ELSE}
+  FSVGEngine := enTSVG;
+  {$ENDIF}
   ReadSettings(ASynEditHighilighter, ASynEditorOptions);
 end;
 
@@ -272,9 +276,17 @@ begin
 end;
 
 function TSettings.GetButtonTextColor: TColor;
+{$IFNDEF DISABLE_STYLES}
+var
+  LStyleServices: TCustomStyleServices;
+{$ENDIF}
 begin
 {$IFNDEF DISABLE_STYLES}
-  Result := TStyleManager.Style[Self.StyleName].GetStyleFontColor(sfButtonTextNormal);
+  LStyleServices := TStyleManager.Style[Self.StyleName];
+  if Assigned(LStyleServices) then
+    Result := LStyleServices.GetStyleFontColor(sfButtonTextNormal)
+  else
+    Result := clBtnText;
 {$ELSE}
   Result := clBtnText;
 {$ENDIF}

@@ -14,7 +14,6 @@ object SVGSettingsForm: TSVGSettingsForm
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OldCreateOrder = False
   Position = poDefault
   ShowHint = True
   OnCreate = FormCreate

@@ -2,8 +2,8 @@ unit Img32.SVG.Core;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  3.1                                                             *
-* Date      :  15 August 2021                                                    *
+* Version   :  3.3                                                             *
+* Date      :  21 September 2021                                               *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2019-2021                                         *
 *                                                                              *
@@ -82,10 +82,6 @@ type
     function  IsEmpty: Boolean;
   end;
 
-  //////////////////////////////////////////////////////////////////////
-  // TAnsi - alternative to AnsiString/UTF8String with less overhead.
-  //////////////////////////////////////////////////////////////////////
-
   {$IFNDEF UNICODE}
   UTF8Char  = Char;
   PUTF8Char = PChar;
@@ -95,13 +91,6 @@ type
   PUTF8Char = PAnsiChar;
   {$IFEND}
   {$ENDIF}
-
-  TAnsi = {$IFDEF RECORD_METHODS} record {$ELSE} object {$ENDIF}
-    text: PUTF8Char;
-    len : integer;
-    function AsUTF8String: UTF8String;
-  end;
-  TArrayOfTAnsi = array of TAnsi;
 
   TSvgItalicSyle  = (sfsUndefined, sfsNone, sfsItalic);
   TFontDecoration = (fdUndefined, fdNone, fdUnderline, fdStrikeThrough);
@@ -154,7 +143,7 @@ type
 
   TXmlEl = class              //base element class
   public
-    name        : TAnsi;
+    name        : UTF8String;
     {$IFDEF XPLAT_GENERICS}
     attribs     : TList <PSvgAttrib>;
     {$ELSE}
@@ -183,7 +172,7 @@ type
   TSvgTreeEl = class(TXmlEl)
   public
     hash        : Cardinal;
-    text        : TAnsi;
+    text        : UTF8String;
     {$IFDEF XPLAT_GENERICS}
     childs      : TList<TSvgTreeEl>;
     {$ELSE}
@@ -220,31 +209,60 @@ type
   end;
 
   //////////////////////////////////////////////////////////////////////
-  //TSvgPath structures
+  //TSvgSubPath structures
   //////////////////////////////////////////////////////////////////////
 
   TSvgPathSegType = (dsUnknown, dsMove, dsLine, dsHorz, dsVert, dsArc,
     dsQBez, dsCBez, dsQSpline, dsCSpline, dsClose);
 
-  PSvgPathSeg = ^TSvgPathSeg;
-  TSvgPathSeg = record
+  TSvgSubPathSeg = class
+  private
+    fCnt    : integer;
+    fVals   : TArrayOfDouble;
+    function GetVal(index: integer): double;
+  public
     segType : TSvgPathSegType;
-    vals    : TArrayOfDouble;
+    procedure AddVal(val: double);
+    property Count: integer read fCnt;
+    property Val[index: integer]: double read GetVal;
   end;
 
-  PSvgPath = ^TSvgPath;
-  TSvgPath = {$IFDEF RECORD_METHODS} record {$ELSE} object {$ENDIF}
+  TSvgSubPath = class
+  private
+    segs      : array of TSvgSubPathSeg;
+    function GetCount: integer;
+    function GetSeg(index: integer): TSvgSubPathSeg;
+  public
     firstPt   : TPointD;
-    segs      : array of TSvgPathSeg;
+    destructor Destroy; override;
+    procedure Clear;
     function GetBounds: TRectD;
+    function AddSeg: TSvgSubPathSeg;
+    function DeleteLastSeg: Boolean;
     //scalePending: if an SVG will be scaled later, then this parameter
     //allows curve 'flattening' to occur with a corresponding precision
     function GetFlattenedPath(scalePending: double = 1.0): TPathD;
     //GetSimplePath - ignores curves and is only used with markers
     function GetSimplePath: TPathD;
     function IsClosed: Boolean;
+    function Clone: TSvgSubPath;
+    property Count: integer read GetCount;
+    property seg[index: integer]: TSvgSubPathSeg read GetSeg; default;
   end;
-  TSvgPaths = array of TSvgPath;
+
+  TSvgPath = class
+  private
+    fSubPaths: array of TSvgSubPath;
+    function GetPath(index: integer): TSvgSubPath;
+    function GetCount: integer;
+  public
+    destructor Destroy; override;
+    procedure Clear;
+    function AddPath: TSvgSubPath;
+    function Clone: TSvgPath;
+    property Path[index: integer]: TSvgSubPath read GetPath; default;
+    property Count: integer read GetCount;
+  end;
 
   //////////////////////////////////////////////////////////////////////
   // Miscellaneous SVG functions
@@ -267,12 +285,13 @@ type
   function UTF8StringToColor32(const value: UTF8String; var color: TColor32): Boolean;
   function MakeDashArray(const dblArray: TArrayOfDouble; scale: double): TArrayOfInteger;
   function Match(c: PUTF8Char; const compare: UTF8String): Boolean; overload;
-  function PUTF8CharToTAnsi(var c: PUTF8Char; endC: PUTF8Char; out value: TAnsi): Boolean;
-  procedure PUTF8CharToUTF8String(var c: PUTF8Char; endC: PUTF8Char; out value: UTF8String);
+  function Match(const compare1, compare2: UTF8String): Boolean; overload;
+  function ToUTF8String(var c: PUTF8Char; endC: PUTF8Char): UTF8String;
+  function Base64Decode(const str: UTF8String): UTF8String;
 
   //special parsing functions //////////////////////////////////////////
-  function ParseSvgPath(const value: UTF8String): TSvgPaths;
-  procedure ParseStyleElementContent(const value: TAnsi; stylesList: TClassStylesList);
+  procedure ParseSvgPath(const value: UTF8String; svgPaths: TSvgPath);
+  procedure ParseStyleElementContent(const value: UTF8String; stylesList: TClassStylesList);
   function ParseTransform(const transform: UTF8String): TMatrixD;
 
   procedure GetSvgFontInfo(const value: UTF8String; var fontInfo: TSVGFontInfo);
@@ -306,6 +325,11 @@ var
 
 implementation
 
+resourcestring
+  rsSvgPathRangeError = 'TSvgPath.GetPath range error';
+  rsSvgSubPathRangeError = 'TSvgSubPath.GetSeg range error';
+  rsSvgSubPathSegRangeError = 'TSvgSubPathSeg.GetVal range error';
+
 type
   TColorConst = record
     ColorName : string;
@@ -338,6 +362,38 @@ end;
 function CharInSet(chr: UTF8Char; chrs: TSetOfUTF8Char): Boolean;
 begin
   Result := chr in chrs;
+end;
+//------------------------------------------------------------------------------
+
+function Match(c: PUTF8Char; const compare: UTF8String): Boolean;
+var
+  i: integer;
+begin
+  Result := false;
+  for i := 1 to Length(compare) do
+  begin
+    if LowerCaseTable[c^] <> compare[i] then Exit;
+    inc(c);
+  end;
+  Result := true;
+end;
+//------------------------------------------------------------------------------
+
+function Match(const compare1, compare2: UTF8String): Boolean;
+var
+  i, len: integer;
+  c1, c2: PUTF8Char;
+begin
+  Result := false;
+  len := Length(compare1);
+  if len <> Length(compare2) then Exit;
+  c1 := @compare1[1]; c2 := @compare2[1];
+  for i := 1 to len do
+  begin
+    if LowerCaseTable[c1^] <> LowerCaseTable[c2^] then Exit;
+    inc(c1); inc(c2);
+  end;
+  Result := true;
 end;
 //------------------------------------------------------------------------------
 
@@ -469,7 +525,7 @@ begin
   while (c < endC) and
     (LowerCaseTable[c^] >= 'a') and (LowerCaseTable[c^] <= 'z') do
       inc(c);
-  PUTF8CharToUTF8String(c2, c, word);
+  word := ToUTF8String(c2, c);
 end;
 //------------------------------------------------------------------------------
 
@@ -487,7 +543,7 @@ begin
     inc(c);
     c2 := c;
     while (c < endC) and (c^ <> quote) do inc(c);
-    PUTF8CharToUTF8String(c2, c,word);
+    word := ToUTF8String(c2, c);
     inc(c);
   end else
   begin
@@ -497,7 +553,7 @@ begin
     inc(c);
     while (c < endC) and
       CharInSet(LowerCaseTable[c^], ['A'..'Z', 'a'..'z', '-', '_']) do inc(c);
-    PUTF8CharToUTF8String(c2, c,word);
+    word := ToUTF8String(c2, c);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -559,12 +615,14 @@ end;
 
 function ParseNextWordHashed(var c: PUTF8Char; endC: PUTF8Char): cardinal;
 var
-  name: TAnsi;
+  c2: PUTF8Char;
+  name: UTF8String;
 begin
-  name.text := c;
-  name.len := ParseNameLength(c, endC);
-  if name.len = 0 then Result := 0
-  else Result := GetHash(name.AsUTF8String);
+  c2 := c;
+  ParseNameLength(c, endC);
+  name := ToUTF8String(c2, c);
+  if name = '' then Result := 0
+  else Result := GetHash(name);
 end;
 //------------------------------------------------------------------------------
 
@@ -726,7 +784,7 @@ begin
   if c^ = '#' then inc(c);
   c2 := c;
   while (c < endC) and (c^ <> ')') do inc(c);
-  PUTF8CharToUTF8String(c2, c, Result);
+  Result := ToUTF8String(c2, c);
 end;
 //------------------------------------------------------------------------------
 
@@ -750,75 +808,33 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function AnsiTrim(var name: TAnsi): Boolean;
+function AllTrim(var name: UTF8String): Boolean;
 var
-  endC: PUTF8Char;
+  i, len: integer;
 begin
-  while (name.len > 0) and (name.text^ <= space) do
+  len := Length(name);
+  i := 0;
+  while (len > 0) and (name[1] <= space) do
   begin
-    inc(name.text); dec(name.len);
+    inc(i); dec(len);
   end;
-  Result := name.len > 0;
+  if i > 0 then Delete(name, 1, i);
+  Result := len > 0;
   if not Result then Exit;
-  endC := name.text + name.len -1;
-  while endC^ <= space do
-  begin
-    dec(endC); dec(name.len);
-  end;
+  while name[len] <= space do dec(len);
+  SetLength(name, len);
 end;
 //------------------------------------------------------------------------------
 
-function PUTF8CharToTAnsi(var c: PUTF8Char;  endC: PUTF8Char;
-  out value: TAnsi): Boolean;
-begin
-  SkipBlanks(c, endC);
-  value.text := c;
-  value.len := ParseNameLength(c, endC);
-  Result := value.len > 0;
-end;
-//------------------------------------------------------------------------------
-
-procedure PUTF8CharToUTF8String(var c: PUTF8Char; endC: PUTF8Char; out value: UTF8String);
+function ToUTF8String(var c: PUTF8Char; endC: PUTF8Char): UTF8String;
 var
   len: integer;
 begin
   len := endC - c;
-  SetLength(value, len);
-  if len > 0 then
-  begin
-    Move(c^, value[1], len * SizeOf(UTF8Char));
-    c := endC;
-  end;
-end;
-//------------------------------------------------------------------------------
-
-function Match(c: PUTF8Char; const compare: UTF8String): Boolean;
-var
-  i: integer;
-begin
-  Result := false;
-  for i := 1 to Length(compare) do
-  begin
-    if LowerCaseTable[c^] <> compare[i] then Exit;
-    inc(c);
-  end;
-  Result := true;
-end;
-//------------------------------------------------------------------------------
-
-function Match(c: PUTF8Char; const compare: TAnsi): Boolean; overload;
-var
-  i: integer;
-  c1, c2: PUTF8Char;
-begin
-  Result := false;
-  c1 := c; c2 := compare.text;
-  for i := 0 to compare.len -1 do
-  begin
-    if LowerCaseTable[c1^] <> LowerCaseTable[c2^] then Exit;
-    inc(c1); inc(c2);
-  end;
-  Result := true;
+  SetLength(Result, len);
+  if len = 0 then Exit;
+  Move(c^, Result[1], len * SizeOf(UTF8Char));
+  c := endC;
 end;
 //------------------------------------------------------------------------------
 
@@ -831,7 +847,7 @@ begin
   inc(c); //skip ampersand.
   c2 := c; c3 := c;
   ParseNameLength(c3, endC);
-  PUTF8CharToUTF8String(c2, c3, entityName);
+  entityName := ToUTF8String(c2, c3);
   entity := owner.FindEntity(GetHash(entityName));
   Result := (c3^ = ';') and Assigned(entity);
   //nb: increments 'c' only if the entity is found.
@@ -840,7 +856,7 @@ end;
 //------------------------------------------------------------------------------
 
 function ParseQuotedString(var c: PUTF8Char; endC: PUTF8Char;
-  out ansi: UTF8String): Boolean;
+  out quotStr: UTF8String): Boolean;
 var
   quote: UTF8Char;
   c2: PUTF8Char;
@@ -851,7 +867,7 @@ begin
   while (c < endC) and (c^ <> quote) do inc(c);
   Result := (c < endC);
   if not Result then Exit;
-  PUTF8CharToUTF8String(c2, c, ansi);
+  quotStr := ToUTF8String(c2, c);
   inc(c);
 end;
 //------------------------------------------------------------------------------
@@ -1276,7 +1292,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-procedure ParseStyleElementContent(const value: TAnsi;
+procedure ParseStyleElementContent(const value: UTF8String;
   stylesList: TClassStylesList);
 var
   len, cap: integer;
@@ -1295,18 +1311,18 @@ var
 
 var
   i: integer;
-  aclassName: TAnsi;
-  aStyle: TAnsi;
-  c, endC: PUTF8Char;
+  aclassName: UTF8String;
+  aStyle: UTF8String;
+  c, c2, endC: PUTF8Char;
 begin
   //https://oreillymedia.github.io/Using_SVG/guide/style.html
 
   stylesList.Clear;
-  if value.len = 0 then Exit;
+  if value = '' then Exit;
 
   len := 0; cap := 0;
-  c := value.text;
-  endC := c + value.len;
+  c := @value[1];
+  endC := c + Length(value);
 
   SkipBlanks(c, endC);
   if Match(c, '<![cdata[') then inc(c, 9);
@@ -1316,10 +1332,11 @@ begin
       [SvgDecimalSeparator, '#', 'a'..'z']) do
   begin
     //get one or more class names for each pending style
-    aclassName.text := c;
-    aclassName.len := ParseNameLength(c, endC);
+    c2 := c;
+    ParseNameLength(c, endC);
+    aclassName := ToUTF8String(c2, c);
 
-    AddName(Lowercase(String(aclassName.AsUTF8String)));
+    AddName(Lowercase(String(aclassName)));
     if PeekNextChar(c, endC) = ',' then
     begin
       inc(c);
@@ -1331,14 +1348,14 @@ begin
     //now get the style
     if PeekNextChar(c, endC) <> '{' then Break;
     inc(c);
-    aStyle.text := c;
+    c2 := c;
     while (c < endC) and (c^ <> '}') do inc(c);
     if (c = endC) then break;
-    aStyle.len := c - aStyle.text;
+    aStyle := ToUTF8String(c2, c);
 
     //finally, for each class name add (or append) this style
     for i := 0 to High(names) do
-      stylesList.AddAppendStyle(names[i], aStyle.AsUTF8String);
+      stylesList.AddAppendStyle(names[i], aStyle);
     names := nil;
     len := 0; cap := 0;
     inc(c);
@@ -1381,15 +1398,16 @@ end;
 
 function TXmlEl.ParseHeader(var c: PUTF8Char; endC: PUTF8Char): Boolean;
 var
-  className, style: UTF8String;
+  style: UTF8String;
+  c2: PUTF8Char;
 begin
   SkipBlanks(c, endC);
-  name.text := c;
-  name.len := ParseNameLength(c, endC);
+  c2 := c;;
+  ParseNameLength(c, endC);
+  name := ToUTF8String(c2, c);
 
   //load the class's style (ie undotted style) if found.
-  className := name.AsUTF8String;
-  style := owner.classStyles.GetStyle(classname);
+  style := owner.classStyles.GetStyle(name);
   if style <> '' then ParseStyleAttribute(style);
 
   Result := ParseAttributes(c, endC);
@@ -1406,7 +1424,7 @@ begin
   if not Result then Exit;
   c2 := c;
   ParseNameLength(c, endC);
-  PUTF8CharToUTF8String(c2, c, attrib.Name);
+  attrib.Name := ToUTF8String(c2, c);
   attrib.hash := GetHash(attrib.Name);
 end;
 //------------------------------------------------------------------------------
@@ -1428,7 +1446,7 @@ begin
   c3 := c;
   while (c3 > c2) and ((c3 -1)^ <= space) do 
     dec(c3);
-  PUTF8CharToUTF8String(c2, c3, attrib.value);
+  attrib.value := ToUTF8String(c2, c3);
   inc(c); //skip end quote
 end;
 //------------------------------------------------------------------------------
@@ -1509,8 +1527,8 @@ end;
 
 procedure TXmlEl.ParseStyleAttribute(const style: UTF8String);
 var
-  styleName, styleVal: TAnsi;
-  c, endC: PUTF8Char;
+  styleName, styleVal: UTF8String;
+  c, c2, endC: PUTF8Char;
   attrib: PSvgAttrib;
 begin
   //there are 4 ways to load styles (in ascending precedence) -
@@ -1523,23 +1541,24 @@ begin
   endC := c + Length(style);
   while SkipStyleBlanks(c, endC) do
   begin
-    styleName.text := c;
-    styleName.len := ParseStyleNameLen(c, endC);
-    if styleName.len = 0 then Break;
+    c2 := c;
+    ParseStyleNameLen(c, endC);
+    styleName := ToUTF8String(c2, c);
+    if styleName = '' then Break;
 
     if (ParseNextChar(c, endC) <> ':') or  //syntax check
       not SkipBlanks(c,endC) then Break;
 
-    styleVal.text := c;
+    c2 := c;
     inc(c);
     while (c < endC) and (c^ <> ';') do inc(c);
-    styleVal.len := c - styleVal.text;
-    AnsiTrim(styleVal);
+    styleVal := ToUTF8String(c2, c);
+    AllTrim(styleVal);
     inc(c);
 
     new(attrib);
-    attrib.name := styleName.AsUTF8String;
-    attrib.value := styleVal.AsUTF8String;
+    attrib.name := styleName;
+    attrib.value := styleVal;
     attrib.hash := GetHash(attrib.name);
     attribs.Add(attrib);
   end;
@@ -1643,8 +1662,7 @@ end;
 function TSvgTreeEl.ParseHeader(var c: PUTF8Char; endC: PUTF8Char): Boolean;
 begin
   Result := inherited ParseHeader(c, endC);
-  if Result then
-    hash := GetHash(name.AsUTF8String);
+  if Result then hash := GetHash(name);
 end;
 //------------------------------------------------------------------------------
 
@@ -1652,7 +1670,7 @@ function TSvgTreeEl.ParseContent(var c: PUTF8Char; endC: PUTF8Char): Boolean;
 var
   child: TSvgTreeEl;
   entity: PSvgAttrib;
-  tmpC, tmpEndC: PUTF8Char;
+  c2, tmpC, tmpEndC: PUTF8Char;
 begin
   Result := false;
   while SkipBlanks(c, endC) do
@@ -1672,19 +1690,19 @@ begin
             end else
             begin
               //it's very likely <![CDATA[
-              text.text := c - 1;
+              c2 := c - 1;
               if Match(c, '![cdata[') then
               begin
                 while (c < endC) and ((c^ <> ']') or not Match(c, ']]>')) do
                   inc(c);
-                text.len := c - text.text;
+                text := ToUTF8String(c2, c);
                 inc(c, 3);
                 if (hash = hStyle) then
                   ParseStyleElementContent(text, owner.classStyles);
               end else
               begin
                 while (c < endC) and (c^ <> '<') do inc(c);
-                text.len := c - text.text;
+                text := ToUTF8String(c2, c);
               end;
             end;
           end;
@@ -1694,7 +1712,7 @@ begin
             inc(c);
             if Match(c, name) then
             begin
-              inc(c, name.len);
+              inc(c, Length(name));
               //very rarely there's a space before '>'
               SkipBlanks(c, endC);
               Result := c^ = '>';
@@ -1734,21 +1752,18 @@ begin
       while (c < endC) and (c^ <> '<') do inc(c);
       if (hash = hTextPath) then
       begin
-        text.text := tmpC;
-        text.len := c - tmpC;
+        text := ToUTF8String(tmpC, c);
       end else
       begin
         child := TSvgTreeEl.Create(owner);
         childs.Add(child);
-        child.text.text := tmpC;
-        child.text.len := c - tmpC;
+        child.text := ToUTF8String(tmpC, c);
       end;
     end else
     begin
       tmpC := c;
       while (c < endC) and (c^ <> '<') do inc(c);
-      text.text := tmpC;
-      text.len := c - tmpC;
+      text := ToUTF8String(tmpC, c);
 
       //if <style> element then load styles into owner.classStyles
       if (hash = hStyle) then
@@ -1837,8 +1852,11 @@ var
   i, len: LongInt;
   encoding: TSvgEncoding;
   s: UnicodeString;
+  wc: PWord;
   utf8: UTF8String;
 begin
+  Clear;
+  Result := true;
   try
     svgStream.LoadFromStream(stream);
 
@@ -1850,15 +1868,20 @@ begin
           SetLength(s, svgStream.Size div 2);
           Move(svgStream.Memory^, s[1], svgStream.Size);
           if encoding = eUnicodeBE then
-            for i := 1 to Length(s) do FlipEndian(s[i]);
+          begin
+            wc := @s[1];
+            for i := 1 to Length(s) do
+            begin
+              wc^ := Swap(wc^);
+              inc(wc);
+            end;
+          end;
           utf8 := UTF8Encode(s);
           len := Length(utf8);
           svgStream.SetSize(len);
           Move(utf8[1], svgStream.Memory^, len);
         end;
     end;
-
-    Result := true;
     ParseStream;
   except
     Result := false;
@@ -1920,7 +1943,7 @@ end;
 // TDpath
 //------------------------------------------------------------------------------
 
-function TSvgPath.GetFlattenedPath(scalePending: double): TPathD;
+function TSvgSubPath.GetFlattenedPath(scalePending: double): TPathD;
 var
   i,j, pathLen, pathCap: integer;
   currPt, radii, pt2, pt3, pt4: TPointD;
@@ -1986,26 +2009,26 @@ begin
     begin
       case segType of
         dsLine:
-          if High(vals) > 0 then
-            for j := 0 to High(vals) div 2 do
-              AddPoint(PointD(vals[j*2], vals[j*2 +1]));
+          if Count > 1 then
+            for j := 0 to (Count -1) div 2 do
+              AddPoint(PointD(fVals[j*2], fVals[j*2 +1]));
         dsHorz:
-          for j := 0 to High(vals) do
-            AddPoint(PointD(vals[j], currPt.Y));
+          for j := 0 to (Count -1) do
+            AddPoint(PointD(fVals[j], currPt.Y));
         dsVert:
-          for j := 0 to High(vals) do
-            AddPoint(PointD(currPt.X, vals[j]));
+          for j := 0 to (Count -1) do
+            AddPoint(PointD(currPt.X, fVals[j]));
         dsArc:
-          if High(vals) > 5 then
-            for j := 0 to High(vals) div 7 do
+          if (Count -1) > 5 then
+            for j := 0 to (Count -1) div 7 do
             begin
-              radii.X   := vals[j*7];
-              radii.Y   := vals[j*7 +1];
-              angle     := DegToRad(vals[j*7 +2]);
-              arcFlag   := Round(vals[j*7 +3]);
-              sweepFlag := Round(vals[j*7 +4]);
-              pt2.X := vals[j*7 +5];
-              pt2.Y := vals[j*7 +6];
+              radii.X   := fVals[j*7];
+              radii.Y   := fVals[j*7 +1];
+              angle     := DegToRad(fVals[j*7 +2]);
+              arcFlag   := Round(fVals[j*7 +3]);
+              sweepFlag := Round(fVals[j*7 +4]);
+              pt2.X := fVals[j*7 +5];
+              pt2.Y := fVals[j*7 +6];
 
               GetSvgArcInfo(currPt, pt2, radii, angle,
                 arcFlag <> 0, sweepFlag <> 0, arc1, arc2, rec);
@@ -2014,60 +2037,62 @@ begin
                 path2 := Arc(rec, arc2, arc1, scalePending);
                 path2 := ReversePath(path2);
               end else
+              begin
                 path2 := Arc(rec, arc1, arc2, scalePending);
+              end;
               path2 := RotatePath(path2, rec.MidPoint, angle);
               AddPath(path2);
             end;
         dsQBez:
-          if High(vals) > 2 then
-            for j := 0 to High(vals) div 4 do
+          if (Count) > 3 then
+            for j := 0 to (Count -1) div 4 do
             begin
-              pt2.X := vals[j*4];
-              pt2.Y := vals[j*4 +1];
-              pt3.X := vals[j*4 +2];
-              pt3.Y := vals[j*4 +3];
+              pt2.X := fVals[j*4];
+              pt2.Y := fVals[j*4 +1];
+              pt3.X := fVals[j*4 +2];
+              pt3.Y := fVals[j*4 +3];
               lastQCtrlPt := pt2;
               path2 := FlattenQBezier(currPt, pt2, pt3, bezTolerance);
               AddPath(path2);
             end;
         dsQSpline:
-          if High(vals) > 0 then
-            for j := 0 to High(vals) div 2 do
+          if Count > 1 then
+            for j := 0 to (Count -1) div 2 do
             begin
               if LastSegWasQuad(i) then
                 pt2 := ReflectPoint(lastQCtrlPt, currPt) else
                 pt2 := currPt;
-              pt3.X := vals[j*2];
-              pt3.Y := vals[j*2 +1];
+              pt3.X := fVals[j*2];
+              pt3.Y := fVals[j*2 +1];
               lastQCtrlPt := pt2;
               path2 := FlattenQBezier(currPt, pt2, pt3, bezTolerance);
               AddPath(path2);
             end;
         dsCBez:
-          if High(vals) > 4 then
-            for j := 0 to High(vals) div 6 do
+          if Count > 5 then
+            for j := 0 to (Count -1) div 6 do
             begin
-              pt2.X := vals[j*6];
-              pt2.Y := vals[j*6 +1];
-              pt3.X := vals[j*6 +2];
-              pt3.Y := vals[j*6 +3];
-              pt4.X := vals[j*6 +4];
-              pt4.Y := vals[j*6 +5];
+              pt2.X := fVals[j*6];
+              pt2.Y := fVals[j*6 +1];
+              pt3.X := fVals[j*6 +2];
+              pt3.Y := fVals[j*6 +3];
+              pt4.X := fVals[j*6 +4];
+              pt4.Y := fVals[j*6 +5];
               lastCCtrlPt := pt3;
               path2 := FlattenCBezier(currPt, pt2, pt3, pt4, bezTolerance);
               AddPath(path2);
             end;
         dsCSpline:
-          if High(vals) > 2 then
-            for j := 0 to High(vals) div 4 do
+          if Count > 3 then
+            for j := 0 to (Count -1) div 4 do
             begin
               if LastSegWasCubic(i) then
                 pt2 := ReflectPoint(lastCCtrlPt, currPt) else
                 pt2 := currPt;
-              pt3.X := vals[j*4];
-              pt3.Y := vals[j*4 +1];
-              pt4.X := vals[j*4 +2];
-              pt4.Y := vals[j*4 +3];
+              pt3.X := fVals[j*4];
+              pt3.Y := fVals[j*4 +1];
+              pt4.X := fVals[j*4 +2];
+              pt4.Y := fVals[j*4 +3];
               lastCCtrlPt := pt3;
               path2 := FlattenCBezier(currPt, pt2, pt3, pt4, bezTolerance);
               AddPath(path2);
@@ -2076,9 +2101,49 @@ begin
     end;
   SetLength(Result, pathLen);
 end;
+
+//------------------------------------------------------------------------------
+// TSvgSubPathSeg
 //------------------------------------------------------------------------------
 
-function TSvgPath.IsClosed: Boolean;
+procedure TSvgSubPathSeg.AddVal(val: double);
+begin
+  if Length(fVals) = fCnt then
+    SetLength(fVals, fCnt + buffSize);
+  fVals[fCnt] := val;
+  inc(fCnt);
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPathSeg.GetVal(index: integer): double;
+begin
+  if (index < 0) or (index >= Count) then
+    raise Exception.Create(rsSvgSubPathSegRangeError);
+  Result := fVals[index];
+end;
+
+//------------------------------------------------------------------------------
+// TSvgSubPath
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.Clone: TSvgSubPath;
+var
+  i, segLen: integer;
+begin
+  Result := TSvgSubPath.Create;
+  Result.firstPt := firstPt;
+  segLen := Length(segs);
+  SetLength(Result.segs, segLen);
+  for i := 0 to segLen -1 do
+    with segs[i] do
+    begin
+      Result.segs[i].segType := segType;
+      Result.segs[i].fVals := Copy(fVals, 0, Length(fVals));
+    end;
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.IsClosed: Boolean;
 var
   len: integer;
 begin
@@ -2087,7 +2152,30 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TSvgPath.GetSimplePath: TPathD;
+function TSvgSubPath.AddSeg: TSvgSubPathSeg;
+var
+  i: integer;
+begin
+  i := Length(segs);
+  SetLength(segs, i+1);
+  Result := TSvgSubPathSeg.Create;
+  segs[i] := Result;
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.DeleteLastSeg: Boolean;
+var
+  cnt: integer;
+begin
+  cnt := Count;
+  Result := cnt > 0;
+  if not Result then Exit;
+  seg[cnt -1].Free;
+  SetLength(segs, cnt -1);
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.GetSimplePath: TPathD;
 var
   i,j, pathLen, pathCap: integer;
   currPt, pt2: TPointD;
@@ -2112,46 +2200,77 @@ begin
     begin
       case segType of
         dsLine:
-          if High(vals) > 0 then
-            for j := 0 to High(vals) div 2 do
-              AddPoint(PointD(vals[j*2], vals[j*2 +1]));
+          if Count > 1 then
+            for j := 0 to (Count -1) div 2 do
+              AddPoint(PointD(fVals[j*2], fVals[j*2 +1]));
         dsHorz:
-          for j := 0 to High(vals) do
-            AddPoint(PointD(vals[j], currPt.Y));
+          for j := 0 to (Count -1) do
+            AddPoint(PointD(fVals[j], currPt.Y));
         dsVert:
-          for j := 0 to High(vals) do
-            AddPoint(PointD(currPt.X, vals[j]));
+          for j := 0 to (Count -1) do
+            AddPoint(PointD(currPt.X, fVals[j]));
         dsArc:
-          if High(vals) > 5 then
-            for j := 0 to High(vals) div 7 do
-              AddPoint(PointD(vals[j*7 +5], vals[j*7 +6]));
+          if Count > 6 then
+            for j := 0 to (Count -1) div 7 do
+              AddPoint(PointD(fVals[j*7 +5], fVals[j*7 +6]));
         dsQBez:
-          if High(vals) > 2 then
-            for j := 0 to High(vals) div 4 do
+          if Count > 3 then
+            for j := 0 to (Count -1) div 4 do
             begin
-              pt2.X := vals[j*4];
-              pt2.Y := vals[j*4 +1];
-              AddPoint(PointD(vals[j*4 +2], vals[j*4 +3]));
+              pt2.X := fVals[j*4];
+              pt2.Y := fVals[j*4 +1];
+              AddPoint(PointD(fVals[j*4 +2], fVals[j*4 +3]));
             end;
         dsQSpline:
-          if High(vals) > 0 then
-            for j := 0 to High(vals) div 2 do
-              AddPoint(PointD(vals[j*2 +1], vals[j*2 +1]));
+          if Count > 1 then
+            for j := 0 to (Count -1) div 2 do
+              AddPoint(PointD(fVals[j*2 +1], fVals[j*2 +1]));
         dsCBez:
-          if High(vals) > 4 then
-            for j := 0 to High(vals) div 6 do
-              AddPoint(PointD(vals[j*6 +4], vals[j*6 +5]));
+          if Count > 5 then
+            for j := 0 to (Count -1) div 6 do
+              AddPoint(PointD(fVals[j*6 +4], fVals[j*6 +5]));
         dsCSpline:
-          if High(vals) > 2 then
-            for j := 0 to High(vals) div 4 do
-              AddPoint(PointD(vals[j*4 +2], vals[j*4 +3]));
+          if Count > 3 then
+            for j := 0 to (Count -1) div 4 do
+              AddPoint(PointD(fVals[j*4 +2], fVals[j*4 +3]));
       end;
     end;
   SetLength(Result, pathLen);
 end;
 //------------------------------------------------------------------------------
 
-function TSvgPath.GetBounds: TRectD;
+destructor TSvgSubPath.Destroy;
+begin
+  Clear;
+  inherited;
+end;
+//------------------------------------------------------------------------------
+
+procedure TSvgSubPath.Clear;
+var
+  i: integer;
+begin
+  for i := 0 to Count -1 do
+    segs[i].Free;
+  segs := nil;
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.GetCount: integer;
+begin
+  Result := Length(segs);
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.GetSeg(index: integer): TSvgSubPathSeg;
+begin
+  if (index < 0) or (index >= Count) then
+    raise Exception.Create(rsSvgSubPathRangeError);
+  Result := segs[index];
+end;
+//------------------------------------------------------------------------------
+
+function TSvgSubPath.GetBounds: TRectD;
 var
   i,j, pathLen, pathCap: integer;
   currPt, radii, pt2, pt3, pt4: TPointD;
@@ -2215,26 +2334,26 @@ begin
     begin
       case segType of
         dsLine:
-          if High(vals) > 0 then
-            for j := 0 to High(vals) div 2 do
-              AddPoint(PointD(vals[j*2], vals[j*2 +1]));
+          if Count > 1 then
+            for j := 0 to (Count -1) div 2 do
+              AddPoint(PointD(fVals[j*2], fVals[j*2 +1]));
         dsHorz:
-          for j := 0 to High(vals) do
-            AddPoint(PointD(vals[j], currPt.Y));
+          for j := 0 to (Count -1) do
+            AddPoint(PointD(fVals[j], currPt.Y));
         dsVert:
-          for j := 0 to High(vals) do
-            AddPoint(PointD(currPt.X, vals[j]));
+          for j := 0 to (Count -1) do
+            AddPoint(PointD(currPt.X, fVals[j]));
         dsArc:
-          if High(vals) > 5 then
-            for j := 0 to High(vals) div 7 do
+          if Count > 6 then
+            for j := 0 to (Count -1) div 7 do
             begin
-              radii.X   := vals[j*7];
-              radii.Y   := vals[j*7 +1];
-              angle     := DegToRad(vals[j*7 +2]);
-              arcFlag   := Round(vals[j*7 +3]);
-              sweepFlag := Round(vals[j*7 +4]);
-              pt2.X := vals[j*7 +5];
-              pt2.Y := vals[j*7 +6];
+              radii.X   := fVals[j*7];
+              radii.Y   := fVals[j*7 +1];
+              angle     := DegToRad(fVals[j*7 +2]);
+              arcFlag   := Round(fVals[j*7 +3]);
+              sweepFlag := Round(fVals[j*7 +4]);
+              pt2.X := fVals[j*7 +5];
+              pt2.Y := fVals[j*7 +6];
 
               GetSvgArcInfo(currPt, pt2, radii, angle,
                 arcFlag <> 0, sweepFlag <> 0, arc1, arc2, rec);
@@ -2248,55 +2367,55 @@ begin
               AddPath(path3);
             end;
         dsQBez:
-          if High(vals) > 2 then
-            for j := 0 to High(vals) div 4 do
+          if Count > 3 then
+            for j := 0 to (Count -1) div 4 do
             begin
-              pt2.X := vals[j*4];
-              pt2.Y := vals[j*4 +1];
-              pt3.X := vals[j*4 +2];
-              pt3.Y := vals[j*4 +3];
+              pt2.X := fVals[j*4];
+              pt2.Y := fVals[j*4 +1];
+              pt3.X := fVals[j*4 +2];
+              pt3.Y := fVals[j*4 +3];
               lastQCtrlPt := pt2;
               path3 := FlattenQBezier(currPt, pt2, pt3, 1);
               AddPath(path3);
             end;
         dsQSpline:
-          if High(vals) > 0 then
-            for j := 0 to High(vals) div 2 do
+          if Count > 1 then
+            for j := 0 to (Count -1) div 2 do
             begin
               if LastSegWasQuad(i) then
                 pt2 := ReflectPoint(lastQCtrlPt, currPt) else
                 pt2 := currPt;
-              pt3.X := vals[j*2];
-              pt3.Y := vals[j*2 +1];
+              pt3.X := fVals[j*2];
+              pt3.Y := fVals[j*2 +1];
               lastQCtrlPt := pt2;
               path3 := FlattenQBezier(currPt, pt2, pt3, 1);
               AddPath(path3);
             end;
         dsCBez:
-          if High(vals) > 4 then
-            for j := 0 to High(vals) div 6 do
+          if Count > 5 then
+            for j := 0 to (Count -1) div 6 do
             begin
-              pt2.X := vals[j*6];
-              pt2.Y := vals[j*6 +1];
-              pt3.X := vals[j*6 +2];
-              pt3.Y := vals[j*6 +3];
-              pt4.X := vals[j*6 +4];
-              pt4.Y := vals[j*6 +5];
+              pt2.X := fVals[j*6];
+              pt2.Y := fVals[j*6 +1];
+              pt3.X := fVals[j*6 +2];
+              pt3.Y := fVals[j*6 +3];
+              pt4.X := fVals[j*6 +4];
+              pt4.Y := fVals[j*6 +5];
               lastCCtrlPt := pt3;
               path3 := FlattenCBezier(currPt, pt2, pt3, pt4, 1);
               AddPath(path3);
             end;
         dsCSpline:
-          if High(vals) > 2 then
-            for j := 0 to High(vals) div 4 do
+          if Count > 3 then
+            for j := 0 to (Count -1) div 4 do
             begin
               if LastSegWasCubic(i) then
                 pt2 := ReflectPoint(lastCCtrlPt, currPt) else
                 pt2 := currPt;
-              pt3.X := vals[j*4];
-              pt3.Y := vals[j*4 +1];
-              pt4.X := vals[j*4 +2];
-              pt4.Y := vals[j*4 +3];
+              pt3.X := fVals[j*4];
+              pt3.Y := fVals[j*4 +1];
+              pt4.X := fVals[j*4 +2];
+              pt4.Y := fVals[j*4 +3];
               lastCCtrlPt := pt3;
               path3 := FlattenCBezier(currPt, pt2, pt3, pt4, 1);
               AddPath(path3);
@@ -2305,6 +2424,62 @@ begin
     end;
   SetLength(path2, pathLen);
   Result := GetBoundsD(path2);
+end;
+
+//------------------------------------------------------------------------------
+// TSvgPath
+//------------------------------------------------------------------------------
+
+destructor TSvgPath.Destroy;
+begin
+  Clear;
+  inherited;
+end;
+//------------------------------------------------------------------------------
+
+function TSvgPath.GetCount: integer;
+begin
+  Result := Length(fSubPaths);
+end;
+//------------------------------------------------------------------------------
+
+function TSvgPath.GetPath(index: integer): TSvgSubPath;
+begin
+  if (index < 0) or (index >= Count) then
+    raise Exception.Create(rsSvgPathRangeError);
+  Result := fSubPaths[index];
+end;
+//------------------------------------------------------------------------------
+
+procedure TSvgPath.Clear;
+var
+  i: integer;
+begin
+  for i := 0 to Count -1 do
+    fSubPaths[i].Free;
+  fSubPaths := nil;
+end;
+//------------------------------------------------------------------------------
+
+function TSvgPath.Clone: TSvgPath;
+var
+  i: integer;
+begin
+  Result := TSvgPath.Create;
+  SetLength(Result.fSubPaths, Count);
+  for i := 0 to Count -1 do
+    Result.fSubPaths[i] := fSubPaths[i].Clone;
+end;
+//------------------------------------------------------------------------------
+
+function TSvgPath.AddPath: TSvgSubPath;
+var
+  i: integer;
+begin
+  i := Count;
+  Result := TSvgSubPath.Create;
+  SetLength(fSubPaths, i + 1);
+  fSubPaths[i] := Result;
 end;
 
 //------------------------------------------------------------------------------
@@ -2577,17 +2752,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-// TAnsi
-//------------------------------------------------------------------------------
-
-function TAnsi.AsUTF8String: UTF8String;
-begin
-  SetLength(Result, len);
-  if len > 0 then
-    Move(text^, Result[1], len);
-end;
-
-//------------------------------------------------------------------------------
 // GetSvgArcInfo - and support functions
 //------------------------------------------------------------------------------
 
@@ -2626,8 +2790,6 @@ var
   x1_, y1_, rxry, rxy1_, ryx1_, s_phi, c_phi: double;
   hd_x, hd_y, hs_x, hs_y, sum_of_sq, lambda, coe: double;
   cx, cy, cx_, cy_, xcr1, xcr2, ycr1, ycr2, deltaAngle: double;
-const
-  twoPi: double = PI *2;
 begin
     Result := false;
     if (radii.X < 0) then radii.X := -radii.X;
@@ -2678,20 +2840,24 @@ begin
 
     // F6.5.5
     startAngle := Radian2(xcr1, ycr1);
-    NormalizeAngle(startAngle);
 
     // F6.5.6
     deltaAngle := Radian4(xcr1, ycr1, -xcr2, -ycr2);
-    while (deltaAngle > twoPi) do deltaAngle := deltaAngle - twoPi;
-    while (deltaAngle < 0.0) do deltaAngle := deltaAngle + twoPi;
-    if not fS then deltaAngle := deltaAngle - twoPi;
-    endAngle := startAngle + deltaAngle;
-    NormalizeAngle(endAngle);
 
     rec.Left := cx - radii.X;
     rec.Right := cx + radii.X;
     rec.Top := cy - radii.Y;
     rec.Bottom := cy + radii.Y;
+
+    NormalizeAngle(startAngle);
+    endAngle := startAngle + deltaAngle;
+    NormalizeAngle(endAngle);
+
+    if not ClockwiseRotationIsAnglePositive then
+    begin
+      startAngle := -startAngle;
+      endAngle := -endAngle;
+    end;
 
     Result := true;
 end;
@@ -2727,62 +2893,35 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function ParseSvgPath(const value: UTF8String): TSvgPaths;
+procedure ParseSvgPath(const value: UTF8String; svgPaths: TSvgPath);
 var
-  currSeg     : PSvgPathSeg;
-  currDpath   : PSvgPath;
-  currSegCnt  : integer;
-  currSegCap  : integer;
+  currSeg     : TSvgSubPathSeg;
+  currDpath   : TSvgSubPath;
   currSegType : TSvgPathSegType;
   lastPt      : TPointD;
 
   procedure StartNewDpath;
-  var
-    cnt: integer;
   begin
-    if Assigned(currDpath) then
-    begin
-      if not Assigned(currDpath.segs) then Exit;
-      SetLength(currSeg.vals, currSegCnt);
-    end;
-    cnt := Length(Result);
-    SetLength(Result, cnt +1);
-    currDpath := @Result[cnt];
+    if Assigned(currDpath) and
+      not Assigned(currDpath.segs) then Exit;
+    currDpath := svgPaths.AddPath;
     currDpath.firstPt := lastPt;
     currDpath.segs := nil;
     currSeg := nil;
   end;
 
   procedure StartNewSeg;
-  var
-    cnt: integer;
   begin
-    if Assigned(currSeg) then
-      SetLength(currSeg.vals, currSegCnt)
-    else if not Assigned(currDpath) then
+    if not Assigned(currDpath) then
       StartNewDpath;
-
-    cnt := Length(currDpath.segs);
-    SetLength(currDpath.segs, cnt +1);
-    currSeg := @currDpath.segs[cnt];
+    currSeg := currDpath.AddSeg;
     currSeg.segType := currSegType;
-
-    currSegCap := buffSize;
-    SetLength(currSeg.vals, currSegCap);
-    currSegCnt := 0;
   end;
 
   procedure AddSegValue(val: double);
   begin
     if not Assigned(currSeg) then StartNewSeg;
-
-    if currSegCnt = currSegCap then
-    begin
-      inc(currSegCap, buffSize);
-      SetLength(currSeg.vals, currSegCap);
-    end;
-    currSeg.vals[currSegCnt] := val;
-    inc(currSegCnt);
+    currSeg.AddVal(val);
   end;
 
   procedure AddSegPoint(const pt: TPointD);
@@ -2807,9 +2946,10 @@ var
   currPt: TPointD;
   isRelative: Boolean;
 begin
+  if not Assigned(svgPaths) then Exit;
+  svgPaths.Clear;
+
   currSeg     := nil;
-  currSegCnt  := 0;
-  currSegCap  := 0;
   currDpath   := nil;
   currSegType := dsMove;
 
@@ -2826,8 +2966,6 @@ begin
     lastPt := currPt;
     if (currSegType = dsMove) then
     begin
-      if Assigned(currSeg) then
-        SetLength(currSeg.vals, currSegCnt); //trim buffer
       currDpath := nil;
       currSeg := nil;
 
@@ -2846,9 +2984,6 @@ begin
       StartNewSeg;
       Continue;
     end;
-
-    if Assigned(currSeg) then
-      SetLength(currSeg.vals, currSegCnt); //trim buffer
     currSeg := nil;
 
     case currSegType of
@@ -2940,8 +3075,105 @@ begin
         end;
     end;
   end;
-  if Assigned(currSeg) then
-    SetLength(currSeg.vals, currSegCnt); //trim buffer
+end;
+
+//------------------------------------------------------------------------------
+// Base64 (MIME) Encode & Decode
+//------------------------------------------------------------------------------
+
+type
+  PFourChars = ^TFourChars;
+  TFourChars = record
+    c1: UTF8Char;
+    c2: UTF8Char;
+    c3: UTF8Char;
+    c4: UTF8Char;
+  end;
+
+//------------------------------------------------------------------------------
+
+function Chr64ToVal(c: UTF8Char): integer;
+begin
+  case c of
+    '+': result := 62;
+    '/': result := 63;
+    '0'..'9': result := ord(c) + 4;
+    'A'..'Z': result := ord(c) -65;
+    'a'..'z': result := ord(c) -71;
+    else Raise Exception.Create('Corrupted MIME encoded text');
+  end;
+end;
+//------------------------------------------------------------------------------
+
+function Frst6Bits(val: PCardinal): byte;
+begin
+  result := (val^ shr 2) and $3F;
+end;
+//------------------------------------------------------------------------------
+
+function FrstChr(c: PFourChars): UTF8Char;
+begin
+  result := ansichar(Chr64ToVal(c.c1) shl 2 or Chr64ToVal(c.c2) shr 4);
+end;
+//------------------------------------------------------------------------------
+
+function Scnd6Bits(val: PCardinal): byte;
+begin
+  result := (val^ shr 12) and $F or ((val^ and $3) shl 4);
+end;
+//------------------------------------------------------------------------------
+
+function ScndChr(c: PFourChars): UTF8Char;
+begin
+  result := ansichar(Chr64ToVal(c.c2) shl 4 or Chr64ToVal(c.c3) shr 2);
+end;
+//------------------------------------------------------------------------------
+
+function Thrd6Bits(val: PCardinal): byte;
+begin
+  result := (val^ shr 22) and $3 or ((val^ shr 6) and $3C);
+end;
+//------------------------------------------------------------------------------
+
+function ThrdChr(c: PFourChars): UTF8Char;
+begin
+  result := ansichar( Chr64ToVal(c.c3) shl 6 or Chr64ToVal(c.c4) );
+end;
+//------------------------------------------------------------------------------
+
+function Frth6Bits(val: PCardinal): byte;
+begin
+  result := (val^ shr 16) and $3F;
+end;
+//------------------------------------------------------------------------------
+
+function Base64Decode(const str: UTF8String): UTF8String;
+var
+  i, j, len, extra: integer;
+  Chars4: PFourChars;
+begin
+  result := '';
+  len := length(str);
+  if (len = 0) then exit
+  else if (len mod 4 > 0) then //oops!!!
+    Raise Exception.Create('Corrupted MIME encoded text');
+  if str[len-1] = '=' then extra := 2
+  else if str[len] = '=' then extra := 1
+  else extra := 0;
+  setlength(result, (len div 4 * 3) - extra);
+  Chars4 := @str[1];
+  i := 1;
+  for j := 1 to (len div 4) -1 do
+  begin
+    result[i] := FrstChr(Chars4);
+    result[i+1] := ScndChr(Chars4);
+    result[i+2] := ThrdChr(Chars4);
+    inc(pbyte(Chars4),4);
+    inc(i,3);
+  end;
+  result[i] := FrstChr(Chars4);
+  if extra < 2  then result[i+1] := ScndChr(Chars4);
+  if extra < 1 then result[i+2] := ThrdChr(Chars4);
 end;
 
 //------------------------------------------------------------------------------
