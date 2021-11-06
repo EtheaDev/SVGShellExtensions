@@ -135,6 +135,8 @@ begin
       FGlobalSVGFactory := GetImage32SVGFactory;
     {$ELSEIF DEFINED(Cairo_SVGEngine)}
       FGlobalSVGFactory := GetCairoSVGFactory;
+    {$ELSEIF DEFINED(Skia_SVGEngine)}
+      FGlobalSVGFactory := GetSkiaSVGFactory;
     {$ENDIF}
   end;
   Result := FGlobalSVGFactory;
