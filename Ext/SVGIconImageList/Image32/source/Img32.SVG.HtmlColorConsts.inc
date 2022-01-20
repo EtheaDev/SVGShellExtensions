@@ -1,5 +1,5 @@
 const
-  ColorConsts: array[0..145] of TColorConst = (
+  ColorConsts: array[0..147] of TColorConst = (
     (ColorName: 'aliceblue'; ColorValue: $FFF0F8FF),
     (ColorName: 'antiquewhite'; ColorValue: $FFFAEBD7),
     (ColorName: 'aqua'; ColorValue: $FF00FFFF),
@@ -74,6 +74,7 @@ const
     (ColorName: 'lightgoldenrodyellow'; ColorValue: $FFFAFAD2),
     (ColorName: 'lightgray'; ColorValue: $FFD3D3D3),
     (ColorName: 'lightgreen'; ColorValue: $FF90EE90),
+    (ColorName: 'lightgrey'; ColorValue: $FFD3D3D3),
     (ColorName: 'lightpink'; ColorValue: $FFFFB6C1),
     (ColorName: 'lightsalmon'; ColorValue: $FFFFA07A),
     (ColorName: 'lightseagreen'; ColorValue: $FF20B2AA),
@@ -133,6 +134,7 @@ const
     (ColorName: 'skyblue'; ColorValue: $FF87CEEB),
     (ColorName: 'slateblue'; ColorValue: $FF6A5ACD),
     (ColorName: 'slategray'; ColorValue: $FF708090),
+    (ColorName: 'slategrey'; ColorValue: $FF708090),
     (ColorName: 'springgreen'; ColorValue: $FF00FF7F),
     (ColorName: 'steelblue'; ColorValue: $FF4682B4),
     (ColorName: 'tan'; ColorValue: $FFD2B48C),

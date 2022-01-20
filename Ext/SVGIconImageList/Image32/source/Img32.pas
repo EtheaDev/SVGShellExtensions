@@ -2,10 +2,10 @@ unit Img32;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  3.5                                                             *
-* Date      :  31 October 2021                                                 *
+* Version   :  4.0                                                             *
+* Date      :  10 January 2022                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2019-2021                                         *
+* Copyright :  Angus Johnson 2019-2022                                         *
 *                                                                              *
 * Purpose   :  The core module of the Image32 library                          *
 *                                                                              *
@@ -17,10 +17,13 @@ unit Img32;
 interface
 
 {$I Img32.inc}
+{.$DEFINE USING_VCL}
 
 uses
-  {$IFDEF MSWINDOWS} Windows, {$ENDIF} Types, SysUtils, Classes,
+  Types, SysUtils, Classes,
+  {$IFDEF MSWINDOWS} Windows, {$IFDEF USING_VCL} Graphics,{$ENDIF}{$ENDIF}
   {$IFDEF XPLAT_GENERICS} Generics.Collections, Generics.Defaults, Character,{$ENDIF}
+  {$IFDEF USING_FMX} FMX.Types, FMX.Graphics,{$ENDIF}
   {$IFDEF UITYPES} UITypes,{$ENDIF} Math;
 
 type
@@ -37,8 +40,9 @@ const
   clBlack32    = TColor32($FF000000);
   clBlue32     = TColor32($FF0000FF);
   clFuchsia32  = TColor32($FFFF00FF);
-  clGray32     = TColor32($FF7F7F7F);
+  clGray32     = TColor32($FF808080);
   clGreen32    = TColor32($FF008000);
+  clGrey32     = TColor32($FF808080);
   clLime32     = TColor32($FF00FF00);
   clMaroon32   = TColor32($FF800000);
   clNavy32     = TColor32($FF000080);
@@ -50,8 +54,19 @@ const
   clTeal32     = TColor32($FF007F7F);
   clWhite32    = TColor32($FFFFFFFF);
   clYellow32   = TColor32($FFFFFF00);
-  clBtnFace32  = TColor32($FFF0F0F0);
 
+  //custom gray colors
+  clDarkGray32 = TColor32($FF505050);
+  clDarkGrey32 = TColor32($FF505050);
+  //clGray32   = TColor32($FF808080);
+  //clSilver32 = TColor32($FFC0C0C0);
+  clLiteGray32 = TColor32($FFD3D3D3);
+  clLiteGrey32 = TColor32($FFD3D3D3);
+  clPaleGray32 = TColor32($FFE0E0E0);
+  clPaleGrey32 = TColor32($FFE0E0E0);
+  clDarkBtn32  = TColor32($FFE8E8E8);
+  clBtnFace32  = TColor32($FFF0F0F0);
+  clLiteBtn32  = TColor32($FFF8F8F8);
 
 {$IFDEF ZEROBASEDSTR}
   {$ZEROBASEDSTRINGS OFF}
@@ -70,6 +85,36 @@ type
   TArrayOfInteger = array of Integer;
   TArrayOfWord = array of WORD;
   TArrayOfByte = array of Byte;
+
+  TImg32Notification = (inStateChange, inDestroy);
+
+  //A INotifyRecipient receives change notifications though a property
+  //interface from a single NotifySender (eg a Font property).
+  //A NotifySender can send change notificatons to multiple NotifyRecipients
+  //(eg where multiple object use the same font property). NotifyRecipients can
+  //still receive change notificatons from mulitple NotifySenders, but it
+  //must use a separate property for each NotifySender. (Also there's little
+  //benefit in using INotifySender and INotifyRecipient interfaces where there
+  //will only be one receiver - eg scroll - scrolling window.)
+
+  INotifyRecipient = interface
+    ['{95F50C62-D321-46A4-A42C-8E9D0E3149B5}']
+   procedure ReceiveNotification(Sender: TObject; notify: TImg32Notification);
+  end;
+  TRecipients = array of INotifyRecipient;
+
+  INotifySender = interface
+    ['{52072382-8B2F-481D-BE0A-E1C0A216B03E}']
+    procedure AddRecipient(recipient: INotifyRecipient);
+    procedure DeleteRecipient(recipient: INotifyRecipient);
+  end;
+
+  TInterfacedObj = class(TObject, IInterface)
+  public
+    function  _AddRef: Integer; stdcall;
+    function  _Release: Integer; stdcall;
+    function  QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+  end;
 
   TImage32 = class;
   TImageFormatClass = class of TImageFormat;
@@ -99,7 +144,7 @@ type
 
   TResamplerFunction = function(img: TImage32; x256, y256: integer): TColor32;
 
-  TImage32 = class
+  TImage32 = class(TObject)
   private
     fWidth: integer;
     fHeight: Integer;
@@ -184,6 +229,10 @@ type
       x: Integer = 0; y: Integer = 0; transparent: Boolean = true); overload;
     procedure CopyToDc(const srcRect, dstRect: TRect; dstDc: HDC;
       transparent: Boolean = true); overload;
+  {$IFDEF USING_VCL}
+    procedure CopyFromBitmap(bmp: TBitmap);
+    procedure CopyToBitmap(bmp: TBitmap);
+  {$ENDIF}
 {$ENDIF}
     function CopyToClipBoard: Boolean;
     class function CanPasteFromClipBoard: Boolean;
@@ -309,6 +358,8 @@ type
   PHsl = ^THsl;
   TArrayofHSL = array of THsl;
 
+  TTriState = (tsUnknown, tsYes, tsChecked = 1, tsNo, tsUnchecked = 2);
+
   PPointD = ^TPointD;
   TPathD = array of TPointD;       //nb: watch for ambiguity with Clipper.pas
   TPathsD = array of TPathD;       //nb: watch for ambiguity with Clipper.pas
@@ -350,6 +401,7 @@ type
   function BlendToAlpha(bgColor, fgColor: TColor32): TColor32;
   //BlendMask: Whereever the mask is, preserves the background
   function BlendMask(bgColor, alphaMask: TColor32): TColor32;
+  function BlendAltMask(bgColor, alphaMask: TColor32): TColor32;
   function BlendDifference(color1, color2: TColor32): TColor32;
   function BlendSubtract(bgColor, fgColor: TColor32): TColor32;
   function BlendLighten(bgColor, fgColor: TColor32): TColor32;
@@ -394,10 +446,7 @@ type
   function ArrayOfColor32ToArrayHSL(const clr32Arr: TArrayOfColor32): TArrayofHSL;
   function ArrayOfHSLToArrayColor32(const hslArr: TArrayofHSL): TArrayOfColor32;
 
-  //Alpha: clears the color channels
-  function Alpha(color: TColor32): TColor32;
-  //NoAlpha: clears the alpha channel
-  function NoAlpha(color: TColor32): TColor32;
+  function GetAlpha(color: TColor32): Byte;  {$IFDEF INLINE} inline; {$ENDIF}
 
   function PointD(const X, Y: Double): TPointD; overload;
   function PointD(const pt: TPoint): TPointD; overload;
@@ -421,6 +470,10 @@ type
   //See https://docs.microsoft.com/en-us/windows/desktop/hidpi/high-DPIAware-desktop-application-development-on-windows
   function DPIAware(val: Integer): Integer; overload; {$IFDEF INLINE} inline; {$ENDIF}
   function DPIAware(val: double): double; overload; {$IFDEF INLINE} inline; {$ENDIF}
+  function DPIAware(const pt: TPoint): TPoint; overload;
+  function DPIAware(const pt: TPointD): TPointD; overload;
+  function DPIAware(const rec: TRect): TRect; overload;
+  function DPIAware(const rec: TRectD): TRectD; overload;
 
   {$IFDEF FPC}
   function AlphaBlend(DC: HDC; p2, p3, p4, p5: Integer;
@@ -616,6 +669,7 @@ var
 begin
   Result := Integer(imgFmtRec1.SortOrder) - Integer(imgFmtRec2.SortOrder);
 end;
+//------------------------------------------------------------------------------
 
 function ClampByte(val: Integer): byte;
 begin
@@ -694,6 +748,18 @@ var
 begin
   Result := bgColor;
   res.A := MulTable[bg.A, fg.A];
+  if res.A = 0 then Result := 0;
+end;
+//------------------------------------------------------------------------------
+
+function BlendAltMask(bgColor, alphaMask: TColor32): TColor32;
+var
+  res: TARGB absolute Result;
+  bg: TARGB absolute bgColor;
+  fg: TARGB absolute alphaMask;
+begin
+  Result := bgColor;
+  res.A := MulTable[bg.A, 255-fg.A];
   if res.A = 0 then Result := 0;
 end;
 //------------------------------------------------------------------------------
@@ -926,17 +992,9 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function Alpha(color: TColor32): TColor32;
-{$IFDEF INLINE} inline; {$ENDIF}
+function GetAlpha(color: TColor32): Byte;
 begin
-  Result := (color and $FF000000);
-end;
-//------------------------------------------------------------------------------
-
-function NoAlpha(color: TColor32): TColor32;
-{$IFDEF INLINE} inline; {$ENDIF}
-begin
-  Result := (color and $FFFFFF);
+  Result := color shr 24;
 end;
 //------------------------------------------------------------------------------
 
@@ -992,6 +1050,38 @@ end;
 function DPIAware(val: double): double;
 begin
   result := val * DpiAwareOne;
+end;
+//------------------------------------------------------------------------------
+
+function DPIAware(const pt: TPoint): TPoint;
+begin
+  result.X := Round(pt.X * DpiAwareOne);
+  result.Y := Round(pt.Y * DpiAwareOne);
+end;
+//------------------------------------------------------------------------------
+
+function DPIAware(const pt: TPointD): TPointD;
+begin
+  result.X := pt.X * DpiAwareOne;
+  result.Y := pt.Y * DpiAwareOne;
+end;
+//------------------------------------------------------------------------------
+
+function DPIAware(const rec: TRect): TRect;
+begin
+  result.Left := Round(rec.Left * DpiAwareOne);
+  result.Top := Round(rec.Top * DpiAwareOne);
+  result.Right := Round(rec.Right * DpiAwareOne);
+  result.Bottom := Round(rec.Bottom * DpiAwareOne);
+end;
+//------------------------------------------------------------------------------
+
+function DPIAware(const rec: TRectD): TRectD;
+begin
+  result.Left := rec.Left * DpiAwareOne;
+  result.Top := rec.Top * DpiAwareOne;
+  result.Right := rec.Right * DpiAwareOne;
+  result.Bottom := rec.Bottom * DpiAwareOne;
 end;
 //------------------------------------------------------------------------------
 {$ENDIF}
@@ -1080,7 +1170,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function GetAlpha(master, current: TColor32): Byte;
+function GetAlphaEx(master, current: TColor32): Byte;
 {$IFDEF INLINE} inline; {$ENDIF}
 var
   curr: TARGB absolute current;
@@ -1098,7 +1188,7 @@ var
 begin
   result := nil;
   if not assigned(img) or img.IsEmpty then Exit;
-  if not Assigned(compareFunc) then compareFunc := GetAlpha;
+  if not Assigned(compareFunc) then compareFunc := GetAlphaEx;
   SetLength(Result, img.Width * img.Height);
   pa := @Result[0];
   pc := img.PixelBase;
@@ -1501,6 +1591,7 @@ begin
   try
     dst.fResampler := fResampler;
     dst.fIsPremultiplied := fIsPremultiplied;
+    dst.fAntiAliased := fAntiAliased;
     dst.fColorCount := 0;
     try
       dst.SetSize(Width, Height);
@@ -2066,7 +2157,7 @@ begin
     for i := 0 to Width * Height -1 do
     begin
       //ignore colors with signifcant transparency
-      if (c^ shr 24) > $80 then
+      if GetAlpha(c^) > $80 then
         allColors[c^ and $FFFFFF] := 1;
       inc(c);
     end;
@@ -2476,7 +2567,7 @@ begin
       else if (wDest = wSrc) and (hDest = hSrc) then
         BitBlt(dstDc, x,y, wSrc, hSrc, memDc, 0,0, SRCCOPY)
       else
-        StretchBlt(dstDc, x,y, wDest,hDest, memDc, 0,0, wSrc,hSrc, SRCCOPY);
+        StretchBlt(dstDc, x,y, wDest, hDest, memDc, 0,0, wSrc,hSrc, SRCCOPY);
 
       SelectObject(memDC, oldBm);
     finally
@@ -2487,7 +2578,32 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+
+{$IFDEF USING_VCL}
+procedure TImage32.CopyFromBitmap(bmp: TBitmap);
+var
+  savedPF: TPixelFormat;
+begin
+  if not Assigned(bmp) then Exit;
+  savedPF := bmp.PixelFormat;
+  bmp.PixelFormat := pf32bit;
+  SetSize(bmp.Width, bmp.Height);
+  GetBitmapBits(bmp.Handle, Width * Height * 4, PixelBase);
+  bmp.PixelFormat := savedPF;
+end;
+//------------------------------------------------------------------------------
+
+procedure TImage32.CopyToBitmap(bmp: TBitmap);
+begin
+  if not Assigned(bmp) then Exit;
+  bmp.PixelFormat := pf32bit;
+  bmp.SetSize(Width, Height);
+  bmp.AlphaFormat := afDefined;
+  SetBitmapBits(bmp.Handle, Width * Height * 4, PixelBase);
+end;
 {$ENDIF}
+{$ENDIF}
+//------------------------------------------------------------------------------
 
 function TImage32.CopyToClipBoard: Boolean;
 var
@@ -2507,7 +2623,7 @@ begin
     if not formatClass.CanCopyToClipboard then Continue;
     with formatClass.Create do
     try
-      if CopyToClipboard(self) then result := true;
+      result := CopyToClipboard(self);
     finally
       free;
     end;
@@ -3166,6 +3282,28 @@ end;
 class function TImageFormat.CanCopyToClipboard: Boolean;
 begin
   Result := false;
+end;
+
+//------------------------------------------------------------------------------
+// TInterfacedObj
+//------------------------------------------------------------------------------
+
+function TInterfacedObj._AddRef: Integer; stdcall;
+begin
+  Result := -1;
+end;
+//------------------------------------------------------------------------------
+
+function TInterfacedObj._Release: Integer; stdcall;
+begin
+  Result := -1;
+end;
+//------------------------------------------------------------------------------
+
+function TInterfacedObj.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+begin
+  if GetInterface(IID, Obj) then Result := 0
+  else Result := E_NOINTERFACE;
 end;
 
 //------------------------------------------------------------------------------

@@ -11,14 +11,13 @@ object FrmAbout: TFrmAbout
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poDefault
   OnClose = FormClose
   OnCreate = FormCreate
+  PixelsPerInch = 96
   DesignSize = (
     446
     316)
-  PixelsPerInch = 96
   TextHeight = 13
   object TitleLabel: TLabel
     Left = 190
@@ -183,8 +182,8 @@ object FrmAbout: TFrmAbout
   object LinkLabel1: TLinkLabel
     Left = 8
     Top = 62
-    Width = 267
-    Height = 19
+    Width = 395
+    Height = 29
     Caption = 
       '<a href="https://github.com/EtheaDev/SVGShellExtensions">https:/' +
       '/github.com/EtheaDev/SVGShellExtensions</a>'

@@ -44,11 +44,9 @@ Known Issues:
 The SynHighlighterGeneral unit provides a customizable highlighter for SynEdit.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERGENERAL}
 unit SynHighlighterGeneral;
-{$ENDIF}
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

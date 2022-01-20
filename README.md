@@ -1,6 +1,6 @@
-# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 2.5.0 - 06 Nov 2021**
+**Latest Version 2.6.0 - 20 Jan 2021**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
 
@@ -11,7 +11,7 @@
 - An [SVG-XML Text Editor][10] to manually edit and preview the text of SVG files.
 
 ### Features
-- Supports Windows Vista, 7, 8 and 10 (for 32 bits and 64 bits).
+- Supports Windows Vista, 7, 8, 10 and 11 (for 32 bits and 64 bits).
 
 - Themes (Dark and Light) according to user preferences of Windows Theme
 
@@ -51,7 +51,7 @@ As requested by many users of popular shell alternative, the new version support
 
 ### Manual Build and Installation (for Delphi developers) ###
 
-If you have Delphi 10.4 Sydney, you can manually build the project:
+If you have Delphi 10.4 Sydney or Delphi 11.0 Alexandria, you can manually build the project:
 
 ***Warning: To build the DLL you need also other open-source projects***
 
@@ -74,6 +74,11 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+20 Jan 2022 - Version 2.6
+- Added support for Windows 11
+- Updated Image32 Library
+ - Fixed resize content
 
 06 Nov 2021 - Version 2.5
 - Fixed Export to png files

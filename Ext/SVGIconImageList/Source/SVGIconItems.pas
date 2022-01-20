@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/VCL                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2021 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2022 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors: Vincent Parrett, Kiriakos Vlahos                         }
 {                                                                              }
@@ -205,9 +205,6 @@ begin
   else
     Result.Canvas.Brush.Color := ColorToRGB(LAntiAliasColor);
   Result.SetSize(AWidth, AHeight);
-  {$IFDEF IgnoreAntiAliasedColor}
-  MakeTransparent(Result.Canvas.Handle);
-  {$ENDIF}
   FSVG.PaintTo(Result.Canvas.Handle, TRectF.Create(0, 0, AWidth, AHeight));
 end;
 

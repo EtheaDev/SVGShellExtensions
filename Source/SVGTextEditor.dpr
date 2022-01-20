@@ -56,13 +56,12 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskBar := True;
-  Application.Title := Title_SVGTextEditor+'- © 2021 Ethea S.r.l.';
+  Application.Title := Title_SVGTextEditor+'- © 2021-2022 Ethea S.r.l.';
   with TSplashForm.Create(nil) do
   Try
     Show;
     Update;
     Application.HelpFile := '';
-    TStyleManager.TrySetStyle('Flat UI Light');
   Application.CreateForm(TdmResources, dmResources);
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TTestPrintPreviewDlg, TestPrintPreviewDlg);

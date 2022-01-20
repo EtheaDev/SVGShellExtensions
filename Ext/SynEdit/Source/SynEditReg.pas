@@ -130,7 +130,7 @@ uses
   SynHighlighterIDL,
   SynHighlighterUnreal,
   SynHighlighterST,
-  SynHighlighterLDraw,
+  SynHighlighterLDraw,   
   SynHighlighterYAML,   
   SynURIOpener,
   Classes;

@@ -2,8 +2,8 @@ unit Img32.Draw;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  3.4                                                             *
-* Date      :  12 October 2021                                                 *
+* Version   :  4.0                                                             *
+* Date      :  22 December 2021                                                *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2019-2021                                         *
 *                                                                              *
@@ -1115,7 +1115,7 @@ end;
 procedure TColorRenderer.SetColor(value: TColor32);
 begin
   fColor := value and $FFFFFF;
-  fAlpha := value shr 24;
+  fAlpha := GetAlpha(value);
 end;
 //------------------------------------------------------------------------------
 
@@ -1149,7 +1149,8 @@ end;
 function TAliasedColorRenderer.Initialize(targetImage: TImage32): Boolean;
 begin
   //there's no point rendering if the color is fully transparent
-  result := (fColor shr 24 > 0) and inherited Initialize(targetImage);
+  result := (GetAlpha(fColor) > 0) and
+    inherited Initialize(targetImage);
 end;
 //------------------------------------------------------------------------------
 
@@ -1428,6 +1429,7 @@ procedure TRadialGradientRenderer.SetParameters(const focalRect: TRect;
   innerColor, outerColor: TColor32;
   gradientFillStyle: TGradientFillStyle);
 var
+  w,h: integer;
   radX,radY: double;
 begin
   inherited SetParameters(innerColor, outerColor, gradientFillStyle);
@@ -1436,8 +1438,9 @@ begin
 
   fCenterPt.X  := (focalRect.Left + focalRect.Right) * 0.5;
   fCenterPt.Y  := (focalRect.Top + focalRect.Bottom) * 0.5;
-  radX    :=  RectWidth(focalRect) * 0.5;
-  radY    :=  RectHeight(focalRect) * 0.5;
+  RectWidthHeight(focalRect, w, h);
+  radX    :=  w * 0.5;
+  radY    :=  h * 0.5;
   if radX >= radY then
   begin
     fScaleX     := 1;
@@ -1486,7 +1489,7 @@ procedure TSvgRadialGradientRenderer.SetParameters(const ellipseRect: TRect;
   const focus: TPoint; innerColor, outerColor: TColor32;
   gradientFillStyle: TGradientFillStyle = gfsClamp);
 var
-  radii : TPointD;
+  w, h  : integer;
 begin
   inherited SetParameters(innerColor, outerColor);
   case gradientFillStyle of
@@ -1499,11 +1502,10 @@ begin
   if IsEmptyRect(ellipseRect) then Exit;
 
   fCenterPt  := RectD(ellipseRect).MidPoint;
-  radii.X    := RectWidth(ellipseRect) * 0.5;
-  radii.Y    :=  RectHeight(ellipseRect) * 0.5;
+  RectWidthHeight(ellipseRect, w, h);
+  fA    := w * 0.5;
+  fB    := h * 0.5;
 
-  fA    :=  RectWidth(ellipseRect) * 0.5;
-  fB    :=  RectHeight(ellipseRect) * 0.5;
   fFocusPt.X := focus.X - fCenterPt.X;
   fFocusPt.Y := focus.Y - fCenterPt.Y;
   fColorsCnt := Ceil(Hypot(fA*2, fB*2)) +1;
@@ -2040,6 +2042,7 @@ end;
 procedure DrawPolygon_ClearType(img: TImage32; const polygons: TPathsD;
   fillRule: TFillRule; color: TColor32; backColor: TColor32);
 var
+  w, h: integer;
   tmpImg: TImage32;
   rec: TRect;
   tmpPolygons: TPathsD;
@@ -2048,7 +2051,8 @@ begin
   if not assigned(polygons) then exit;
 
   rec := GetBounds(polygons);
-  tmpImg := TImage32.Create(RectWidth(rec) *3, RectHeight(rec));
+  RectWidthHeight(rec, w, h);
+  tmpImg := TImage32.Create(w *3, h);
   try
     tmpPolygons := OffsetPath(polygons, -rec.Left, -rec.Top);
     tmpPolygons := ScalePath(tmpPolygons, 3, 1);

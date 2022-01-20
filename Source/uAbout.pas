@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
+{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -177,13 +177,13 @@ begin
   MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');
-  MemoCopyRights.Lines.Add('Copyright © 2021 all rights reserved.');
+  MemoCopyRights.Lines.Add('Copyright © 2021-2022 all rights reserved.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Third Party libraries and tools used from Ethea:');
   MemoCopyRights.Lines.Add('SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('The Initial Developer of the Original Code is Rodrigo Ruz V.');
-  MemoCopyRights.Lines.Add('Portions created by Rodrigo Ruz V. are Copyright © 2011-2021 Rodrigo Ruz V.');
+  MemoCopyRights.Lines.Add('Portions created by Rodrigo Ruz V. are Copyright © 2011-2022 Rodrigo Ruz V.');
   MemoCopyRights.Lines.Add('https://github.com/RRUZ/delphi-preview-handler');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Third Party libraries and tools used');
@@ -193,7 +193,7 @@ begin
   MemoCopyRights.Lines.Add('Original version © 2005, 2008 Martin Walter.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Image32 Library - http://www.angusj.com/delphi/image32/Docs/_Body.htm');
-  MemoCopyRights.Lines.Add('Copyright ©2019-2021 Angus Johnson.');
+  MemoCopyRights.Lines.Add('Copyright ©2019-2022 Angus Johnson.');
   MemoCopyRights.Lines.Add('');
 end;
 

@@ -41,7 +41,7 @@ Known Issues:
 
 unit SynHighlighterDWS;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 
@@ -62,9 +62,9 @@ type
   TtkTokenKind = (tkAsm, tkComment, tkIdentifier, tkKey, tkNull, tkNumber,
     tkSpace, tkString, tkSymbol, tkUnknown, tkFloat, tkHex, tkDirec, tkChar);
 
-  TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
-    rsExports, rsDirective, rsDirectiveAsm, rsHereDocSingle, rsHereDocDouble,
-    rsType, rsUnknown);
+  TRangeState = (rsANil, rsCommentAnsi, rsCommentC, rsAsm, rsAsmCommentC,
+    rsCommentBor, rsProperty, rsExports, rsDirective, rsAsmDirective,
+    rsStringSingle, rsStringDouble, rsType, rsUnit, rsUnknown);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function : TtkTokenKind of object;
@@ -83,9 +83,10 @@ type
   private
     FAsmStart: Boolean;
     FRange: TRangeState;
-    FCommentClose : Char;
+    FCommentClose: Char;
     FIdentFuncTable: array[0..388] of TIdentFuncTableFunc;
     FKeywords: TAnsiStringList;
+    FKeywordsUnitScoped: TAnsiStringList;
     FKeywordsPropertyScoped: TAnsiStringList;
     FKeywordsTypeScoped: TAnsiStringList;
     FTokenID: TtkTokenKind;
@@ -110,6 +111,8 @@ type
     function KeywordFunc: TtkTokenKind;
     function FuncAsm: TtkTokenKind;
     function FuncEnd: TtkTokenKind;
+    function FuncUnitScoped: TtkTokenKind;
+    function FuncUnit: TtkTokenKind;
     function FuncPropertyScoped: TtkTokenKind;
     function FuncProperty: TtkTokenKind;
     function FuncTypeScoped: TtkTokenKind;
@@ -119,10 +122,10 @@ type
     procedure InitIdent;
     procedure AddressOpProc;
     procedure AsciiCharProc;
-    procedure AnsiProc;
-    procedure BorProc;
+    procedure CommentBorProc;
     procedure BraceOpenProc;
     procedure ColonOrGreaterProc;
+    procedure CommentAnsiProc;
     procedure CRProc;
     procedure IdentProc;
     procedure IntegerProc;
@@ -209,7 +212,7 @@ uses
 
 const
    // if the language is case-insensitive keywords *must* be in lowercase
-   cKeywords: array[1..95] of UnicodeString = (
+   cKeywords: array[1..94] of UnicodeString = (
       'abstract', 'and', 'array', 'as', 'asm',
       'begin', 'break', 'case', 'cdecl', 'class', 'const', 'constructor',
       'continue', 'deprecated', 'destructor',
@@ -223,8 +226,11 @@ const
       'procedure', 'program', 'property', 'protected', 'public', 'published', 
       'raise', 'record', 'register', 'reintroduce', 'repeat', 'require', 
       'resourcestring', 'sar', 'sealed', 'set', 'shl', 'shr', 'static', 
-      'step', 'strict', 'then', 'to', 'try', 'type', 'unit', 'until', 'uses', 
-      'var', 'virtual', 'while', 'xor'
+      'strict', 'then', 'to', 'try', 'type', 'unit', 'until', 'uses', 'var', 
+      'virtual', 'while', 'xor'
+  );
+  cKeywordsUnitScoped: array [0..0] of UnicodeString = (
+      'namespace'
   );
   cKeywordsPropertyScoped: array [0..4] of UnicodeString = (
       'default', 'index', 'read', 'stored', 'write'
@@ -245,6 +251,7 @@ constructor TSynDWSSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FCaseSensitive := True; // bypass automatic lowercase, we handle it here
+  FCommentClose := ')';
 
   FAsmAttri := TSynHighlighterAttributes.Create(SYNS_AttrAssembler, SYNS_FriendlyAttrAssembler);
   FAsmAttri.Foreground := RGB(128, 0, 0);
@@ -296,6 +303,7 @@ begin
   SetAttributesOnChange(DefHighlightChange);
 
   FKeywords := TAnsiStringList.Create;
+  FKeywordsUnitScoped := TAnsiStringList.Create;
   FKeywordsPropertyScoped := TAnsiStringList.Create;
   FKeywordsTypeScoped := TAnsiStringList.Create;
 
@@ -325,6 +333,7 @@ destructor TSynDWSSyn.Destroy;
 begin
   inherited;
   FKeywords.Free;
+  FKeywordsUnitScoped.Free;
   FKeywordsPropertyScoped.Free;
   FKeywordsTypeScoped.Free;
 {$IFDEF SYN_CodeFolding}
@@ -378,6 +387,12 @@ begin
     SetIdentFunc(HashKey(@cKeywords[i][1]), KeywordFunc);
     FKeywords.Add(cKeywords[i]);
   end;
+  
+  for i := 0 to High(cKeywordsUnitScoped) do
+  begin
+    SetIdentFunc(HashKey(@cKeywordsUnitScoped[i][1]), FuncUnitScoped);
+    FKeywordsUnitScoped.Add(cKeywordsUnitScoped[i]);
+  end;
 
   for i := 0 to High(cKeywordsPropertyScoped) do
   begin
@@ -398,6 +413,7 @@ begin
   SetIdentFunc(HashKey('asm'), FuncAsm);
   SetIdentFunc(HashKey('end'), FuncEnd);
   SetIdentFunc(HashKey('property'), FuncProperty);
+  SetIdentFunc(HashKey('unit'), FuncUnit);
   SetIdentFunc(HashKey('type'), FuncType);
 
   FKeywords.Sorted := True;
@@ -476,12 +492,34 @@ begin
     Result := KeywordFunc;
 end;
 
+function TSynDWSSyn.FuncUnitScoped: TtkTokenKind;
+var
+   buf: String;
+begin
+  SetString(buf, FToIdent, FStringLen);
+  if (FRange = rsUnit) and (FKeywordsUnitScoped.IndexOf(buf) >= 0) then
+    Result := tkKey
+  else
+    Result := KeywordFunc;
+end;
+
 function TSynDWSSyn.FuncProperty: TtkTokenKind;
 begin
   if IsCurrentToken('property') then
   begin
     Result := tkKey;
     FRange := rsProperty;
+  end
+  else
+    Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncUnit: TtkTokenKind;
+begin
+  if IsCurrentToken('unit') then
+  begin
+    Result := tkKey;
+    FRange := rsUnit;
   end
   else
     Result := KeywordFunc;
@@ -517,7 +555,7 @@ begin
   end;
 end;
 
-procedure TSynDWSSyn.BorProc;
+procedure TSynDWSSyn.CommentBorProc;
 begin
   case FLine[Run] of
      #0: NullProc;
@@ -525,7 +563,7 @@ begin
     #13: CRProc;
   else
     begin
-      if FRange in [rsDirective, rsDirectiveAsm] then
+      if FRange in [rsDirective, rsAsmDirective] then
         FTokenID := tkDirec
       else
         FTokenID := tkComment;
@@ -533,7 +571,7 @@ begin
         if FLine[Run] = '}' then
         begin
           Inc(Run);
-          if FRange in [rsBorAsm, rsDirectiveAsm] then
+          if FRange in [rsAsmDirective] then
             FRange := rsAsm
           else
             FRange := rsUnknown;
@@ -550,18 +588,22 @@ begin
   if (FLine[Run + 1] = '$') then
   begin
     if FRange = rsAsm then
-      FRange := rsDirectiveAsm
+      FRange := rsAsmDirective
     else
       FRange := rsDirective;
   end
   else
   begin
     if FRange = rsAsm then
-      FRange := rsBorAsm
+    begin
+      FTokenID := tkSymbol;
+      Inc(Run);
+      Exit;
+    end
     else
-      FRange := rsBor;
+      FRange := rsCommentBor;
   end;
-  BorProc;
+  CommentBorProc;
 end;
 
 procedure TSynDWSSyn.ColonOrGreaterProc;
@@ -719,7 +761,7 @@ begin
     Inc(Run);
 end;
 
-procedure TSynDWSSyn.AnsiProc;
+procedure TSynDWSSyn.CommentAnsiProc;
 begin
   case FLine[Run] of
      #0: NullProc;
@@ -730,7 +772,7 @@ begin
     repeat
       if (FLine[Run] = '*') and (FLine[Run + 1] = FCommentClose) then begin
         Inc(Run, 2);
-        if FRange = rsAnsiAsm then
+        if FRange in [rsAsmCommentC] then
           FRange := rsAsm
         else
           FRange := rsUnknown;
@@ -749,13 +791,17 @@ begin
       begin
         Inc(Run);
         if FRange = rsAsm then
-          FRange := rsAnsiAsm
+        begin
+          Inc(Run);
+          FTokenID := tkSymbol;
+          Exit;
+        end
         else
-          FRange := rsAnsi;
+          FRange := rsCommentAnsi;
         FTokenID := tkComment;
         FCommentClose := ')';
         if not IsLineEnd(Run) then
-          AnsiProc;
+          CommentAnsiProc;
       end;
     '.':
       begin
@@ -771,7 +817,7 @@ procedure TSynDWSSyn.SemicolonProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
-  if FRange in [rsProperty, rsExports] then
+  if FRange in [rsUnit, rsProperty, rsExports] then
     FRange := rsUnknown;
 end;
 
@@ -789,13 +835,13 @@ begin
       begin
         Inc(Run);
         if FRange = rsAsm then
-          FRange := rsAnsiAsm
+          FRange := rsAsmCommentC
         else
-          FRange := rsAnsi;
+          FRange := rsCommentC;
         FTokenID := tkComment;
         FCommentClose := '/';
         if not IsLineEnd(Run) then
-          AnsiProc;
+          CommentAnsiProc;
       end;
   else
     FTokenID := tkSymbol;
@@ -829,7 +875,7 @@ begin
   FTokenID := tkString;
   if (Run>0) or IsLineEnd(Run+1) then
      Inc(Run);
-  FRange := rsHereDocSingle;
+  FRange := rsStringSingle;
   while not IsLineEnd(Run) do
   begin
     if FLine[Run] = '''' then begin
@@ -846,9 +892,9 @@ end;
 procedure TSynDWSSyn.StringQuoteProc;
 begin
   FTokenID := tkString;
-  if FRange <> rsHereDocDouble then
+  if FRange <> rsStringDouble then
   begin
-    FRange := rsHereDocDouble;
+    FRange := rsStringDouble;
     Inc(Run);
   end else
   begin
@@ -891,13 +937,13 @@ begin
   FAsmStart := False;
   FTokenPos := Run;
   case FRange of
-    rsAnsi, rsAnsiAsm:
-       AnsiProc;
-    rsBor, rsBorAsm, rsDirective, rsDirectiveAsm:
-       BorProc;
-    rsHereDocSingle:
+    rsCommentAnsi, rsCommentC, rsAsmCommentC:
+        CommentAnsiProc;
+    rsCommentBor, rsDirective, rsAsmDirective:
+       CommentBorProc;
+    rsStringSingle:
        StringAposMultiProc;
-    rsHereDocDouble:
+    rsStringDouble:
        StringQuoteProc;
   else
     case FLine[Run] of
@@ -1005,8 +1051,8 @@ Const
   FT_Standard = 1;  // begin end, class end, record end
   FT_Comment = 11;
   FT_Asm = 12;
-  FT_HereDocDouble = 13;
-  FT_HereDocSingle = 14;
+  FT_StringDouble = 13;
+  FT_StringSingle = 14;
   FT_ConditionalDirective = 15;
   FT_CodeDeclaration = 16;
   FT_CodeDeclarationWithBody = 17;
@@ -1106,12 +1152,10 @@ begin
   for Line := FromLine to ToLine do
   begin
     // Deal first with Multiline statements
-    if IsMultiLineStatement(Line, [rsAnsi], True, FT_Comment) or
-       IsMultiLineStatement(Line, [rsAsm, rsAnsiAsm, rsBorAsm, rsDirectiveAsm], True, FT_Asm) or
-       IsMultiLineStatement(Line, [rsHereDocDouble], True, FT_HereDocDouble)  or
-       IsMultiLineStatement(Line, [rsHereDocSingle], True, FT_HereDocSingle)  or
-       IsMultiLineStatement(Line, [rsHereDocSingle], True, FT_HereDocSingle)  or
-       IsMultiLineStatement(Line, [rsBor], True, FT_Comment) or
+    if IsMultiLineStatement(Line, [rsCommentAnsi, rsCommentC, rsCommentBor], True, FT_Comment) or
+       IsMultiLineStatement(Line, [rsAsm, rsAsmCommentC, rsAsmDirective], True, FT_Asm) or
+       IsMultiLineStatement(Line, [rsStringDouble], True, FT_StringDouble) or
+       IsMultiLineStatement(Line, [rsStringSingle], True, FT_StringSingle) or
        IsMultiLineStatement(Line, [rsDirective], False)
     then
       Continue;

@@ -50,7 +50,7 @@ Two extra properties included (DelphiVersion, PackageSource):
 
 unit SynHighlighterPas;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 
@@ -1243,7 +1243,7 @@ begin
       FoldRanges.StartFoldRange(Line +1, FT_Implementation)
     // Functions and procedures
     else if RE_Code.Exec(CurLine) then
-      FoldRanges.StartFoldRange(Line +1, FT_CodeDeclaration)
+      FoldRanges.StartFoldRange(Line + 1, FT_CodeDeclaration)
     // Find begin or end  (Fold Type 1)
     else if not BlockDelimiter(Line) then
       FoldRanges.NoFoldInfo(Line + 1);
@@ -1341,12 +1341,18 @@ end;
 
 procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
 
+{$IFNDEF SYN_DELPHI_2006_UP}
+const
+  KEY_WOW64_64KEY = $0100;
+  KEY_WOW64_32KEY = $0200; 
+{$ENDIF}
+
   procedure LoadKeyVersions(const Key, Prefix: string);
   var
     Versions: TStringList;
     i: Integer;
   begin
-    with TBetterRegistry.Create do
+    with TBetterRegistry.Create(KEY_READ or KEY_WOW64_32KEY) do
     begin
       try
         RootKey := HKEY_LOCAL_MACHINE;
@@ -1371,22 +1377,11 @@ procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
     end;
   end;
 
-var
-  LWowNode : string;
 begin
-  { returns the user settings that exist in the registry }
-  // See UseUserSettings below where these strings are used
-  {$ifdef WIN64}
-  LWowNode := 'WOW6432Node\';
-  {$else}
-  LWowNode := '';
-  {$ENDIF}
-
-  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Borland\Delphi', '');
-  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Borland\BDS', BDSVersionPrefix);
-  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'CodeGear\BDS', BDSVersionPrefix);
-  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Embarcadero\BDS', BDSVersionPrefix);
-
+  LoadKeyVersions('\SOFTWARE\Borland\Delphi', '');
+  LoadKeyVersions('\SOFTWARE\Borland\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\CodeGear\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\Embarcadero\BDS', BDSVersionPrefix);
 end;
 
 function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;

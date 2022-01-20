@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
+{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -1572,6 +1572,8 @@ begin
     SV.CompactWidth := Round(44 * ScaleFactor)
   else
     SV.CompactWidth := Round(66 * ScaleFactor);
+  if PageControl.Width < 100 then
+    ImagePanel.Width := Width div 3;
 end;
 
 procedure TfrmMain.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
