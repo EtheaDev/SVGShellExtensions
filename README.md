@@ -2,7 +2,7 @@
 
 **Latest Version 2.6.0 - 20 Jan 2021**
 
-**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8 and 10):**
+**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
 
 - A [Preview handler][1]  which allows you to see the SVG image and text without open it, in the "Preview Panel".
  
