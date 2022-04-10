@@ -52,7 +52,6 @@ type
   private
     fFileName: string;
     FOwnerDrawId: UINT;
-    FSVG: ISVG;
   protected
     {Declare IContextMenu methods here}
     function QueryContextMenu(Menu: HMENU; indexMenu, idCmdFirst, idCmdLast,

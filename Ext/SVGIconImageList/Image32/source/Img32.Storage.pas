@@ -171,7 +171,7 @@ const
   tab     = #9;
   spacesPerLevel = 2;
 
-{$IF COMPILERVERSION < 18}
+{.$IF COMPILERVERSION < 18}
 function UIntToStr(value: Cardinal): string;
 begin
   Result := Format('%d', [value]);
@@ -196,7 +196,7 @@ begin
   Val(S, Value, E);
   Result := E = 0;
 end;
-{$IFEND}
+{.$IFEND}
 
 //------------------------------------------------------------------------------
 // Read from XML string functions
@@ -783,11 +783,11 @@ var
 
 begin
   if not Assigned(storeManager) or (utf8 = '') then Exit;
-  savedDecSep := FormatSettings.DecimalSeparator;
+  savedDecSep := {$IFDEF FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator;
   loadingPtrProps := TList.Create;
   loadingObjectsList := TList.Create;
   try
-    FormatSettings.DecimalSeparator := '.';
+    {$IFDEF FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator := '.';
     xmlCurr := PUTF8Char(utf8);
     xmlEnd := xmlCurr;
     inc(xmlEnd, Length(utf8));
@@ -895,7 +895,7 @@ begin
   finally
     loadingObjectsList.Free;
     loadingPtrProps.Free;
-    FormatSettings.DecimalSeparator := savedDecSep;
+    {$IFDEF FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator := savedDecSep;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -936,8 +936,8 @@ var
 begin
   if not Assigned(storageManager) then Exit;
 
-  savedDecSep := FormatSettings.DecimalSeparator;
-  FormatSettings.DecimalSeparator := '.';
+  savedDecSep := {$IFDEF FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator;
+  {$IFDEF FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator := '.';
   storageManager.fCurrLevel := 0;
   objId := startIdx;
   objIdList := TList.Create;
@@ -954,7 +954,7 @@ begin
             WriteStorageContent(objId);
   finally
     objIdList.Free;
-    FormatSettings.DecimalSeparator := savedDecSep;
+    {$IFDEF FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator := savedDecSep;
   end;
 end;
 //------------------------------------------------------------------------------

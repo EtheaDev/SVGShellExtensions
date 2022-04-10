@@ -134,8 +134,8 @@
 (* SYN_DELPHI_10_3_UP   : Delphi 10.3 or higher is being used.                *)
 (* SYN_DELPHI_10_4      : Delphi 10.4 is being used.                          *)
 (* SYN_DELPHI_10_4_UP   : Delphi 10.4 or higher is being used.                *)
-(* SYN_DELPHI_11_0      : Delphi 11.0 is being used.                          *)
-(* SYN_DELPHI_11_0_UP   : Delphi 11.0 or higher is being used.                *)
+(* SYN_DELPHI_11        : Delphi 11 is being used.                            *)
+(* SYN_DELPHI_11_UP     : Delphi 11 or higher is being used.                  *)
 (* SYN_KYLIX            : Kylix 1.0 is being using.                           *)
 (* SYN_CLX              : A CLX application is being created.                 *)
 (******************************************************************************)
@@ -185,7 +185,7 @@
 {$IFDEF VER350}
   {$DEFINE SYN_COMPILER_28}
   {$DEFINE SYN_DELPHI}
-  {$DEFINE SYN_DELPHI_11_0}
+  {$DEFINE SYN_DELPHI_11}
 {$ENDIF}
 
 {$IFDEF VER340}
@@ -1226,7 +1226,7 @@
   {$DEFINE SYN_DELPHI_10_4_UP}
 {$ENDIF}
 
-{$IFDEF SYN_DELPHI_11_0}
+{$IFDEF SYN_DELPHI_11}
   {$DEFINE SYN_DELPHI_2_UP}
   {$DEFINE SYN_DELPHI_3_UP}
   {$DEFINE SYN_DELPHI_4_UP}
@@ -1252,7 +1252,7 @@
   {$DEFINE SYN_DELPHI_10_2_UP}
   {$DEFINE SYN_DELPHI_10_3_UP}
   {$DEFINE SYN_DELPHI_10_4_UP}
-  {$DEFINE SYN_DELPHI_11_0_UP}
+  {$DEFINE SYN_DELPHI_11_UP}
 {$ENDIF}
 
 {$IFDEF SYN_CPPB_6}

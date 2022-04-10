@@ -3,7 +3,7 @@
 {       SVG Text Editor: Shell extensions for SVG files                        }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021 (Ethea S.r.l.)                                      }
+{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
