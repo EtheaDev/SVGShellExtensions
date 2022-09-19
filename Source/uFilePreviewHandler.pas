@@ -30,7 +30,6 @@ uses
 type
   TFilePreviewHandler = class abstract(TPreviewHandler)
   public
-    procedure DoPreview(const FilePath: String); virtual; abstract;
     class function GetComClass: TComClass; override; final;
   end;
 
@@ -39,7 +38,8 @@ implementation
 uses
   Windows,
   PropSys,
-  SysUtils;
+  SysUtils,
+  uLogExcept;
 
 type
   TComFilePreviewHandler = class(TComPreviewHandler, IInitializeWithFile)
@@ -72,7 +72,9 @@ end;
 
 procedure TComFilePreviewHandler.InternalDoPreview;
 begin
-  PreviewHandler.DoPreview(FFilePath);
+  TLogPreview.Add('TComFilePreviewHandler.InternalDoPreview');
+  CheckContainer;
+  Container.LoadFromFile(FFilePath);
 end;
 
 procedure TComFilePreviewHandler.InternalUnload;

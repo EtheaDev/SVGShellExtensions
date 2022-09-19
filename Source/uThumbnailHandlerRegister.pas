@@ -37,7 +37,7 @@ type
   TThumbnailHandlerRegister = class(TComObjectFactory)
   private
     FTThumbnailHandlerClass: TThumbnailHandlerClass;
-    class procedure DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
+    class procedure DeleteRegValue(const Key, ValueName: string; RootKey: HKEY);
   protected
   public
     constructor Create(ATThumbnailHandlerClass: TThumbnailHandlerClass;
@@ -73,7 +73,7 @@ begin
   TComSVGThumbnailProvider(result).ThumbnailHandlerClass := TThumbnailHandlerClass;
 end;
 
-class procedure TThumbnailHandlerRegister.DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
+class procedure TThumbnailHandlerRegister.DeleteRegValue(const Key, ValueName: string; RootKey: HKEY);
 var
   RegKey: HKEY;
 begin

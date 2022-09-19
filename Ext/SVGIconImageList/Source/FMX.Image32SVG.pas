@@ -78,9 +78,6 @@ begin
   res.G := TAlphaColorRec(AlphaColor).G;
   res.B := TAlphaColorRec(AlphaColor).B;
   Result := res.Color;
-{$IF Defined(ANDROID) or Defined(MACOS) or Defined(MACOSX)}
-  Result := SwapRedBlue(Result);
-{$IFEND}
 end;
 
 { TFmxImage32SVG }

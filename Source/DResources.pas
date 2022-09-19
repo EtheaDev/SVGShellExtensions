@@ -28,8 +28,8 @@ unit DResources;
 interface
 
 uses
-  SysUtils
-  , Classes
+  System.SysUtils
+  , System.Classes
   , SynHighlighterXML
   , Vcl.Graphics
   , Vcl.ImgList

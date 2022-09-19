@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 250
   Top = 217
   Caption = 'SVG Text Editor'
-  ClientHeight = 590
-  ClientWidth = 907
+  ClientHeight = 589
+  ClientWidth = 903
   Color = clWindow
   Ctl3D = False
   Font.Charset = DEFAULT_CHARSET
@@ -11,7 +11,6 @@ object frmMain: TfrmMain
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   ShowHint = True
   OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
@@ -24,15 +23,14 @@ object frmMain: TfrmMain
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    907
-    590)
-  PixelsPerInch = 96
+    903
+    589)
   TextHeight = 15
   object RightSplitter: TSplitter
-    Left = 651
+    Left = 647
     Top = 36
     Width = 6
-    Height = 535
+    Height = 534
     Align = alRight
     AutoSnap = False
     MinSize = 240
@@ -42,8 +40,8 @@ object frmMain: TfrmMain
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 571
-    Width = 907
+    Top = 570
+    Width = 903
     Height = 19
     Panels = <
       item
@@ -67,31 +65,37 @@ object frmMain: TfrmMain
       item
         Width = 80
       end>
+    ExplicitTop = 569
+    ExplicitWidth = 899
   end
   object PageControl: TPageControl
     Left = 44
     Top = 36
-    Width = 607
-    Height = 535
+    Width = 603
+    Height = 534
     Align = alClient
     Images = VirtualImageList
     TabOrder = 1
     OnChange = PageControlChange
+    ExplicitWidth = 599
+    ExplicitHeight = 533
   end
   object ImagePanel: TPanel
-    Left = 657
+    Left = 653
     Top = 36
     Width = 250
-    Height = 535
+    Height = 534
     Align = alRight
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 2
     StyleElements = []
+    ExplicitLeft = 649
+    ExplicitHeight = 533
     object StatusSplitter: TSplitter
       Left = 0
-      Top = 497
+      Top = 496
       Width = 250
       Height = 4
       Cursor = crVSplit
@@ -105,7 +109,7 @@ object frmMain: TfrmMain
       Left = 0
       Top = 172
       Width = 250
-      Height = 325
+      Height = 324
       AutoSize = False
       Align = alClient
       OnMouseMove = SVGIconImageMouseMove
@@ -204,12 +208,13 @@ object frmMain: TfrmMain
     end
     object StatusPanel: TPanel
       Left = 0
-      Top = 501
+      Top = 500
       Width = 250
       Height = 34
       Align = alBottom
       ParentBackground = False
       TabOrder = 2
+      ExplicitTop = 499
       object StatusImage: TSVGIconImage
         Left = 1
         Top = 1
@@ -224,8 +229,8 @@ object frmMain: TfrmMain
         AlignWithMargins = True
         Left = 36
         Top = 4
-        Width = 4
-        Height = 4
+        Width = 210
+        Height = 26
         Align = alClient
         Alignment = taCenter
         TabOrder = 0
@@ -236,7 +241,7 @@ object frmMain: TfrmMain
     Left = 0
     Top = 36
     Width = 160
-    Height = 535
+    Height = 534
     CloseStyle = svcCompact
     Color = clHighlight
     CompactWidth = 44
@@ -249,11 +254,12 @@ object frmMain: TfrmMain
     OnClosing = SVClosing
     OnOpened = SVOpened
     OnOpening = SVOpening
+    ExplicitHeight = 533
     object catMenuItems: TCategoryButtons
       Left = 0
       Top = 0
       Width = 160
-      Height = 535
+      Height = 534
       Align = alClient
       BackgroundGradientDirection = gdVertical
       BorderStyle = bsNone
@@ -354,30 +360,33 @@ object frmMain: TfrmMain
       OnGetHint = catMenuItemsGetHint
       OnMouseLeave = catMenuItemsMouseLeave
       OnMouseMove = catMenuItemsMouseMove
+      ExplicitHeight = 533
     end
   end
   object panlTop: TPanel
     Left = 0
     Top = 0
-    Width = 907
+    Width = 903
     Height = 36
     Align = alTop
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 4
+    ExplicitWidth = 899
     object lblTitle: TLabel
       AlignWithMargins = True
       Left = 40
       Top = 3
       Width = 79
-      Height = 15
+      Height = 30
       Align = alLeft
       Caption = 'SVG Text Editor'
       Layout = tlCenter
+      ExplicitHeight = 15
     end
     object SettingsToolBar: TToolBar
       AlignWithMargins = True
-      Left = 704
+      Left = 700
       Top = 3
       Width = 200
       Height = 30
@@ -393,6 +402,7 @@ object frmMain: TfrmMain
       ParentColor = False
       TabOrder = 0
       Transparent = True
+      ExplicitLeft = 696
       object ColorSettingsToolButton: TToolButton
         Left = 0
         Top = 0
@@ -840,259 +850,215 @@ object frmMain: TfrmMain
     Top = 192
   end
   object VirtualImageList: TVirtualImageList
-    DisabledGrayscale = False
-    DisabledSuffix = '_Disabled'
     Images = <
       item
         CollectionIndex = 0
         CollectionName = 'Style'
-        Disabled = False
         Name = 'Style'
       end
       item
         CollectionIndex = 1
         CollectionName = 'Open'
-        Disabled = False
         Name = 'Open'
       end
       item
         CollectionIndex = 2
         CollectionName = 'New'
-        Disabled = False
         Name = 'New'
       end
       item
         CollectionIndex = 3
         CollectionName = 'Close'
-        Disabled = False
         Name = 'Close'
       end
       item
         CollectionIndex = 4
         CollectionName = 'Close-all'
-        Disabled = False
         Name = 'Close-all'
       end
       item
         CollectionIndex = 5
         CollectionName = 'Close-all-folder'
-        Disabled = False
         Name = 'Close-all-folder'
       end
       item
         CollectionIndex = 6
         CollectionName = 'Search'
-        Disabled = False
         Name = 'Search'
       end
       item
         CollectionIndex = 7
         CollectionName = 'Search-repeat'
-        Disabled = False
         Name = 'Search-repeat'
       end
       item
         CollectionIndex = 8
         CollectionName = 'Copy'
-        Disabled = False
         Name = 'Copy'
       end
       item
         CollectionIndex = 9
         CollectionName = 'Paste'
-        Disabled = False
         Name = 'Paste'
       end
       item
         CollectionIndex = 10
         CollectionName = 'Cut'
-        Disabled = False
         Name = 'Cut'
       end
       item
         CollectionIndex = 11
         CollectionName = 'Undo'
-        Disabled = False
         Name = 'Undo'
       end
       item
         CollectionIndex = 12
         CollectionName = 'Save'
-        Disabled = False
         Name = 'Save'
       end
       item
         CollectionIndex = 13
         CollectionName = 'Save-all'
-        Disabled = False
         Name = 'Save-all'
       end
       item
         CollectionIndex = 14
         CollectionName = 'Save-as'
-        Disabled = False
         Name = 'Save-as'
       end
       item
         CollectionIndex = 15
         CollectionName = 'Print'
-        Disabled = False
         Name = 'Print'
       end
       item
         CollectionIndex = 16
         CollectionName = 'Print-preview'
-        Disabled = False
         Name = 'Print-preview'
       end
       item
         CollectionIndex = 17
         CollectionName = 'Print-settings'
-        Disabled = False
         Name = 'Print-settings'
       end
       item
         CollectionIndex = 18
         CollectionName = 'Select-all'
-        Disabled = False
         Name = 'Select-all'
       end
       item
         CollectionIndex = 19
         CollectionName = 'Reformat'
-        Disabled = False
         Name = 'Reformat'
       end
       item
         CollectionIndex = 20
         CollectionName = 'Replace'
-        Disabled = False
         Name = 'Replace'
       end
       item
         CollectionIndex = 21
         CollectionName = 'Settings'
-        Disabled = False
         Name = 'Settings'
       end
       item
         CollectionIndex = 22
         CollectionName = 'Exit'
-        Disabled = False
         Name = 'Exit'
       end
       item
         CollectionIndex = 23
         CollectionName = 'about'
-        Disabled = False
         Name = 'about'
       end
       item
         CollectionIndex = 24
         CollectionName = 'menu'
-        Disabled = False
         Name = 'menu'
       end
       item
         CollectionIndex = 25
         CollectionName = 'Minus'
-        Disabled = False
         Name = 'Minus'
       end
       item
         CollectionIndex = 26
         CollectionName = 'plus'
-        Disabled = False
         Name = 'plus'
       end
       item
         CollectionIndex = 27
         CollectionName = 'back'
-        Disabled = False
         Name = 'back'
       end
       item
         CollectionIndex = 28
         CollectionName = 'preferences-desktop'
-        Disabled = False
         Name = 'preferences-desktop'
       end
       item
         CollectionIndex = 29
         CollectionName = 'preferences-desktop-color'
-        Disabled = False
         Name = 'preferences-desktop-color'
       end
       item
         CollectionIndex = 30
         CollectionName = 'view_details'
-        Disabled = False
         Name = 'view_details'
       end
       item
         CollectionIndex = 31
         CollectionName = 'left'
-        Disabled = False
         Name = 'left'
       end
       item
         CollectionIndex = 32
         CollectionName = 'right'
-        Disabled = False
         Name = 'right'
       end
       item
         CollectionIndex = 33
         CollectionName = 'binoculars'
-        Disabled = False
         Name = 'binoculars'
       end
       item
         CollectionIndex = 34
         CollectionName = 'whole-page'
-        Disabled = False
         Name = 'whole-page'
       end
       item
         CollectionIndex = 35
         CollectionName = 'page-width'
-        Disabled = False
         Name = 'page-width'
       end
       item
         CollectionIndex = 36
         CollectionName = 'svg-logo'
-        Disabled = False
         Name = 'svg-logo'
       end
       item
         CollectionIndex = 37
         CollectionName = 'svg-logo-gray'
-        Disabled = False
         Name = 'svg-logo-gray'
       end
       item
         CollectionIndex = 38
         CollectionName = 'export'
-        Disabled = False
         Name = 'export'
       end
       item
         CollectionIndex = 46
         CollectionName = 'error'
-        Disabled = False
         Name = 'error'
       end
       item
         CollectionIndex = 47
         CollectionName = 'info'
-        Disabled = False
         Name = 'info'
       end
       item
         CollectionIndex = 41
         CollectionName = 'Support'
-        Disabled = False
         Name = 'Support'
       end>
     ImageCollection = dmResources.SVGIconImageCollection

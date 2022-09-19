@@ -43,7 +43,7 @@ type
   TPreviewHandlerRegister = class(TComObjectFactory)
   private
     FPreviewHandlerClass: TPreviewHandlerClass;
-    class procedure DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
+    class procedure DeleteRegValue(const Key, ValueName: string; RootKey: HKEY);
   protected
   public
     constructor Create(APreviewHandlerClass: TPreviewHandlerClass;
@@ -78,7 +78,7 @@ begin
   TComPreviewHandler(result).PreviewHandlerClass := PreviewHandlerClass;
 end;
 
-class procedure TPreviewHandlerRegister.DeleteRegValue(const Key, ValueName: string; RootKey: DWord);
+class procedure TPreviewHandlerRegister.DeleteRegValue(const Key, ValueName: string; RootKey: HKEY);
 var
   RegKey: HKEY;
 begin

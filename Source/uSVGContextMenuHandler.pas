@@ -37,7 +37,9 @@ uses
   , ComObj
   , ShlObj
   , ShellApi
-  , SVGInterfaces;
+  , uSettings
+  , SVGInterfaces
+  , SVGIconUtils;
 
 const
   MENU_ITEM_OPEN_WITH_EDITOR = 0;
@@ -50,8 +52,9 @@ type
     //IContextMenu2, IContextMenu3,
     IShellExtInit)
   private
-    fFileName: string;
+    FFileName: string;
     FOwnerDrawId: UINT;
+    FSettings: TPreviewSettings;
   protected
     {Declare IContextMenu methods here}
     function QueryContextMenu(Menu: HMENU; indexMenu, idCmdFirst, idCmdLast,
@@ -70,6 +73,8 @@ type
     function HandleMenuMsg2(uMsg: UINT; wParam: WPARAM; lParam: LPARAM; var lpResult: LRESULT): HResult; stdcall;
     function MenuMessageHandler(uMsg: UINT; wParam: WPARAM; lParam: LPARAM; var lpResult: LRESULT): HResult; stdcall;
 *)
+  public
+    destructor Destroy; override;
   end;
 
   TSVGContextMenuFactory = class (TComObjectFactory)
@@ -92,13 +97,11 @@ uses
   , Registry
   , uLogExcept
   , System.Classes
-  , uSVGSettings
 {$IFNDEF DISABLE_STYLES}
   , Vcl.Themes
 {$ENDIF}
   , dlgExportPNG
-  , DResources
-  , SVGIconUtils;
+  , DResources;
 
 // IShellExtInit method
 function TSVGContextMenu.InitShellExt(pidlFolder: PItemIDList;
@@ -106,11 +109,16 @@ function TSVGContextMenu.InitShellExt(pidlFolder: PItemIDList;
 var
   medium: TStgMedium;
   fe: TFormatEtc;
+  LFileExt: string;
+  LCountFile: Integer;
 begin
+  TLogPreview.Add('TSVGContextMenu.InitShellExt');
+
   Result := E_FAIL;
   // check if the lpdobj pointer is nil
-  if Assigned (lpdobj) then
+  if Assigned(lpdobj) then
   begin
+    TLogPreview.Add('Assigned(lpdobj)');
     with fe do
     begin
       cfFormat := CF_HDROP;
@@ -121,17 +129,22 @@ begin
     end;
     // transform the lpdobj data to a storage medium structure
     Result := lpdobj.GetData(fe, medium);
-    if not Failed (Result) then
+    if not Failed(Result) then
     begin
+      LCountFile := DragQueryFile(medium.hGlobal, $FFFFFFFF, nil, 0);
+      TLogPreview.Add('LCountFile: '+IntToStr(LCountFile));
       // check if only one file is selected
-      if DragQueryFile(medium.hGlobal, $FFFFFFFF, nil, 0) = 1 then
+      if LCountFile = 1 then
       begin
-        SetLength(fFileName, 1000);
-        DragQueryFile(medium.hGlobal, 0, PChar (fFileName), 1000);
+        SetLength(FFileName, 1000);
+        DragQueryFile(medium.hGlobal, 0, PChar (FFileName), 1000);
         // realign string
-        fFileName := PChar(fFileName);
+        FFileName := PChar(FFileName);
+        FSettings := TPreviewSettings.CreateSettings(nil);
+        TLogPreview.Add('FFileName: '+FFileName);
+        LFileExt := ExtractFileExt(FFileName);
         // only for .svg files
-        if SameText(ExtractFileExt(fFileName),'.svg') then
+        if SameText(LFileExt,'.svg') then
           Result := NOERROR
         else
           Result := E_FAIL;
@@ -154,7 +167,7 @@ begin
   // add a new item to context menu
   LMenuIndex := indexMenu;
   InsertMenu(Menu, LMenuIndex, MF_STRING or MF_BYPOSITION, idCmdFirst+MENU_ITEM_OPEN_WITH_EDITOR,
-    'Open with SVG Text Editor...');
+    'Open with "SVG Text Editor"...');
   Inc(LMenuIndex);
   InsertMenu(Menu, LMenuIndex, MF_STRING or MF_BYPOSITION, idCmdFirst+MENU_ITEM_EXPORT_TO_PNG,
     'Export to PNG files...');
@@ -166,20 +179,26 @@ function TSVGContextMenu.InvokeCommand(var lpici: TCMInvokeCommandInfo): HResult
 var
   LStringStream: TStringStream;
   LFileName: string;
-  LSettings: TPreviewSettings;
   LSVGText: string;
   Reg: TRegistry;
   LCommand: string;
 
   procedure EditorNotInstalled;
   begin
-    MessageBox(0, 'Editor not installed', 'SVG Shell Extensions', MB_OK);
+    MessageBox(0, '"SVG Text Editor" not installed',
+      'Error opening file', MB_OK);
+  end;
+
+  procedure EditorNotFound;
+  begin
+    MessageBox(0, '"SVG Text Editor" not found!',
+      'Error opening file', MB_OK);
   end;
 
 begin
   Result := NOERROR;
   // Make sure we are not being called by an application
-  if HiWord(Integer(lpici.lpVerb)) <> 0 then
+  if HiWord(NativeInt(lpici.lpVerb)) <> 0 then
   begin
     Result := E_FAIL;
     Exit;
@@ -193,7 +212,8 @@ begin
   // execute the command specified by lpici.lpVerb.
   if LoWord(lpici.lpVerb) = MENU_ITEM_OPEN_WITH_EDITOR then
   begin
-    //TLogPreview.Add('TSVGContextMenu: Menu clicked');
+    TLogPreview.Add('TSVGContextMenu: Menu clicked');
+
     Reg := TRegistry.Create(KEY_READ);
     try
       Reg.RootKey := HKEY_CLASSES_ROOT;
@@ -202,15 +222,20 @@ begin
       begin
         LCommand := Reg.ReadString('');
         LCommand := StringReplace(LCommand,' "%1"','', []);
-        LCommand := StringReplace(LCommand,'"','', [rfReplaceAll]);
-        TLogPreview.Add(Format('TSVGContextMenuHandler: Open Editor: %s', [LCommand]));
-        if (LCommand <> '') and FileExists(LCommand) then
-          ShellExecute(0, 'Open', PChar(LCommand), PChar(FFileName), nil, SW_SHOWNORMAL)
+        LFileName := format('"%s"',[FFileName]);
+        TLogPreview.Add(Format('TMDContextMenuHandler: Command: %s FileName %s',
+          [LCommand, LFileName]));
+        if (FFileName <> '') and FileExists(FFileName) then
+        begin
+          TLogPreview.Add(Format('TSVGContextMenuHandler: ShellExecute: %s for file %s',
+            [LCommand, LFileName]));
+          ShellExecute(0, 'Open', PChar(LCommand), PChar(LFileName), nil, SW_SHOWNORMAL);
+        end
         else
           EditorNotInstalled;
       end
       else
-        EditorNotInstalled;
+        EditorNotFound;
     finally
       Reg.Free;
     end;
@@ -221,22 +246,28 @@ begin
     LStringStream.LoadFromFile(fFileName);
     try
       LFileName := ChangeFileExt(fFileName,'.png');
-      LSettings := TPreviewSettings.CreateSettings(nil);
-      try
 {$IFNDEF DISABLE_STYLES}
-        if (Trim(LSettings.StyleName) <> '') and not SameText('Windows', LSettings.StyleName) then
-          TStyleManager.TrySetStyle(LSettings.StyleName, False);
+        if (Trim(FSettings.StyleName) <> '') and not SameText('Windows', FSettings.StyleName) then
+          TStyleManager.TrySetStyle(FSettings.StyleName, False);
 {$ENDIF}
-      finally
-        LSettings.Free;
-      end;
+      ExportToPNG(TRect.Create(0,0,0,0),
+        LFileName,
+        LSVGText,
+        False,
+        FSettings.PngExportCustomSize,
+        FSettings.PngExportFormat,
+        FSettings.PngExportSizes);
       LSVGText := LStringStream.DataString;
     finally
       LStringStream.Free;
     end;
-    ExportToPNG(TRect.Create(0,0,0,0), LFileName,
-      LSVGText, False);
   end;
+end;
+
+destructor TSVGContextMenu.Destroy;
+begin
+  FreeAndNil(FSettings);
+  inherited;
 end;
 
 function TSVGContextMenu.GetCommandString(idCmd: UINT_PTR; uFlags: UINT; pwReserved: PUINT;

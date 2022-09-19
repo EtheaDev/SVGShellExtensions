@@ -36,7 +36,7 @@ uses
   ActnMenus, SynCompletionProposal, SynEditTypes, SynEditMiscClasses,
   SynEditSearch, XPStyleActnCtrls, System.Actions, SVGIconImage, Vcl.Buttons,
   Vcl.CategoryButtons, Vcl.WinXCtrls, System.ImageList, Vcl.VirtualImageList,
-  uSVGSettings
+  uSettings
   , Vcl.PlatformVclStylesActnCtrls
   , Vcl.Styles.Fixes
   , Vcl.Styles.FormStyleHooks
@@ -53,6 +53,8 @@ uses
   , Vcl.Styles.Utils.StdCtrls
   , Vcl.Styles.Ext
   , uDragDropUtils
+  , dlgExportPNG
+  , SVGIconUtils
   ;
 
 const
@@ -277,6 +279,8 @@ type
     FEditorOptions: TSynEditorOptionsContainer;
     FFontSize: Integer;
     FDropTarget: TDropTarget;
+    procedure OnExportToPng(const ASizes: TPngExportSizes; const SVGText: string;
+      const AFolder, AFormat: string; ACustomSize: Integer);
     // implement IDragDrop
     function DropAllowed(const FileNames: array of string): Boolean;
     procedure Drop(const FileNames: array of string);
@@ -335,8 +339,7 @@ uses
   , FSynHighlightProp
   , Math
   , Winapi.SHFolder
-  , dlgExportPNG
-  , SVGSettings
+  , SettingsForm
   ;
 
 {$R *.dfm}
@@ -450,6 +453,12 @@ function TfrmMain.AcceptedExtensions: string;
 begin
   //Check file extension
   Result := '.svg;.xml';
+end;
+
+procedure TfrmMain.OnExportToPng(const ASizes: TPngExportSizes; const SVGText: string;
+    const AFolder, AFormat: string; ACustomSize: Integer);
+begin
+  FEditorSettings.UpdateExportToPngSettings(ASizes, AFolder, AFormat, ACustomSize);
 end;
 
 function TfrmMain.OpenFile(const FileName : string;
@@ -734,7 +743,14 @@ var
   LFileName: string;
 begin
   LFileName := ChangeFileExt(CurrentEditFile.FileName, '.png');
-  ExportToPNG(DialogPosRect, LFileName, SVGIconImage.SVGText, True);
+  dlgExportPNG.ExportToPNG(DialogPosRect,
+    LFileName,
+    SVGIconImage.SVGText,
+    True,
+    FEditorSettings.PngExportCustomSize,
+    FEditorSettings.PngExportFormat,
+    FEditorSettings.PngExportSizes,
+    OnExportToPng);
 end;
 
 procedure TfrmMain.acSearchExecute(Sender: TObject);
@@ -951,52 +967,52 @@ end;
 
 function TfrmMain.AddEditingFile(EditingFile: TEditingFile): Integer;
 var
-  ts : TTabSheet;
-  Editor : TSynEdit;
+  LTabSheet : TTabSheet;
+  LEditor : TSynEdit;
 begin
   //Add file to opened-list
   Result := EditFileList.Add(EditingFile);
   //Create the Tabsheet page associated to the file
-  ts := nil;
-  Editor := nil;
+  LTabSheet := nil;
+  LEditor := nil;
   Try
-    ts := TTabSheet.Create(self);
-    ts.PageControl := PageControl;
+    LTabSheet := TTabSheet.Create(self);
+    LTabSheet.PageControl := PageControl;
     //Use TAG of tabsheet to store the object pointer
-    ts.Tag := Integer(EditingFile);
-    ts.Caption := EditingFile.Name;
-    ts.Imagename := 'svg-logo-gray';
-    ts.Parent := PageControl;
-    ts.TabVisible := True;
-    EditingFile.TabSheet := ts;
+    LTabSheet.Tag := NativeInt(EditingFile);
+    LTabSheet.Caption := EditingFile.Name;
+    LTabSheet.Imagename := 'svg-logo-gray';
+    LTabSheet.Parent := PageControl;
+    LTabSheet.TabVisible := True;
+    EditingFile.TabSheet := LTabSheet;
 
     //Create the SynEdit object editor into the TabSheet that is the owner
-    Editor := TSynEdit.Create(ts);
-    Editor.OnChange := SynEditChange;
-    Editor.OnEnter := SynEditEnter;
-    Editor.MaxUndo := 5000;
-    Editor.Align := alClient;
-    Editor.Parent := ts;
-    Editor.SearchEngine := SynEditSearch;
-    Editor.PopupMenu := popEditor;
+    LEditor := TSynEdit.Create(LTabSheet);
+    LEditor.OnChange := SynEditChange;
+    LEditor.OnEnter := SynEditEnter;
+    LEditor.MaxUndo := 5000;
+    LEditor.Align := alClient;
+    LEditor.Parent := LTabSheet;
+    LEditor.SearchEngine := SynEditSearch;
+    LEditor.PopupMenu := popEditor;
     //Assign user preferences to the editor
-    FEditorOptions.AssignTo(Editor);
-    Editor.MaxScrollWidth := 3000;
-    EditingFile.SynEditor := Editor;
-    UpdateFromSettings(Editor);
-    UpdateHighlighter(Editor);
-    Editor.Visible := True;
+    FEditorOptions.AssignTo(LEditor);
+    LEditor.MaxScrollWidth := 3000;
+    EditingFile.SynEditor := LEditor;
+    UpdateFromSettings(LEditor);
+    UpdateHighlighter(LEditor);
+    LEditor.Visible := True;
 
     //Show the tabsheet
-    ts.Visible := True;
+    LTabSheet.Visible := True;
   Except
-    ts.Free;
-    Editor.Free;
+    LTabSheet.Free;
+    LEditor.Free;
     raise;
   End;
 
     //Make the Tabsheet the current page
-    PageControl.ActivePage := ts;
+    PageControl.ActivePage := LTabSheet;
 
     //and call "change" of pagecontrol
     PageControl.OnChange(PageControl);
@@ -1147,6 +1163,7 @@ begin
   finally
     FProcessingFiles := False;
     AssignSVGToImage;
+    UpdateStatusBarPanels;
   end;
 end;
 
@@ -1263,10 +1280,11 @@ begin
   if (CurrentEditor <> nil) and (Value >= MinfontSize) and (Value <= MaxfontSize) then
   begin
     if FFontSize <> 0 then
-      LScaleFactor := CurrentEditor.Font.Size / FFontSize
+      LScaleFactor := CurrentEditor.Font.Height / FFontSize
     else
       LScaleFactor := 1;
-    CurrentEditor.Font.Size := Round(Value * LScaleFactor);
+    CurrentEditor.Font.PixelsPerInch := Self.PixelsPerInch;
+    CurrentEditor.Font.Height := Round(Value * LScaleFactor * Self.ScaleFactor);
     FEditorSettings.FontSize := Value;
   end;
   FFontSize := Value;
@@ -1417,14 +1435,17 @@ begin
   for I := 0 to FEditorSettings.HistoryFileList.Count -1 do
   begin
     LFileName := FEditorSettings.HistoryFileList.Strings[I];
-    LMenuItem := TMenuItem.Create(nil);
-    if Length(LFileName) > 100 then
-      LMenuItem.Caption := Copy(LFileName,1,20)+'...'+RightStr(LFileName, 80)
-    else
-      LMenuItem.Caption := LFileName;
-    LMenuItem.Hint := LFileName;
-    LMenuItem.OnClick := HistoryListClick;
-    RecentPopupMenu.Items.Add(LMenuItem);
+    if FileExists(LFileName) then
+    begin
+      LMenuItem := TMenuItem.Create(nil);
+      if Length(LFileName) > 100 then
+        LMenuItem.Caption := Copy(LFileName,1,20)+'...'+RightStr(LFileName, 80)
+      else
+        LMenuItem.Caption := LFileName;
+      LMenuItem.Hint := LFileName;
+      LMenuItem.OnClick := HistoryListClick;
+      RecentPopupMenu.Items.Add(LMenuItem);
+    end;
   end;
 end;
 
@@ -1459,6 +1480,7 @@ begin
     StatusBar.Panels[STATUSBAR_PANEL_CARET].Text := '';
     StatusBar.Panels[STATUSBAR_PANEL_MODIFIED].Text := '';
     StatusBar.Panels[STATUSBAR_PANEL_STATE].Text := '';
+    StatusBar.Panels[STATUSBAR_MESSAGE].Text := '';
   end;
 end;
 

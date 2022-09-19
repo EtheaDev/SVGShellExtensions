@@ -45,12 +45,11 @@ uses
   uSVGThumbnailHandler in 'uSVGThumbnailHandler.pas',
   uThumbnailHandlerRegister in 'uThumbnailHandlerRegister.pas',
   uSVGContextMenuHandler in 'uSVGContextMenuHandler.pas',
-  SVGPreviewForm in 'SVGPreviewForm.pas' {FrmPreview},
-  SVGSettings in 'SVGSettings.pas' {SVGSettingsForm},
-  uSVGSettings in 'uSVGSettings.pas',
+  PreviewForm in 'PreviewForm.pas' {FrmPreview},
+  SettingsForm in 'SettingsForm.pas' {UserSettingsForm},
+  uSettings in 'uSettings.pas',
   DResources in 'DResources.pas' {dmResources: TDataModule},
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
-  //SVGPreviewPanel in 'SVGPreviewPanel.pas' {FrmPreview},
   uAbout in 'uAbout.pas' {FrmAbout};
 
 exports

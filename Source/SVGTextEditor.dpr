@@ -47,8 +47,8 @@ uses
   Vcl.Themes,
   Vcl.Styles,
   SynEditOptionsDialog in 'SynEditOptionsDialog.pas' {fmEditorOptionsDialog},
-  uSVGSettings in 'uSVGSettings.pas',
-  SVGSettings in 'SVGSettings.pas' {SVGSettingsForm},
+  uSettings in 'uSettings.pas',
+  SettingsForm in 'SettingsForm.pas' {UserSettingsForm},
   uRegistry in 'uRegistry.pas';
 
 {$R *.res}

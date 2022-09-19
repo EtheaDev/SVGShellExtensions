@@ -35,7 +35,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs;
+  Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls;
 
 type
   TPreviewContainer = class(TForm)
@@ -43,16 +43,19 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     FPreviewHandler: TObject;
+    FActualRect: TRect;
   public
     procedure SetFocusTabFirst;
     procedure SetFocusTabLast;
     procedure SetBackgroundColor(color: TColorRef);
-    procedure SetBoundsRectAndPPI(const ARect: TRect;
-      const AOldPPI, ANewPPI: Integer); virtual;
+    procedure SetBoundsRectAndPPI(const ARect: TRect; AOldPPI, ANewPPI: Integer); virtual;
     procedure SetTextColor(color: TColorRef);
     procedure SetTextFont(const plf: TLogFont);
-    property  PreviewHandler: TObject read FPreviewHandler write FPreviewHandler;
+    property PreviewHandler: TObject read FPreviewHandler write FPreviewHandler;
+    property ActualRect: TRect read FActualRect;
   end;
+
+function GetRect(const ARect: TRect; const ATxt: string): string;
 
 implementation
 
@@ -65,9 +68,15 @@ uses
   Vcl.Themes,
 {$ENDIF}
   uLogExcept,
-  uSVGSettings;
+  uSettings;
 
 {$R *.dfm}
+
+function GetRect(const ARect: TRect; const ATxt: string): string;
+begin
+  Result := Format('%s: L:%d - T:%d - W:%d - H:%d',
+    [ATxt, ARect.Left, ARect.Top, ARect.Width, ARect.Height]);
+end;
 
 procedure TPreviewContainer.SetFocusTabFirst;
 begin
@@ -111,38 +120,47 @@ begin
 end;
 
 procedure TPreviewContainer.SetBoundsRectAndPPI(const ARect: TRect;
-  const AOldPPI, ANewPPI: Integer);
+  AOldPPI, ANewPPI: Integer);
+var
+  Lmsg: string;
+  LActualMonitor, LMainMonitor: TMonitor;
+  LScaleFactor: Double;
+  I: Integer;
 begin
-  if (ARect.Width <> 0) and (ARect.Height <> 0) then
+  LActualMonitor := Screen.MonitorFromWindow(Self.Handle);
+  LMainMonitor := LActualMonitor;
+  for I := 0 to Screen.MonitorCount do
   begin
-    TLogPreview.Add('TPreviewContainer.SetBoundsRect:'+
-    ' Visible: '+Self.Visible.Tostring+
-      ' CurrentPPI:'+Self.CurrentPPI.ToString+
-      ' AOldPPI:'+AOldPPI.ToString+
-      ' ANewPPI:'+ANewPPI.ToString+
-      ' Scaled:'+Self.Scaled.ToString+
-      ' ARect.Width: '+ARect.Width.ToString+
-      ' ARect.Height: '+ARect.Height.ToString);
-
-      if ANewPPI <> AOldPPI then
-      begin
-        SetBounds(
-          ARect.Left,
-          ARect.Top,
-          MulDiv(ARect.Width, ANewPPI, AOldPPI),
-          MulDiv(ARect.Height, ANewPPI, AOldPPI));
-      end
-      else
-      begin
-        SetBounds(
-          ARect.Left,
-          ARect.Top,
-          ARect.Width,
-          ARect.Height);
-      end;
-
-    FCurrentPPI := ANewPPI;
+    LMainMonitor := Screen.Monitors[I];
+    if LMainMonitor.Primary then
+      Break;
   end;
+
+  if LMainMonitor <> LActualMonitor then
+  begin
+    LScaleFactor := LActualMonitor.PixelsPerInch / LMainMonitor.PixelsPerInch;
+    ARect.Width := Round(ARect.Width * LScaleFactor);
+    ARect.Height := Round(ARect.Height * LScaleFactor);
+  end;
+
+  Lmsg := 'TPreviewContainer.SetBoundsRect:'+
+  ' Visible: '+Self.Visible.Tostring+slineBreak+
+    ' ANewPPI = AOldPPI'+slineBreak+
+    ' Form.CurrentPPI:'+Self.CurrentPPI.ToString+slineBreak+
+    ' Form.Scaled:'+Self.Scaled.ToString+slineBreak+
+    ' AOldPPI:'+AOldPPI.ToString+slineBreak+
+    ' ANewPPI:'+ANewPPI.ToString+slineBreak+
+    ' Scaled:'+Self.Scaled.ToString+slineBreak+
+    ' ARect.Width: '+ARect.Width.ToString+slineBreak+
+    ' ARect.Height: '+ARect.Height.ToString+slineBreak;
+
+  SetWindowPos(WindowHandle, 0, ARect.Left, ARect.Top, ARect.Width, ARect.Height, SWP_NOZORDER + SWP_NOACTIVATE);
+  //if LMainMonitor <> LActualMonitor then
+  //  ChangeScale(LMainMonitor.PixelsPerInch, LActualMonitor.PixelsPerInch);
+  FActualRect := ARect;
+  FCurrentPPI := ANewPPI;
+
+  TLogPreview.Add(Lmsg);
 end;
 
 procedure TPreviewContainer.SetTextColor(color: TColorRef);

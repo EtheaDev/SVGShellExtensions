@@ -64,7 +64,7 @@ uses
 procedure Initialize_GDI; stdcall;
 begin
   //Initialize GDI+
-  TLogPreview.Add('Initialize GDI+');
+  TLogPreview.Add('GDI+: Initialize');
   StartupInput.DebugEventCallback := nil;
   StartupInput.SuppressBackgroundThread := False;
   StartupInput.SuppressExternalCodecs := False;
@@ -74,6 +74,7 @@ end;
 
 procedure Finalize_GDI; stdcall;
 begin
+  TLogPreview.Add('GDI+: Finalize');
   GdiplusShutdown(gdiplusToken);
 end;
 

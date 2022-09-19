@@ -57,9 +57,9 @@ type
   end;
 
 const
- {$EXTERNALSYM IID_IThumbnailProvider}
- ThumbnailProviderGUID = '{E357FCCD-A995-4576-B01F-234630154E96}';
- IID_IThumbnailProvider: TGUID = ThumbnailProviderGUID;
+  {$EXTERNALSYM IID_IThumbnailProvider}
+  ThumbnailProviderGUID = '{E357FCCD-A995-4576-B01F-234630154E96}';
+  IID_IThumbnailProvider: TGUID = ThumbnailProviderGUID;
 
   MySVG_ThumbNailProviderGUID: TGUID = '{00580C37-8ED4-41CF-B4DB-B3D3EF6576B0}';
 

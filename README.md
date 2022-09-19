@@ -1,6 +1,6 @@
 ﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 2.7.0 - 10 Apr 2022**
+**Latest Version 2.9.0 - 18 Sep 2022**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
 
@@ -8,9 +8,10 @@
  
 - A [Thumbnail handler][2] which allows you to see the SVG image into Windows Explorer.
 
-- An [SVG-XML Text Editor][10] to manually edit and preview the text of SVG files.
+- An [SVG-XML Text Editor][12] to manually edit and preview the text of SVG files.
 
 ### Features
+
 - Supports Windows Vista, 7, 8, 10 and 11 (for 32 bits and 64 bits).
 
 - Themes (Dark and Light) according to user preferences of Windows Theme
@@ -20,8 +21,6 @@
 ### Setup using the Installer
 
 Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Release area. The Installer works both for 32 and 64 bit system.
-
-INFO: currently the installer is signed with a public certificate!
 
 ![SVG Setup_Program](./Images/Setup.png)
 
@@ -74,6 +73,14 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+18 Set 2022: ver. 2.9.0
+- Fixed Preview size in multi-monitor
+- Fixed flickering of Preview
+
+13 Set 2022: ver. 2.8.0
+- Fixed load file with blanks in content menu
+- Built with Delphi 11.2
 
 10 Apr 2022 - Version 2.7.0
 - Updated Image32 Library
@@ -173,23 +180,33 @@ Third Party libraries and tools used:
 
 - [SynEdit][5]
 
-- [TSVG Library][10]
 
-![Delphi 11 Sydney Support](/Setup/SupportingDelphi.jpg)
+![Delphi 11 Alexandria Support](/Setup/SupportingDelphi.jpg)
 
-Related links: [embarcadero.com][11] - [learndelphi.org][12]
+Related links: [embarcadero.com][10] - [learndelphi.org][11]
 
 
 [1]: https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers
+
 [2]: https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers
+
 [3]: https://github.com/EtheaDev/SVGShellExtensions/releases/latest/download/SVGShellExtensionsSetup.exe
+
 [4]: https://github.com/EtheaDev/SVGIconImageList
+
 [5]: https://github.com/SynEdit/SynEdit
+
 [6]: https://github.com/RRUZ/vcl-styles-utils
+
 [7]: https://theroadtodelphi.com/
+
 [8]: https://github.com/RRUZ/delphi-preview-handler
+
 [9]: https://opensource.org/licenses/Apache-2.0
-[10]: https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor
-[10]: http://www.mwcs.de
-[11]: https://www.embarcadero.com/
-[12]: https://learndelphi.org/
+
+[10]: https://www.embarcadero.com/
+
+[11]: https://learndelphi.org/
+
+[12]: https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor
+

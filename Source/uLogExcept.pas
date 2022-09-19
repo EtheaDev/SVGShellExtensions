@@ -31,6 +31,8 @@ type
   TLogPreview = class
   private
     FLogStream: TStream;
+    class var FLogFile: string;
+    class procedure InitLogFile; static;
   public
     property LogStream: TStream read FLogStream write FLogStream;
     class procedure Add(const AMessage: string); overload;
@@ -43,10 +45,9 @@ uses
   uMisc,
   IOUtils;
 
-var
-  sLogFile: string;
-
+{$IFDEF DEBUG}
 {$DEFINE ENABLELOG}
+{$ENDIF}
 
 procedure AppendAllText(const FileName, Contents: string);
 {$IFDEF ENABLELOG}
@@ -72,12 +73,20 @@ begin
 end;
 
 { TLogException }
+
+class procedure TLogPreview.InitLogFile;
+begin
+  if FLogFile = '' then
+    FLogFile := IncludeTrailingPathDelimiter(GetTempDirectory) + 'SvgShellExtensions.log';
+end;
+
 class procedure TLogPreview.Add(const AMessage: string);
 begin
-{$IFDEF DEBUG}
+{$IFDEF ENABLELOG}
   try
-    if (Copy(AMessage,1,15) = 'TSVGContextMenu') then
-      AppendAllText(sLogFile, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + AMessage + sLineBreak);
+    InitLogFile;
+    if (Copy(AMessage,1,4) = 'GDI+') then
+    AppendAllText(FLogFile, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + AMessage + sLineBreak);
   except
     on e: EFOpenError do;
   end;
@@ -87,7 +96,8 @@ end;
 class procedure TLogPreview.Add(const AException: Exception);
 begin
   try
-    AppendAllText(sLogFile, Format('%s %s StackTrace %s %s', [FormatDateTime('hh:nn:ss.zzz', Now), AException.Message,
+    InitLogFile;
+    AppendAllText(FLogFile, Format('%s %s StackTrace %s %s', [FormatDateTime('hh:nn:ss.zzz', Now), AException.Message,
       AException.StackTrace, sLineBreak]));
   except
     on e: EFOpenError do;
@@ -95,7 +105,5 @@ begin
 end;
 
 initialization
-
-sLogFile := IncludeTrailingPathDelimiter(GetTempDirectory) + 'SVGshellExtensions.log';
 
 end.
