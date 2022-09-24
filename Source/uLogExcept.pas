@@ -85,7 +85,7 @@ begin
 {$IFDEF ENABLELOG}
   try
     InitLogFile;
-    if (Copy(AMessage,1,4) = 'GDI+') then
+    //if (Copy(AMessage,1,4) = 'GDI+') then
     AppendAllText(FLogFile, FormatDateTime('hh:nn:ss.zzz', Now) + ' ' + AMessage + sLineBreak);
   except
     on e: EFOpenError do;

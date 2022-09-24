@@ -250,6 +250,7 @@ begin
         if (Trim(FSettings.StyleName) <> '') and not SameText('Windows', FSettings.StyleName) then
           TStyleManager.TrySetStyle(FSettings.StyleName, False);
 {$ENDIF}
+      LSVGText := LStringStream.DataString;
       ExportToPNG(TRect.Create(0,0,0,0),
         LFileName,
         LSVGText,
@@ -257,7 +258,6 @@ begin
         FSettings.PngExportCustomSize,
         FSettings.PngExportFormat,
         FSettings.PngExportSizes);
-      LSVGText := LStringStream.DataString;
     finally
       LStringStream.Free;
     end;

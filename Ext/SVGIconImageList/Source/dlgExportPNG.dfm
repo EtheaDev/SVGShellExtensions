@@ -2,7 +2,7 @@ object ExportToPNGDialog: TExportToPNGDialog
   Left = 132
   Top = 168
   BorderStyle = bsDialog
-  Caption = 'Export SVG to PNG files'
+  Caption = 'Export SVG icon to PNG files'
   ClientHeight = 279
   ClientWidth = 454
   Color = clBtnFace
@@ -11,11 +11,9 @@ object ExportToPNGDialog: TExportToPNGDialog
   Font.Height = -11
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 13
   object OutputFileNameLabel: TLabel
     Left = 247

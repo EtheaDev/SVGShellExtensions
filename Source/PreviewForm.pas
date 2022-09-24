@@ -54,7 +54,7 @@ type
     StatusBar: TStatusBar;
     SVGIconImageList: TVirtualImageList;
     ToolButtonZoomIn: TToolButton;
-    ToolButtonZommOut: TToolButton;
+    ToolButtonZoomOut: TToolButton;
     ToolBar: TToolBar;
     ToolButtonSettings: TToolButton;
     ToolButtonAbout: TToolButton;
@@ -69,7 +69,7 @@ type
     BackgroundTrackBar: TTrackBar;
     procedure FormCreate(Sender: TObject);
     procedure ToolButtonZoomInClick(Sender: TObject);
-    procedure ToolButtonZommOutClick(Sender: TObject);
+    procedure ToolButtonZoomOutClick(Sender: TObject);
     procedure ToolButtonSettingsClick(Sender: TObject);
     procedure ToolButtonAboutClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -199,7 +199,7 @@ begin
   ToolButtonSettings.Visible := True;
   ToolButtonReformat.Visible := PanelEditor.Visible;
   ToolButtonZoomIn.Visible := PanelEditor.Visible;
-  ToolButtonZommOut.Visible := PanelEditor.Visible;
+  ToolButtonZoomOut.Visible := PanelEditor.Visible;
 end;
 
 procedure TFrmPreview.UpdateHighlighter;
@@ -236,6 +236,7 @@ procedure TFrmPreview.FormCreate(Sender: TObject);
 var
   FileVersionStr: string;
 begin
+  inherited;
   TLogPreview.Add('TFrmPreview.FormCreate');
   FileVersionStr := uMisc.GetFileVersion(GetModuleLocation());
   FSimpleText := Format(StatusBar.SimpleText,
@@ -402,7 +403,7 @@ begin
   TToolButton(Sender).CheckMenuDropdown;
 end;
 
-procedure TFrmPreview.ToolButtonZommOutClick(Sender: TObject);
+procedure TFrmPreview.ToolButtonZoomOutClick(Sender: TObject);
 begin
   EditorFontSize := EditorFontSize - 1;
   SaveSettings;

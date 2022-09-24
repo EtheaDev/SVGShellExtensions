@@ -7,8 +7,8 @@ inherited FrmPreview: TFrmPreview
   Font.Name = 'Segoe UI'
   OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
   OnResize = FormResize
-  ExplicitWidth = 629
-  ExplicitHeight = 655
+  ExplicitWidth = 633
+  ExplicitHeight = 656
   TextHeight = 13
   object Splitter: TSplitter
     Left = 0
@@ -122,7 +122,7 @@ inherited FrmPreview: TFrmPreview
         OnMouseEnter = ToolButtonMouseEnter
         OnMouseLeave = ToolButtonMouseLeave
       end
-      object ToolButtonZommOut: TToolButton
+      object ToolButtonZoomOut: TToolButton
         Left = 183
         Top = 0
         Cursor = crHandPoint
@@ -132,7 +132,7 @@ inherited FrmPreview: TFrmPreview
         ImageIndex = 7
         ImageName = 'minus'
         Visible = False
-        OnClick = ToolButtonZommOutClick
+        OnClick = ToolButtonZoomOutClick
         OnMouseEnter = ToolButtonMouseEnter
         OnMouseLeave = ToolButtonMouseLeave
       end

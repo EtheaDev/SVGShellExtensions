@@ -1,6 +1,6 @@
 ﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 2.9.0 - 18 Sep 2022**
+**Latest Version 3.0.0 - 24 Sep 2022**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
 
@@ -74,11 +74,16 @@ To manually install the SVGShellExtensions.dll follow these steps:
 
 ## Release Notes ##
 
-18 Set 2022: ver. 2.9.0
+24 Sep 2022: ver. 3.0.0
+- Fixed Scrollbar colors viewing text in preview
+- Fixed "empty panel" viewing text in preview
+- Fixed "context-menu" for export to PNG (image lost)
+
+18 Sep 2022: ver. 2.9.0
 - Fixed Preview size in multi-monitor
 - Fixed flickering of Preview
 
-13 Set 2022: ver. 2.8.0
+13 Sep 2022: ver. 2.8.0
 - Fixed load file with blanks in content menu
 - Built with Delphi 11.2
 
