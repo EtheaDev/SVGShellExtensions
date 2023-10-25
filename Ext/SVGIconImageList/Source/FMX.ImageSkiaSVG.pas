@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/FMX                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -41,8 +41,8 @@ Uses
   , FMX.Graphics
   , FMX.Objects
   , FMX.ImageSVG
-  , Skia       //You must add those search path: SVGIconImageList\skia4delphi\Source
-  , Skia.FMX;  //and SVGIconImageList\skia4delphi\Source\FMX
+  , System.Skia       
+  , Skia.FMX;
 
 type
   TFmxImageSkiaSVG = class(TFmxImageSVG)

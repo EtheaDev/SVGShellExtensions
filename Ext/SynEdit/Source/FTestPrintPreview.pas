@@ -2,7 +2,7 @@
 {                                                                   }
 {   Ethea SynEdit print preview                                     }
 {                                                                   }
-{   Copyright (c) 2005-2022 Ethea S.r.l.                            }
+{   Copyright (c) 2005-2023 Ethea S.r.l.                            }
 {   ALL RIGHTS RESERVED / TUTTI I DIRITTI RISERVATI                 }
 {                                                                   }
 {*******************************************************************}

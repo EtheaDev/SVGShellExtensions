@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/FMX                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -101,7 +101,7 @@ type
   end;
 
   {$IF CompilerVersion > 34}
-  [ComponentPlatforms(pidWin32 or pidWin64 or pidOSX32 or pidiOSSimulator32 or pidiOSDevice32 or pidAndroidArm32)]
+  [ComponentPlatforms(pidWin32 or pidWin64 or pidOSX32 or pidOSX64 or pidiOSSimulator32 or pidiOSDevice32 or pidiOSDevice64 or pidAndroidArm32 or pidAndroidArm64)]
   {$ELSE}
   [ComponentPlatforms(pidWin32 or pidWin64 or pidOSX32 or pidiOSSimulator32 or pidiOSDevice32 or pidAndroid32Arm)]
   {$ENDIF}

@@ -56,7 +56,8 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskBar := True;
-  Application.Title := Title_SVGTextEditor+'- © 2021-2022 Ethea S.r.l.';
+  Application.ActionUpdateDelay := 50;
+  Application.Title := Title_SVGTextEditor+'- © 2021-2023 Ethea S.r.l.';
   with TSplashForm.Create(nil) do
   Try
     Show;

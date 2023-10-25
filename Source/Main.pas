@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -36,11 +36,6 @@ interface
 implementation
 
 uses
-  System.Generics.Collections,
-  System.Classes,
-  SynEditHighlighter,
-  uPreviewHandler,
-  SynHighlighterXML,
   uSVGThumbnailHandler,
   uSVGPreviewHandler;
 

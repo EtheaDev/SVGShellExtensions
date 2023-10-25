@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.Ext.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2023 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -27,6 +27,7 @@ interface
 {$LEGACYIFEND ON}
 {$IFEND}
 {$DEFINE USE_VCL_STYLESAPI}
+{$WARN SYMBOL_DEPRECATED OFF}
 
 uses
   System.Classes,
@@ -93,6 +94,7 @@ type
   TSourceInfo = record
     Data: TStyleServicesHandle;
     StyleClass: TCustomStyleServicesClass;
+    {$IF CompilerVersion >= 35}DesigningState: Boolean;{$IFEND}
   end;
 
 {$REGION 'Documentation'}
@@ -259,11 +261,22 @@ uses
 {$IFEND}  
   Winapi.Messages,
 {$ENDIF}
-  Vcl.Dialogs, Vcl.Styles.Utils.Misc, Vcl.Styles.Utils.Graphics;
+  Vcl.Dialogs,
+{$IF (CompilerVersion > 35)}
+  Vcl.StyleAPI,
+  Vcl.StyleBitmap,
+{$IFEND}
+  Vcl.Styles.Utils.Misc,
+  Vcl.Styles.Utils.Graphics;
 
 {$IF (DEFINED (USE_VCL_STYLESAPI) AND (CompilerVersion >= 23))}
-{$I '..\source\vcl\StyleUtils.inc'}
-{$I '..\source\vcl\StyleAPI.inc'}
+  {$IF (CompilerVersion <= 35)}
+    {$I '..\source\vcl\StyleUtils.inc'}
+    {$I '..\source\vcl\StyleAPI.inc'}
+  {$ELSE}
+//    {$I 'StyleAPI.inc'}
+//    {$I 'StyleUtils.inc'}
+  {$IFEND}
 {$IFEND}
 
 type
@@ -597,12 +610,14 @@ begin
 end;
 
 procedure TCustomStyleExt.CopyToStream(Stream: TStream);
+{$IF CompilerVersion < 36}
 var
   I: Integer;
+{$IFEND}
 begin
   Stream.Size := 0;
   Stream.Position := 0;
-
+  {$IF CompilerVersion < 36}
   TseStyle(Source).FCleanCopy.Name := TseStyle(Source).StyleSource.Name;
   TseStyle(Source).FCleanCopy.Author := TseStyle(Source).StyleSource.Author;
   TseStyle(Source).FCleanCopy.AuthorEMail := TseStyle(Source).StyleSource.AuthorEMail;
@@ -628,6 +643,7 @@ begin
     TseStyle(Source).StyleSource.SysColors.Assign(TseStyle(Source).SysColors);
     TseStyle(Source).StyleSource.SaveToStream(Stream);
   }
+  {$IFEND}
 end;
 
 constructor TCustomStyleExt.Create(const Style: TCustomStyle);
@@ -1859,14 +1875,14 @@ end;
 
 initialization
 
-{$IFDEF USE_VCL_STYLESAPI}
+{$IF DEFINED (USE_VCL_STYLESAPI) AND (CompilerVersion < 36)}
   InitStyleAPI;
-{$ENDIF}
+{$IFEND}
 
 finalization
 
-{$IFDEF USE_VCL_STYLESAPI}
+{$IF DEFINED (USE_VCL_STYLESAPI) AND (CompilerVersion < 36)}
   FinalizeStyleAPI;
-{$ENDIF}
+{$IFEND}
 
 end.

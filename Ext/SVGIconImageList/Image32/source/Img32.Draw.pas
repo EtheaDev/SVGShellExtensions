@@ -2,10 +2,10 @@ unit Img32.Draw;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 May 2022                                                     *
+* Version   :  4.4                                                             *
+* Date      :  26 March 2023                                                   *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2019-2021                                         *
+* Copyright :  Angus Johnson 2019-2023                                         *
 *                                                                              *
 * Purpose   :  Polygon renderer for TImage32                                   *
 *                                                                              *
@@ -26,8 +26,8 @@ uses
 type
   TFillRule = Img32.Vector.TFillRule;
 
-  //TGradientColor: used internally by both
-  //TLinearGradientRenderer and TRadialGradientRenderer
+  // TGradientColor: used internally by both
+  // TLinearGradientRenderer and TRadialGradientRenderer
   TGradientColor = record
     offset: double;
     color: TColor32;
@@ -36,13 +36,13 @@ type
 
   TGradientFillStyle = (gfsClamp, gfsMirror, gfsRepeat);
 
-  //TBoundsProc: Function template for TCustomRenderer.
+  // TBoundsProc: Function template for TCustomRenderer.
   TBoundsProc = function(dist, colorsCnt: integer): integer;
   TBoundsProcD = function(dist: double; colorsCnt: integer): integer;
 
   TImage32ChangeProc = procedure of object;
 
-  //TCustomRenderer: can accommodate pixels of any size
+  // TCustomRenderer: can accommodate pixels of any size
   TCustomRenderer = class {$IFDEF ABSTRACT_CLASSES} abstract {$ENDIF}
   private
     fImgWidth    : integer;
@@ -58,8 +58,8 @@ type
       imgWidth, imgHeight, pixelSize: integer): Boolean; overload; virtual;
     function Initialize(targetImage: TImage32): Boolean; overload; virtual;
     function GetDstPixel(x,y: integer): Pointer;
-    //RenderProc: x & y refer to pixel coords in the destination image and
-    //where x1 is the start (and left) and x2 is the end of the render
+    // RenderProc: x & y refer to pixel coords in the destination image and
+    // where x1 is the start (and left) and x2 is the end of the render
     procedure RenderProc(x1, x2, y: integer; alpha: PByte); virtual; abstract;
     property ImgWidth: integer read fImgWidth;
     property ImgHeight: integer read fImgHeight;
@@ -120,7 +120,7 @@ type
     property Offset: TPoint read fOffset write fOffset;
   end;
 
-  //TCustomGradientRenderer is also an abstract class
+  // TCustomGradientRenderer is also an abstract class
   TCustomGradientRenderer = class(TCustomRenderer)
   private
     fBoundsProc      : TBoundsProc;
@@ -183,7 +183,7 @@ type
       gradientFillStyle: TGradientFillStyle = gfsClamp); reintroduce;
   end;
 
-  //Barycentric rendering colorizes inside triangles
+  // Barycentric rendering colorizes inside triangles
   TBarycentricRenderer = class(TCustomRenderer)
   private
     a: TPointD;
@@ -197,9 +197,9 @@ type
     procedure SetParameters(const a, b, c: TPointD; c1, c2, c3: TColor32);
   end;
 
-  ///////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////
   // DRAWING FUNCTIONS
-  ///////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////
 
   procedure DrawPoint(img: TImage32; const pt: TPointD;
     radius: double; color: TColor32); overload;
@@ -209,6 +209,8 @@ type
     radius: double; color: TColor32); overload;
   procedure DrawPoint(img: TImage32; const paths: TPathsD;
     radius: double; color: TColor32); overload;
+
+  procedure DrawInvertedPoint(img: TImage32; const pt: TPointD; radius: double);
 
   procedure DrawLine(img: TImage32;
     const pt1, pt2: TPointD; lineWidth: double; color: TColor32); overload;
@@ -271,6 +273,11 @@ type
   procedure DrawPolygon(img: TImage32; const polygons: TPathsD;
     fillRule: TFillRule; renderer: TCustomRenderer); overload;
 
+  procedure DrawInvertedPolygon(img: TImage32; const polygon: TPathD;
+    fillRule: TFillRule); overload;
+  procedure DrawInvertedPolygon(img: TImage32; const polygons: TPathsD;
+    fillRule: TFillRule); overload;
+
   // 'Clear Type' text rendering is quite useful for low resolution
   // displays (96 ppi). However it's of little to no benefit on higher
   // resolution displays and becomes unnecessary overhead. See also:
@@ -280,17 +287,17 @@ type
   procedure DrawPolygon_ClearType(img: TImage32; const polygons: TPathsD;
     fillRule: TFillRule; color: TColor32; backColor: TColor32 = clWhite32);
 
-  ///////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////
   // MISCELLANEOUS FUNCTIONS
-  ///////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////
 
   procedure ErasePolygon(img: TImage32; const polygon: TPathD;
     fillRule: TFillRule); overload;
   procedure ErasePolygon(img: TImage32; const polygons: TPathsD;
     fillRule: TFillRule); overload;
 
-  //Both DrawBoolMask and DrawAlphaMask require
-  //'mask' length to equal 'img' width * height
+  // Both DrawBoolMask and DrawAlphaMask require
+  // 'mask' length to equal 'img' width * height
   procedure DrawBoolMask(img: TImage32;
     const mask: TArrayOfByte; color: TColor32 = clBlack32);
   procedure DrawAlphaMask(img: TImage32;
@@ -308,28 +315,25 @@ resourcestring
 
 type
 
-  //A horizontal scanline contains any number of line fragments. A fragment
-  //can be a number of pixels wide but it can't be more than one pixel high.
-  TFragment = record
-    botX, topX, dy, dydx: double;
-  end;
-  TFragmentArray = array[0 .. (Maxint div SizeOf(TFragment)) -1] of TFragment;
-  PFragments = ^TFragmentArray;
-  PFragment = ^TFragment;
+  // A horizontal scanline contains any number of line fragments. A fragment
+  // can be a number of pixels wide but it can't be more than one pixel high.
+  //  TFragment = record
+  //    botX, topX, dy, dydx: double; // ie x at bottom and top of scanline
+  //  end;
 
   TScanLine = record
     Y: integer;
     minX, maxX: integer;
     fragCnt: integer;
     {$IFDEF MemCheck} total: integer; {$ENDIF}
-    fragments: PFragments;
+    fragOffset: integer;
   end;
   PScanline = ^TScanline;
   TArrayOfScanline = array of TScanline;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // ApplyClearType (see DrawPolygon_ClearType below)
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 type
   PArgbs = ^TArgbs;
@@ -360,15 +364,15 @@ begin
 
   for h := 0 to img.Height -1 do
   begin
-    //each row of the image is copied into a temporary buffer ...
-    //noting that while 'dst' (img.Pixels) is initially the source
-    //it will later be destination (during image compression).
+    // each row of the image is copied into a temporary buffer ...
+    // noting that while 'dst' (img.Pixels) is initially the source
+    // it will later be destination (during image compression).
     dst := PARGB(@img.Pixels[h * img.Width]);
     src := PARGB(@rowBuffer[2]);
     Move(dst^, src^, img.Width * SizeOf(TColor32));
     srcArr := PArgbs(rowBuffer);
 
-    //using this buffer compress the image ...
+    // using this buffer compress the image ...
     w := 2;
     while w < img.Width do
     begin
@@ -389,11 +393,11 @@ begin
     end;
   end;
 
-  //Following compression the right 2/3 of the image is redundant
+  // Following compression the right 2/3 of the image is redundant
    img.Crop(Types.Rect(0,0, img.Width div 3, img.Height));
 
-  //currently text is white and the background is black
-  //so blend in the text and background colors ...
+  // currently text is white and the background is black
+  // so blend in the text and background colors ...
   diff_R := fgColor.R - bgColor.R;
   diff_G := fgColor.G - bgColor.G;
   diff_B := fgColor.B - bgColor.B;
@@ -407,7 +411,7 @@ begin
       dst.Color := bkColor
     else
     begin
-      //blend front (text) and background colors ...
+      // blend front (text) and background colors ...
       dst.R := (bg8_R + diff_R * dst.R) shr 8;
       dst.G := (bg8_G + diff_G * dst.G) shr 8;
       dst.B := (bg8_B + diff_B * dst.B) shr 8;
@@ -416,26 +420,30 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Other miscellaneous functions
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
-////__Trunc: An efficient Trunc() algorithm (ie rounds toward zero)
-//function __Trunc(val: double): integer; {$IFDEF INLINE} inline; {$ENDIF}
-//var
+// //__Trunc: An efficient Trunc() algorithm (ie rounds toward zero)
+// function __Trunc(val: double): integer; {$IFDEF INLINE} inline; {$ENDIF}
+// var
 //  exp: integer;
 //  i64: UInt64 absolute val;
-//begin
+// begin
 //  //https://en.wikipedia.org/wiki/Double-precision_floating-point_format
 //  Result := 0;
 //  if i64 = 0 then Exit;
 //  exp := Integer(Cardinal(i64 shr 52) and $7FF) - 1023;
 //  //nb: when exp == 1024 then val == INF or NAN.
-//  if exp < 0 then Exit;
-//  Result := ((i64 and $1FFFFFFFFFFFFF) shr (52-exp)) or (1 shl exp);
+//  if exp < 0 then
+//    Exit
+//  else if exp > 52 then
+//    Result := ((i64 and $1FFFFFFFFFFFFF) shl (exp - 52)) or (UInt64(1) shl exp)
+//  else
+//    Result := ((i64 and $1FFFFFFFFFFFFF) shr (52 - exp)) or (UInt64(1) shl exp);
 //  if val < 0 then Result := -Result;
-//end;
-//------------------------------------------------------------------------------
+// end;
+// ------------------------------------------------------------------------------
 
 function ClampByte(val: double): byte; {$IFDEF INLINE} inline; {$ENDIF}
 begin
@@ -443,7 +451,7 @@ begin
   else if val > 255 then result := 255
   else result := Round(val);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function GetPixel(current: PARGB; delta: integer): PARGB;
 {$IFDEF INLINE} inline; {$ENDIF}
@@ -451,7 +459,7 @@ begin
   Result := current;
   inc(Result, delta);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function ReverseColors(const colors: TArrayOfGradientColor): TArrayOfGradientColor;
 var
@@ -465,7 +473,7 @@ begin
     result[i].offset := 1 - colors[highI -i].offset;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure SwapColors(var color1, color2: TColor32);
 var
@@ -475,7 +483,7 @@ begin
   color1 := color2;
   color2 := c;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure SwapPoints(var point1, point2: TPoint); overload;
 var
@@ -485,7 +493,7 @@ begin
   point1 := point2;
   point2 := pt;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure SwapPoints(var point1, point2: TPointD); overload;
 var
@@ -495,7 +503,7 @@ begin
   point1 := point2;
   point2 := pt;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function ClampQ(q, endQ: integer): integer;
 begin
@@ -503,7 +511,7 @@ begin
   else if q >= endQ then result := endQ -1
   else result := q;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function ClampD(d: double; colorCnt: integer): integer;
 begin
@@ -512,7 +520,7 @@ begin
   else if d >= 1 then result := colorCnt
   else result := Round(d * colorCnt);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function MirrorQ(q, endQ: integer): integer;
 begin
@@ -521,7 +529,7 @@ begin
   if Odd(q div endQ) then
     result := (endQ -1) - result;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function MirrorD(d: double; colorCnt: integer): integer;
 begin
@@ -530,7 +538,7 @@ begin
     result := Round((1 - frac(d)) * colorCnt) else
     result := Round(frac(d)  * colorCnt);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function RepeatQ(q, endQ: integer): integer;
 begin
@@ -542,7 +550,7 @@ begin
   end
   else result := q;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function SoftRptQ(q, endQ: integer): integer;
 begin
@@ -551,7 +559,7 @@ begin
     result := (q mod endQ);
   if result = 0 then result := endQ div 2;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function RepeatD(d: double; colorCnt: integer): integer;
 begin
@@ -560,7 +568,7 @@ begin
     result := Round((1 + frac(d)) * colorCnt) else
     result := Round(frac(d)  * colorCnt);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function BlendColorUsingMask(bgColor, fgColor: TColor32; mask: Byte): TColor32;
 var
@@ -593,10 +601,10 @@ begin
     res.B := R[fg.B] + InvR[bg.B];
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
-//MakeColorGradient: using the supplied array of TGradientColor,
-//create an array of TColor32 of the specified length
+// MakeColorGradient: using the supplied array of TGradientColor,
+// create an array of TColor32 of the specified length
 function MakeColorGradient(const gradColors: TArrayOfGradientColor;
   len: integer): TArrayOfColor32;
 var
@@ -634,18 +642,19 @@ begin
   if j < len then result[j] := result[j-1];
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Rasterize() support functions
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure AllocateScanlines(const polygons: TPathsD;
-  var scanlines: TArrayOfScanline; clipBottom, clipRight: integer);
+  var scanlines: TArrayOfScanline; out fragments: PDouble; clipBottom, clipRight: integer);
 var
   i,j, highI, highJ: integer;
   y1, y2: integer;
+  fragOff: Cardinal;
   psl: PScanline;
 begin
-  //first count how often each edge intersects with each horizontal scanline
+  // first count how often each edge intersects with each horizontal scanline
   for i := 0 to high(polygons) do
   begin
     highJ := high(polygons[i]);
@@ -656,10 +665,10 @@ begin
       y2 := Round(polygons[i][j].Y);
       if y1 < y2 then
       begin
-        //descending (but ignore edges outside the clipping range)
+        // descending (but ignore edges outside the clipping range)
         if (y2 >= 0) and (y1 <= clipBottom) then
         begin
-          if (y1 > 0) and (y1 <= clipBottom)  then
+          if (y1 > 0) then
             dec(scanlines[y1 -1].fragCnt);
           if y2 >= clipBottom then
             inc(scanlines[clipBottom].fragCnt) else
@@ -667,7 +676,7 @@ begin
         end;
       end else
       begin
-        //ascending (but ignore edges outside the clipping range)
+        // ascending (but ignore edges outside the clipping range)
         if (y1 >= 0) and (y2 <= clipBottom) then
         begin
           if (y2 > 0) then
@@ -681,35 +690,42 @@ begin
     end;
   end;
 
-  //convert 'count' accumulators into real counts and allocate storage
+  // convert 'count' accumulators into real counts and allocate storage
   j := 0;
+  fragOff := 0;
   highI := high(scanlines);
   psl := @scanlines[highI];
 
-  //'fragments' is a pointer and not a dynamic array because
-  //dynamic arrays are zero initialized (hence slower than GetMem).
+  // 'fragments' is a pointer and not a dynamic array because
+  // dynamic arrays are zero initialized (hence slower than GetMem).
   for i := highI downto 0 do
   begin
-    inc(j, psl.fragCnt); //nb: psl.fragCnt may be < 0 here!
+    inc(j, psl.fragCnt); // nb: psl.fragCnt may be < 0 here!
     if j > 0 then
-      GetMem(psl.fragments, j * SizeOf(TFragment));
+    begin
+      psl.fragOffset := fragOff;
+      inc(fragOff, j * 4); // 4 doubles are needed for each fragment
+    end else
+      psl.fragOffset := -1;
     {$IFDEF MemCheck} psl.total := j; {$ENDIF}
-    psl.fragCnt := 0; //reset for later
+    psl.fragCnt := 0; // reset for later
     psl.minX := clipRight;
     psl.maxX := 0;
     psl.Y := i;
     dec(psl);
   end;
+  // allocate fragments as a single block of memory
+  GetMem(fragments, fragOff * sizeOf(Double));
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure SplitEdgeIntoFragments(const pt1, pt2: TPointD;
-  const scanlines: TArrayOfScanline; const clipRec: TRect);
+  const scanlines: TArrayOfScanline; fragments: PDouble; const clipRec: TRect);
 var
   x,y, dx,dy, absDx, dydx, dxdy: double;
   i, scanlineY, maxY, maxX: integer;
   psl: PScanLine;
-  pFrag: PFragment;
+  pFrag: PDouble;
   bot, top: TPointD;
 begin
   dy := pt1.Y - pt2.Y;
@@ -719,27 +735,27 @@ begin
 
   if dy > 0 then
   begin
-    //ASCENDING EDGE (+VE WINDING DIR)
+    // ASCENDING EDGE (+VE WINDING DIR)
     if dy < 0.0001 then Exit;            //ignore near horizontals
     bot := pt1; top := pt2;
-    //exclude edges that are completely outside the top or bottom clip region
+    // exclude edges that are completely outside the top or bottom clip region
     if (top.Y >= maxY) or (bot.Y <= 0) then Exit;
   end else
   begin
-    //DESCENDING EDGE (-VE WINDING DIR)
+    // DESCENDING EDGE (-VE WINDING DIR)
     if dy > -0.0001 then Exit;           //ignore near horizontals
     bot := pt2; top := pt1;
-    //exclude edges that are completely outside the top or bottom clip region
+    // exclude edges that are completely outside the top or bottom clip region
     if (top.Y >= maxY) or (bot.Y <= 0) then Exit;
   end;
 
   if absDx < 0.000001 then
   begin
-    //VERTICAL EDGE
+    // VERTICAL EDGE
     top.X := bot.X; //this circumvents v. rare rounding issues.
 
-    //exclude vertical edges that are outside the right clip region
-    //but still update maxX for each scanline the edge passes
+    // exclude vertical edges that are outside the right clip region
+    // but still update maxX for each scanline the edge passes
     if bot.X > maxX then
     begin
       for i := Min(maxY, Round(bot.Y)) downto Max(0, Round(top.Y)) do
@@ -755,7 +771,7 @@ begin
     dydx := dy/absDx;
   end;
 
-  //TRIM EDGES THAT CROSS CLIPPING BOUNDARIES (EXCEPT THE LEFT BOUNDARY)
+  // TRIM EDGES THAT CROSS CLIPPING BOUNDARIES (EXCEPT THE LEFT BOUNDARY)
   if bot.X >= maxX then
   begin
     if top.X >= maxX then
@@ -764,7 +780,7 @@ begin
         scanlines[i].maxX := maxX;
       Exit;
     end;
-    //here the edge must be oriented bottom-right to top-left
+    // here the edge must be oriented bottom-right to top-left
     y := bot.Y - (bot.X - maxX) * Abs(dydx);
     for i := Min(maxY, Round(bot.Y)) downto Max(0, Round(y)) do
       scanlines[i].maxX := maxX;
@@ -774,7 +790,7 @@ begin
   end
   else if top.X > maxX then
   begin
-    //here the edge must be oriented bottom-left to top-right
+    // here the edge must be oriented bottom-left to top-right
     y := top.Y + (top.X - maxX) * Abs(dydx);
     for i := Min(maxY, Round(y)) downto Max(0, Round(top.Y)) do
       scanlines[i].maxX := maxX;
@@ -795,67 +811,70 @@ begin
     top.Y := 0;
   end;
 
-  //SPLIT THE EDGE INTO MULTIPLE SCANLINE FRAGMENTS
+  // SPLIT THE EDGE INTO MULTIPLE SCANLINE FRAGMENTS
   scanlineY := Round(bot.Y);
   if bot.Y = scanlineY then dec(scanlineY);
 
-  //at the lower-most extent of the edge 'split' the first fragment
+  // at the lower-most extent of the edge 'split' the first fragment
   if scanlineY < 0 then Exit;
 
   psl := @scanlines[scanlineY];
-  if not assigned(psl.fragments) then Exit; //a very rare event
+  if psl.fragOffset < 0 then Exit; //a very rare event
   {$IFDEF MemCheck}
   if psl.fragCnt = psl.total then raise Exception.Create(sMemCheckError);
   {$ENDIF}
 
-  pFrag := @psl.fragments[psl.fragCnt];
+  pFrag := fragments;
+  inc(pFrag, psl.fragOffset + psl.fragCnt * 4);
   inc(psl.fragCnt);
 
-  pFrag.botX := bot.X;
+  pFrag^ := bot.X; inc(pFrag);
   if scanlineY <= top.Y then
   begin
-    //the whole edge is within 1 scanline
-    pFrag.topX := top.X;
-    pFrag.dy := bot.Y - top.Y;
-    pFrag.dydx := dydx;
+    // the whole edge is within 1 scanline
+    pFrag^ := top.X;  inc(pFrag);
+    pFrag^ := bot.Y - top.Y; inc(pFrag);
+    pFrag^ := dydx;
     Exit;
   end;
 
   x := bot.X + (bot.Y - scanlineY) * dxdy;
-  pFrag.topX := x;
-  pFrag.dy := bot.Y - scanlineY;
-  pFrag.dydx := dydx;
-  //'split' subsequent fragments until the top fragment
+  pFrag^ := x; inc(pFrag);
+  pFrag^ := bot.Y - scanlineY; inc(pFrag);
+  pFrag^ := dydx;
+  // 'split' subsequent fragments until the top fragment
   dec(psl);
   while psl.Y > top.Y do
   begin
     {$IFDEF MemCheck}
     if psl.fragCnt = psl.total then raise Exception.Create(sMemCheckError);
     {$ENDIF}
-    pFrag := @psl.fragments[psl.fragCnt];
+    pFrag := fragments;
+    inc(pFrag, psl.fragOffset + psl.fragCnt * 4);
     inc(psl.fragCnt);
-    pFrag.botX := x;
+    pFrag^ := x; inc(pFrag);
     x := x + dxdy;
-    pFrag.topX := x;
-    pFrag.dy := 1;
-    pFrag.dydx := dydx;
+    pFrag^ := x; inc(pFrag);
+    pFrag^ := 1; inc(pFrag);
+    pFrag^ := dydx;
     dec(psl);
   end;
-  //and finally the top fragment
+  // and finally the top fragment
   {$IFDEF MemCheck}
   if psl.fragCnt = psl.total then raise Exception.Create(sMemCheckError);
   {$ENDIF}
-  pFrag := @psl.fragments[psl.fragCnt];
+  pFrag := fragments;
+  inc(pFrag, psl.fragOffset + psl.fragCnt * 4);
   inc(psl.fragCnt);
-  pFrag.botX := x;
-  pFrag.topX := top.X;
-  pFrag.dy := psl.Y + 1 - top.Y;
-  pFrag.dydx := dydx;
+  pFrag^ := x; inc(pFrag);
+  pFrag^ := top.X; inc(pFrag);
+  pFrag^ := psl.Y + 1 - top.Y; inc(pFrag);
+  pFrag^ := dydx;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure InitializeScanlines(var polygons: TPathsD;
-  const scanlines: TArrayOfScanline; const clipRec: TRect);
+  const scanlines: TArrayOfScanline; fragments: PDouble; const clipRec: TRect);
 var
   i,j, highJ: integer;
   pt1, pt2: PPointD;
@@ -868,54 +887,60 @@ begin
     pt2 := @polygons[i][0];
     for j := 0 to highJ do
     begin
-      SplitEdgeIntoFragments(pt1^, pt2^, scanlines, clipRec);
+      SplitEdgeIntoFragments(pt1^, pt2^, scanlines, fragments, clipRec);
       pt1 := pt2;
       inc(pt2);
     end;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure ProcessScanlineFragments(var scanline: TScanLine;
-  var buffer: TArrayOfDouble);
+  fragments: PDouble; var buffer: TArrayOfDouble);
 var
   i,j, leftXi,rightXi: integer;
   fracX, yy, q, windDir: double;
-  pd: PDouble;
-  frag: PFragment;
+  left, right, dy, dydx: double;
+  pd, frag: PDouble;
 begin
-  frag := @scanline.fragments[0];
+  frag := fragments;
+  inc(frag, scanline.fragOffset);
   for i := 1 to scanline.fragCnt do
   begin
-    if frag.botX > frag.topX then
+    left := frag^; inc(frag);   //botX
+    right := frag^; inc(frag);  //topX
+    dy := frag^; inc(frag);
+    dydx := frag^; inc(frag);
+
+    // converting botX & topX to left & right simplifies code
+    if {botX > topX} left > right then
     begin
-      //just swapping botX and topX simplifies code
-      q := frag.botX;
-      frag.botX := frag.topX;
-      frag.topX  := q;
+      q := left;
+      left := right;
+      right := q;
     end;
 
-    leftXi := Max(0, Round(frag.botX));
-    rightXi := Max(0, Round(frag.topX));
+    leftXi := Max(0, Round(left));
+    rightXi := Max(0, Round(right));
 
     if (leftXi = rightXi) then
     begin
-      if frag.dydx < 0 then windDir := -1.0 else windDir := 1.0;
-      //the fragment is only one pixel wide
+      if dydx < 0 then windDir := -1.0 else windDir := 1.0;
+      // the fragment is only one pixel wide
       if leftXi < scanline.minX then
         scanline.minX := leftXi;
       if rightXi > scanline.maxX then
         scanline.maxX := rightXi;
       pd := @buffer[leftXi];
-      if (frag.botX <= 0) then
+      if (left <= 0) then
       begin
-        pd^ := pd^ + frag.dy * windDir;
+        pd^ := pd^ + dy * windDir;
       end else
       begin
-        q := (frag.botX + frag.topX) * 0.5 - leftXi;
-        pd^ := pd^ + (1-q) * frag.dy * windDir;
+        q := (left + right) * 0.5 - leftXi;
+        pd^ := pd^ + (1-q) * dy * windDir;
         inc(pd);
-        pd^ := pd^ + q * frag.dy * windDir;
+        pd^ := pd^ + q * dy * windDir;
       end;
     end else
     begin
@@ -924,32 +949,31 @@ begin
       if rightXi > scanline.maxX then
         scanline.maxX := rightXi;
       pd := @buffer[leftXi];
-      //left pixel
-      fracX := leftXi + 1 - frag.botX;
-      yy := frag.dydx * fracX;
+      // left pixel
+      fracX := leftXi + 1 - left;
+      yy := dydx * fracX;
       q := fracX * yy * 0.5;
       pd^ := pd^ + q;
       q :=  yy - q;
       inc(pd);
-      //middle pixels
+      // middle pixels
       for j := leftXi +1 to rightXi -1 do
       begin
-        pd^ := pd^ + q + frag.dydx * 0.5;
-        q := frag.dydx * 0.5;
+        pd^ := pd^ + q + dydx * 0.5;
+        q := dydx * 0.5;
         inc(pd);
       end;
-      //right pixel
-      fracX := frag.topX - rightXi;
-      yy :=  fracX * frag.dydx;
+      // right pixel
+      fracX := right - rightXi;
+      yy :=  fracX * dydx;
       pd^ := pd^ + q + (1 - fracX * 0.5) * yy;
       inc(pd);
-      //overflow
+      // overflow
       pd^ := pd^ + fracX * 0.5 * yy;
     end;
-    inc(frag);
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 {$IFNDEF TROUNDINGMODE}
 type
@@ -966,48 +990,53 @@ var
   windingAccum: TArrayOfDouble;
   byteBuffer: TArrayOfByte;
   scanlines: TArrayOfScanline;
+  fragments: PDouble;
   scanline: PScanline;
   savedRoundMode: TRoundingMode;
 begin
-  //See also https://nothings.org/gamedev/rasterize/
+  // See also https://nothings.org/gamedev/rasterize/
   if not assigned(renderer) then Exit;
   Types.IntersectRect(clipRec2, clipRec, GetBounds(paths));
   if IsEmptyRect(clipRec2) then Exit;
 
   paths2 := OffsetPath(paths, -clipRec2.Left, -clipRec2.Top);
 
-  //Delphi's Round() function is *much* faster than its Trunc function, and
-  //it's even a little faster than the __Trunc function above (except when
-  //the FastMM4 memory manager is enabled.)
+  // Delphi's Round() function is *much* faster than Trunc(),
+  // and even a little faster than __Trunc() above (except
+  // when the FastMM4 memory manager is enabled.)
   savedRoundMode := SetRoundMode(rmDown);
 
+  fragments := nil;
   RectWidthHeight(clipRec2, maxW, maxH);
   SetLength(scanlines, maxH +1);
   SetLength(windingAccum, maxW +2);
-  AllocateScanlines(paths2, scanlines, maxH, maxW-1);
-  InitializeScanlines(paths2, scanlines, clipRec2);
+  AllocateScanlines(paths2, scanlines, fragments, maxH, maxW-1);
+  InitializeScanlines(paths2, scanlines, fragments, clipRec2);
   SetLength(byteBuffer, maxW);
-  if byteBuffer = nil then Exit;
+  if byteBuffer = nil then
+  begin
+    FreeMem(fragments);
+    Exit;
+  end;
 
   scanline := @scanlines[0];
   for i := 0 to high(scanlines) do
   begin
     if scanline.fragCnt = 0 then
     begin
-      FreeMem(scanline.fragments);
       inc(scanline);
       Continue;
     end;
 
-    //process each scanline to fill the winding count accumulation buffer
-    ProcessScanlineFragments(scanline^, windingAccum);
-    //it's faster to process only the modified sub-array of windingAccum
+    // process each scanline to fill the winding count accumulation buffer
+    ProcessScanlineFragments(scanline^, fragments, windingAccum);
+    // it's faster to process only the modified sub-array of windingAccum
     xli := scanline.minX;
     xri := Min(maxW -1, scanline.maxX +1);
     FillChar(byteBuffer[xli], xri - xli +1, 0);
 
-    //a 25% weighting has been added to the alpha channel to minimize any
-    //background bleed-through where polygons join with a common edge.
+    // a 25% weighting has been added to the alpha channel to minimize any
+    // background bleed-through where polygons join with a common edge.
 
     accum := 0; //winding count accumulator
     for j := xli to xri do
@@ -1025,42 +1054,40 @@ begin
           begin
             byteBuffer[j] := Min(255, Round(Abs(accum) * 318));
           end;
+{$IFDEF REVERSE_ORIENTATION}
         frPositive:
-          begin
-{$IFDEF REVERSE_ORIENTATION}
-            if accum < -0.002 then
-              byteBuffer[j] := Min(255, Round(-accum * 318));
 {$ELSE}
-            if accum > 0.002 then
-              byteBuffer[j] := Min(255, Round(accum * 318));
-{$ENDIF}
-          end;
         frNegative:
+{$ENDIF}
           begin
-{$IFDEF REVERSE_ORIENTATION}
             if accum > 0.002 then
               byteBuffer[j] := Min(255, Round(accum * 318));
+          end;
+{$IFDEF REVERSE_ORIENTATION}
+        frNegative:
 {$ELSE}
+        frPositive:
+{$ENDIF}
+          begin
             if accum < -0.002 then
               byteBuffer[j] := Min(255, Round(-accum * 318));
-{$ENDIF}
           end;
       end;
     end;
     renderer.RenderProc(clipRec2.Left + xli, clipRec2.Left + xri,
       clipRec2.Top + i, @byteBuffer[xli]);
 
-    //cleanup and deallocate memory
+    // cleanup and deallocate memory
     FillChar(windingAccum[xli], (xri - xli +1) * sizeOf(Double), 0);
-    FreeMem(scanline.fragments);
     inc(scanline);
   end;
+  FreeMem(fragments);
   SetRoundMode(savedRoundMode);
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TAbstractRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TCustomRenderer.Initialize(imgBase: Pointer;
   imgWidth, imgHeight, pixelSize: integer): Boolean;
@@ -1074,13 +1101,13 @@ begin
   fCurrY       := 0;
   result       := true;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TCustomRenderer.NotifyChange;
 begin
   if assigned(fChangeProc) then fChangeProc;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 type THackedImage32 = class(TImage32); //exposes protected Changed method.
 
@@ -1090,7 +1117,7 @@ begin
   with targetImage do
     result := Initialize(PixelBase, Width, Height, SizeOf(TColor32));
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TCustomRenderer.GetDstPixel(x, y: integer): Pointer;
 begin
@@ -1104,29 +1131,29 @@ begin
   inc(PByte(Result), x * fPixelSize);
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TColorRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 constructor TColorRenderer.Create(color: TColor32 = clNone32);
 begin
   if color <> clNone32 then SetColor(color);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TColorRenderer.Initialize(targetImage: TImage32): Boolean;
 begin
-  //there's no point rendering if the color is fully transparent
+  // there's no point rendering if the color is fully transparent
   result := (fAlpha > 0) and inherited Initialize(targetImage);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TColorRenderer.SetColor(value: TColor32);
 begin
   fColor := value and $FFFFFF;
   fAlpha := GetAlpha(value);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TColorRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1136,32 +1163,32 @@ begin
   dst := GetDstPixel(x1,y);
   for i := x1 to x2 do
   begin
-    //BlendToAlpha is marginally slower than BlendToOpaque but it's used
-    //here because it's universally applicable.
-    //Ord() is used here because very old compilers define PByte as a PChar
+    // BlendToAlpha is marginally slower than BlendToOpaque but it's used
+    // here because it's universally applicable.
+    // Ord() is used here because very old compilers define PByte as a PChar
     if Ord(alpha^) > 1 then
       dst^ := BlendToAlpha(dst^, ((Ord(alpha^) * fAlpha) shr 8) shl 24 or fColor);
     inc(dst); inc(alpha);
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TAliasedColorRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 constructor TAliasedColorRenderer.Create(color: TColor32 = clNone32);
 begin
   fColor := color;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TAliasedColorRenderer.Initialize(targetImage: TImage32): Boolean;
 begin
-  //there's no point rendering if the color is fully transparent
+  // there's no point rendering if the color is fully transparent
   result := (GetAlpha(fColor) > 0) and
     inherited Initialize(targetImage);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TAliasedColorRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1176,9 +1203,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TBrushImageRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 constructor TImageRenderer.Create(tileFillStyle: TTileFillStyle;
   brushImage: TImage32);
@@ -1186,14 +1213,14 @@ begin
   fImage := TImage32.Create(brushImage);
   SetTileFillStyle(tileFillStyle);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 destructor TImageRenderer.Destroy;
 begin
   fImage.Free;
   inherited;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TImageRenderer.SetTileFillStyle(value: TTileFillStyle);
 begin
@@ -1205,7 +1232,7 @@ begin
   end;
   fMirrorY := value in [tfsMirrorVert, tfsRotate180];
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TImageRenderer.Initialize(targetImage: TImage32): Boolean;
 begin
@@ -1214,7 +1241,7 @@ begin
   fLastYY := 0;
   fBrushPixel := PARGB(fImage.PixelBase);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TImageRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1235,7 +1262,7 @@ begin
     pBrush := GetPixel(fBrushPixel, fBoundsProc(i, fImage.Width));
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TImageRenderer.GetFirstBrushPixel(x, y: integer): PARGB;
 begin
@@ -1251,22 +1278,22 @@ begin
   result := GetPixel(fBrushPixel, x);
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TGradientRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 constructor TCustomGradientRenderer.Create;
 begin
   fBoundsProc := ClampQ; //default proc
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TCustomGradientRenderer.Clear;
 begin
   fGradientColors := nil;
   fColors := nil;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TCustomGradientRenderer.SetGradientFillStyle(value: TGradientFillStyle);
 begin
@@ -1276,20 +1303,20 @@ begin
     else fBoundsProc := RepeatQ;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TCustomGradientRenderer.SetParameters(startColor, endColor: TColor32;
   gradFillStyle: TGradientFillStyle = gfsClamp);
 begin
   SetGradientFillStyle(gradFillStyle);
-  //reset gradient colors if perviously set
+  // reset gradient colors if perviously set
   SetLength(fGradientColors, 2);
   fGradientColors[0].offset := 0;
   fGradientColors[0].color := startColor;
   fGradientColors[1].offset := 1;
   fGradientColors[1].color := endColor;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TCustomGradientRenderer.InsertColorStop(offsetFrac: double; color: TColor32);
 var
@@ -1297,7 +1324,7 @@ var
   gradColor: TGradientColor;
 begin
   len := Length(fGradientColors);
-  //colorstops can only be inserted after calling SetParameters
+  // colorstops can only be inserted after calling SetParameters
   if len = 0 then Exit;
 
   if offsetFrac < 0 then offsetFrac := 0
@@ -1325,9 +1352,9 @@ begin
   fGradientColors[i] := gradColor;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TLinearGradientRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TLinearGradientRenderer.SetParameters(const startPt, endPt: TPointD;
   startColor, endColor: TColor32; gradFillStyle: TGradientFillStyle);
@@ -1336,7 +1363,7 @@ begin
   fStartPt := startPt;
   fEndPt := endPt;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TLinearGradientRenderer.Initialize(targetImage: TImage32): Boolean;
 var
@@ -1348,7 +1375,7 @@ begin
 
   if abs(fEndPt.Y - fStartPt.Y) > abs(fEndPt.X - fStartPt.X) then
   begin
-    //gradient > 45 degrees
+    // gradient > 45 degrees
     if (fEndPt.Y < fStartPt.Y) then
     begin
       fGradientColors := ReverseColors(fGradientColors);
@@ -1361,10 +1388,10 @@ begin
 
     fColorsCnt := Ceil(dy + dxdy * (fEndPt.X - fStartPt.X));
     fColors := MakeColorGradient(fGradientColors, fColorsCnt);
-    //get a list of perpendicular offsets for each
+    // get a list of perpendicular offsets for each
     SetLength(fPerpendicOffsets, ImgWidth);
-    //from an imaginary line that's through fStartPt and perpendicular to
-    //the gradient line, get a list of Y offsets for each X in image width
+    // from an imaginary line that's through fStartPt and perpendicular to
+    // the gradient line, get a list of Y offsets for each X in image width
     for i := 0 to ImgWidth -1 do
       fPerpendicOffsets[i] := Round(dxdy * (fStartPt.X - i) + fStartPt.Y);
   end
@@ -1388,13 +1415,13 @@ begin
     fColorsCnt := Ceil(dx + dydx * (fEndPt.Y - fStartPt.Y));
     fColors := MakeColorGradient(fGradientColors, fColorsCnt);
     SetLength(fPerpendicOffsets, ImgHeight);
-    //from an imaginary line that's through fStartPt and perpendicular to
-    //the gradient line, get a list of X offsets for each Y in image height
+    // from an imaginary line that's through fStartPt and perpendicular to
+    // the gradient line, get a list of X offsets for each Y in image height
     for i := 0 to ImgHeight -1 do
       fPerpendicOffsets[i] := Round(dydx * (fStartPt.Y - i) + fStartPt.X);
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TLinearGradientRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1407,12 +1434,12 @@ begin
   begin
     if fIsVert then
     begin
-      //when fIsVert = true, fPerpendicOffsets is an array of Y for each X
+      // when fIsVert = true, fPerpendicOffsets is an array of Y for each X
       off := fPerpendicOffsets[i];
       color.Color := fColors[fBoundsProc(y - off, fColorsCnt)];
     end else
     begin
-      //when fIsVert = false, fPerpendicOffsets is an array of X for each Y
+      // when fIsVert = false, fPerpendicOffsets is an array of X for each Y
       off := fPerpendicOffsets[y];
       color.Color := fColors[fBoundsProc(i - off, fColorsCnt)];
     end;
@@ -1422,9 +1449,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TRadialGradientRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TRadialGradientRenderer.Initialize(targetImage: TImage32): Boolean;
 begin
@@ -1432,7 +1459,7 @@ begin
   if result then
     fColors := MakeColorGradient(fGradientColors, fColorsCnt);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TRadialGradientRenderer.SetParameters(const focalRect: TRect;
   innerColor, outerColor: TColor32;
@@ -1462,7 +1489,7 @@ begin
     fColorsCnt := Ceil(radY) +1;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TRadialGradientRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1482,9 +1509,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TSvgRadialGradientRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TSvgRadialGradientRenderer.Initialize(targetImage: TImage32): Boolean;
 begin
@@ -1492,7 +1519,7 @@ begin
   if result then
     fColors := MakeColorGradient(fGradientColors, fColorsCnt);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TSvgRadialGradientRenderer.SetParameters(const ellipseRect: TRect;
   const focus: TPoint; innerColor, outerColor: TColor32;
@@ -1521,7 +1548,7 @@ begin
   fAA := fA * fA;
   fBB := fB * fB;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TSvgRadialGradientRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1532,16 +1559,16 @@ var
   pDst: PColor32;
   pt, ellipsePt: TPointD;
 begin
-  //get the left-most pixel to render
+  // get the left-most pixel to render
   pDst := GetDstPixel(x1,y);
   pt.X := x1 - fCenterPt.X; pt.Y := y - fCenterPt.Y;
   for i := x1 to x2 do
   begin
-    //equation of ellipse = (x*x)/aa + (y*y)/bb = 1
-    //equation of line = y = mx + c;
+    // equation of ellipse = (x*x)/aa + (y*y)/bb = 1
+    // equation of line = y = mx + c;
     if (pt.X = fFocusPt.X) then //vertical line
     begin
-      //let x = pt.X, then y*y = b*b(1 - Sqr(pt.X)/aa)
+      // let x = pt.X, then y*y = b*b(1 - Sqr(pt.X)/aa)
       q := Sqrt(fBB*(1 - Sqr(pt.X)/fAA));
       ellipsePt.X := pt.X;
       if pt.Y >= fFocusPt.Y then
@@ -1554,16 +1581,16 @@ begin
         q := dist/ dist2;
     end else
     begin
-      //using simultaneous equations and substitution
-      //given y = mx + c
+      // using simultaneous equations and substitution
+      // given y = mx + c
       m := (pt.Y - fFocusPt.Y)/(pt.X - fFocusPt.X);
       c := pt.Y - m * pt.X;
-      //given (x*x)/aa + (y*y)/bb = 1
-      //(x*x)/aa*bb + (y*y) = bb
-      //bb/aa *(x*x) + Sqr(m*x +c) = bb
-      //bb/aa *(x*x) + (m*m)*(x*x) + 2*m*x*c +c*c = b*b
-      //(bb/aa +(m*m)) *(x*x) + 2*m*c*(x) + (c*c) - bb = 0
-      //solving quadratic equation
+      // given (x*x)/aa + (y*y)/bb = 1
+      // (x*x)/aa*bb + (y*y) = bb
+      // bb/aa *(x*x) + Sqr(m*x +c) = bb
+      // bb/aa *(x*x) + (m*m)*(x*x) + 2*m*x*c +c*c = b*b
+      // (bb/aa +(m*m)) *(x*x) + 2*m*c*(x) + (c*c) - bb = 0
+      // solving quadratic equation
       qa := (fBB/fAA +(m*m));
       qb := 2*m*c;
       qc := (c*c) - fBB;
@@ -1590,9 +1617,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TEraseRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TEraseRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1611,9 +1638,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // TInverseRenderer
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TInverseRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1631,7 +1658,7 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TBarycentricRenderer.SetParameters(const a, b, c: TPointD;
   c1, c2, c3: TColor32);
@@ -1651,7 +1678,7 @@ begin
   d11 := (v1.X * v1.X + v1.Y * v1.Y);
   invDenom := 1/(d00 * d11 - d01 * d01);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 function TBarycentricRenderer.GetColor(const pt: TPointD): TColor32;
 var
@@ -1674,7 +1701,7 @@ begin
   Res.G := ClampByte(c1.G * u + c2.G * v + c3.G * w);
   Res.B := ClampByte(c1.B * u + c2.B * v + c3.B * w);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure TBarycentricRenderer.RenderProc(x1, x2, y: integer; alpha: PByte);
 var
@@ -1693,9 +1720,9 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Draw functions
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPoint(img: TImage32;
   const pt: TPointD; radius: double; color: TColor32);
@@ -1707,7 +1734,7 @@ begin
     path := Ellipse(RectD(pt.X-radius, pt.Y-radius, pt.X+radius, pt.Y+radius));
   DrawPolygon(img, path, frEvenOdd, color);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPoint(img: TImage32; const pt: TPointD;
   radius: double; renderer: TCustomRenderer);
@@ -1717,7 +1744,20 @@ begin
   path := Ellipse(RectD(pt.X -radius, pt.Y -radius, pt.X +radius, pt.Y +radius));
   DrawPolygon(img, path, frEvenOdd, renderer);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+
+procedure DrawInvertedPoint(img: TImage32; const pt: TPointD; radius: double);
+var
+  cr: TCustomRenderer;
+begin
+  cr := TInverseRenderer.Create;
+  try
+    DrawPoint(img, pt, radius, cr);
+  finally
+    cr.Free;
+  end;
+end;
+// ------------------------------------------------------------------------------
 
 procedure DrawPoint(img: TImage32; const points: TPathD;
   radius: double; color: TColor32);
@@ -1727,7 +1767,7 @@ begin
   for i := 0 to high(points) do
     DrawPoint(img, points[i], radius, color);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPoint(img: TImage32; const paths: TPathsD;
   radius: double; color: TColor32);
@@ -1737,7 +1777,7 @@ begin
   for i := 0 to high(paths) do
     DrawPoint(img, paths[i], radius, color);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawLine(img: TImage32;
   const pt1, pt2: TPointD; lineWidth: double; color: TColor32);
@@ -1750,7 +1790,7 @@ begin
   lines[0][1] := pt2;
   DrawLine(img, lines, lineWidth, color, esRound);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawLine(img: TImage32; const line: TPathD; lineWidth: double;
   color: TColor32; endStyle: TEndStyle; joinStyle: TJoinStyle;
@@ -1762,7 +1802,7 @@ begin
   lines[0] := line;
   DrawLine(img, lines, lineWidth, color, endStyle, joinStyle, miterLimit);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawLine(img: TImage32; const line: TPathD; lineWidth: double;
   renderer: TCustomRenderer; endStyle: TEndStyle; joinStyle: TJoinStyle;
@@ -1774,7 +1814,7 @@ begin
   lines[0] := line;
   DrawLine(img, lines, lineWidth, renderer, endStyle, joinStyle, miterLimit);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawInvertedLine(img: TImage32; const line: TPathD;
 lineWidth: double; endStyle: TEndStyle; joinStyle: TJoinStyle = jsAuto);
@@ -1785,7 +1825,7 @@ begin
   lines[0] := line;
   DrawInvertedLine(img, lines, lineWidth, endStyle, joinStyle);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawLine(img: TImage32; const lines: TPathsD;
   lineWidth: double; color: TColor32;
@@ -1811,7 +1851,7 @@ begin
     cr.free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawLine(img: TImage32; const lines: TPathsD;
   lineWidth: double; renderer: TCustomRenderer;
@@ -1829,7 +1869,7 @@ begin
     renderer.NotifyChange;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawInvertedLine(img: TImage32;
   const lines: TPathsD; lineWidth: double;
@@ -1852,7 +1892,7 @@ begin
     ir.free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawDashedLine(img: TImage32; const line: TPathD;
   dashPattern: TArrayOfInteger; patternOffset: PDouble; lineWidth: double;
@@ -1890,7 +1930,7 @@ begin
     cr.free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawDashedLine(img: TImage32; const lines: TPathsD;
   dashPattern: TArrayOfInteger; patternOffset: PDouble; lineWidth: double;
@@ -1903,7 +1943,7 @@ begin
     DrawDashedLine(img, lines[i],
       dashPattern, patternOffset, lineWidth, color, endStyle, joinStyle);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawDashedLine(img: TImage32; const line: TPathD;
   dashPattern: TArrayOfInteger; patternOffset: PDouble; lineWidth: double;
@@ -1927,7 +1967,7 @@ begin
     renderer.NotifyChange;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawDashedLine(img: TImage32; const lines: TPathsD;
   dashPattern: TArrayOfInteger; patternOffset: PDouble; lineWidth: double;
@@ -1940,7 +1980,7 @@ begin
     DrawDashedLine(img, lines[i],
       dashPattern, patternOffset, lineWidth, renderer, endStyle, joinStyle);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawInvertedDashedLine(img: TImage32;
   const line: TPathD; dashPattern: TArrayOfInteger;
@@ -1971,7 +2011,7 @@ begin
     renderer.Free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawInvertedDashedLine(img: TImage32;
   const lines: TPathsD; dashPattern: TArrayOfInteger;
@@ -1985,7 +2025,7 @@ begin
     DrawInvertedDashedLine(img, lines[i],
       dashPattern, patternOffset, lineWidth, endStyle, joinStyle);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPolygon(img: TImage32; const polygon: TPathD;
   fillRule: TFillRule; color: TColor32);
@@ -1997,7 +2037,7 @@ begin
   polygons[0] := polygon;
   DrawPolygon(img, polygons, fillRule, color);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPolygon(img: TImage32; const polygon: TPathD;
   fillRule: TFillRule; renderer: TCustomRenderer);
@@ -2013,7 +2053,7 @@ begin
     renderer.NotifyChange;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPolygon(img: TImage32; const polygons: TPathsD;
   fillRule: TFillRule; color: TColor32);
@@ -2034,7 +2074,7 @@ begin
     cr.free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawPolygon(img: TImage32; const polygons: TPathsD;
   fillRule: TFillRule; renderer: TCustomRenderer);
@@ -2046,7 +2086,38 @@ begin
     renderer.NotifyChange;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+
+procedure DrawInvertedPolygon(img: TImage32; const polygon: TPathD;
+  fillRule: TFillRule);
+var
+  polygons: TPathsD;
+begin
+  if not assigned(polygon) then exit;
+  setLength(polygons, 1);
+  polygons[0] := polygon;
+  DrawInvertedPolygon(img, polygons, fillRule);
+end;
+// ------------------------------------------------------------------------------
+
+procedure DrawInvertedPolygon(img: TImage32; const polygons: TPathsD;
+  fillRule: TFillRule);
+var
+  cr: TCustomRenderer;
+begin
+  if not assigned(polygons) then exit;
+  cr := TInverseRenderer.Create;
+  try
+    if cr.Initialize(img) then
+    begin
+      Rasterize(polygons, img.bounds, fillRule, cr);
+      cr.NotifyChange;
+    end;
+  finally
+    cr.free;
+  end;
+end;
+// ------------------------------------------------------------------------------
 
 procedure DrawPolygon_ClearType(img: TImage32; const polygons: TPathsD;
   fillRule: TFillRule; color: TColor32; backColor: TColor32);
@@ -2078,7 +2149,7 @@ begin
     tmpImg.Free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure ErasePolygon(img: TImage32; const polygon: TPathD;
   fillRule: TFillRule);
@@ -2090,7 +2161,7 @@ begin
   polygons[0] := polygon;
   ErasePolygon(img, polygons, fillRule);
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure ErasePolygon(img: TImage32; const polygons: TPathsD;
   fillRule: TFillRule);
@@ -2108,7 +2179,7 @@ begin
     er.Free;
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawBoolMask(img: TImage32; const mask: TArrayOfByte; color: TColor32);
 var
@@ -2132,7 +2203,7 @@ begin
     inc(pc); inc(pb);
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 procedure DrawAlphaMask(img: TImage32; const mask: TArrayOfByte; color: TColor32);
 var
@@ -2159,6 +2230,6 @@ begin
     inc(pc); inc(pb);
   end;
 end;
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 end.

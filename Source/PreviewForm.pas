@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -80,8 +80,6 @@ type
     procedure ToolButtonMouseEnter(Sender: TObject);
     procedure ToolButtonMouseLeave(Sender: TObject);
     procedure SplitterMoved(Sender: TObject);
-    procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
-      NewDPI: Integer);
     procedure BackgroundTrackBarChange(Sender: TObject);
   private
     FFontSize: Integer;
@@ -223,13 +221,6 @@ begin
   SynEdit.Gutter.Font.Color := clWindowText;
   SynEdit.Gutter.Color := clBtnFace;
 {$ENDIF}
-end;
-
-procedure TFrmPreview.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
-  NewDPI: Integer);
-begin
-  TLogPreview.Add('TFrmPreview.FormAfterMonitorDpiChanged: '+
-  '- Old: '+OldDPI.ToString+' - New: '+NewDPI.ToString);
 end;
 
 procedure TFrmPreview.FormCreate(Sender: TObject);

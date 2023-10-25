@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/VCL                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors: Vincent Parrett, Kiriakos Vlahos                         }
 {                                                                              }
@@ -166,23 +166,24 @@ begin
   inherited;
 end;
 
-
 procedure TSVGIconImageList.DefineProperties(Filer: TFiler);
 begin
   inherited;
   Filer.DefineBinaryProperty('Images', ReadImageData, WriteImageData, False);
 end;
 
-
 procedure TSVGIconImageList.DoAssign(const Source: TPersistent);
+{$IFNDEF D10_3+}
 var
   LVirtualList : TSVGIconVirtualImageList;
+{$ENDIF}
 begin
   inherited;
   if Source is TSVGIconImageList then
   begin
     FSVGItems.Assign(TSVGIconImageList(Source).FSVGItems);
   end
+  {$IFNDEF D10_3+}
   else if Source is TSVGIconVirtualImageList then
   begin
     LVirtualList := TSVGIconVirtualImageList(Source);
@@ -191,6 +192,7 @@ begin
       FSVGItems.Assign(LVirtualList.ImageCollection.SVGIconItems);
     end;
   end;
+  {$ENDIF}
 end;
 
 procedure TSVGIconImageList.PaintTo(const ACanvas: TCanvas; const AIndex: Integer;

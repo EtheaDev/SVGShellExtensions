@@ -150,13 +150,11 @@ begin
     GetWindowRect(FParentWindow, LRect);
     TLogPreview.Add('CheckContainer'+GetRect(LRect,' - GetWindowRect'));
 
-    //FContainer := TPreviewContainer.Create(nil);
     FContainer := TFrmPreview.Create(nil);
 
     TLogPreview.Add('FContainer created:'+GetRect(FBounds,' FBounds'));
     FContainer.ParentWindow := FParentWindow;
     FContainer.BorderStyle := bsNone;
-    FContainer.Visible := True;
     UpdateContainerBoundsRect;
     FContainer.PreviewHandler := Self;
     TFrmPreview.AParent := FContainer;
@@ -388,12 +386,12 @@ end;
 
 function TComPreviewHandler.Unload: HRESULT;
 begin
-  TLogPreview.Add('Unload Init');
+  TLogPreview.Add('TComPreviewHandler Unload Init');
   if PreviewHandler <> nil then
     PreviewHandler.Unload;
   InternalUnload;
   result := S_OK;
-  TLogPreview.Add('Unload Done');
+  TLogPreview.Add('TComPreviewHandler Unload Done');
 end;
 
 constructor TPreviewHandler.Create(AParent: TWinControl);

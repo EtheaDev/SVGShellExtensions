@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -89,7 +89,6 @@ type
     PanelTopEditor: TPanel;
     PanelTopPreviewSettings: TPanel;
     EngineRadioGroup: TRadioGroup;
-    PreferD2DCheckBox: TCheckBox;
     procedure BoxElementsClick(Sender: TObject);
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
@@ -191,26 +190,30 @@ begin
       LSettingsForm.Left := (AParentRect.Left + AParentRect.Right - LSettingsForm.Width) div 2;
       LSettingsForm.Top := (AParentRect.Top + AParentRect.Bottom - LSettingsForm.Height) div 2;
     end;
+    StatusBar.SimpleText := FFileName;
 
     FSourceSynEdit := ASourceSynEdit;
-    SynEdit.Color := FSourceSynEdit.Color;
-    SynEdit.Font.Assign(FSourceSynEdit.Font);
-    SynEdit.Gutter.Assign(FSourceSynEdit.Gutter);
-    SynEdit.ActiveLineColor := FSourceSynEdit.ActiveLineColor;
-    StatusBar.SimpleText := FFileName;
-    HighLightSettingsClass := TSynCustomHighlighterClass(
-      ASourceSynEdit.Highlighter.ClassType);
-    FHighlighter := HighLightSettingsClass.Create(nil);
-    Try
+    if Assigned(FSourceSynEdit) then
+    begin
+      SynEdit.Color := FSourceSynEdit.Color;
+      SynEdit.Font.Assign(FSourceSynEdit.Font);
+      SynEdit.Gutter.Assign(FSourceSynEdit.Gutter);
+      SynEdit.ActiveLineColor := FSourceSynEdit.ActiveLineColor;
+      HighLightSettingsClass := TSynCustomHighlighterClass(
+        FSourceSynEdit.Highlighter.ClassType);
+      FHighlighter := HighLightSettingsClass.Create(nil);
       SynEdit.Highlighter := FHighlighter;
       CloneSynEdit(ASourceSynEdit,SynEdit);
       SynEdit.Text := ASourceSynEdit.Text;
       AddElements;
+    end;
+    try
       Result := ShowModal = mrOk;
       if Result then
         UpdateSettings(ASettings);
     Finally
-      FHighlighter.Free;
+      if Assigned(FHighlighter) then
+        FHighlighter.Free;
     End;
 
   Finally
@@ -533,13 +536,7 @@ begin
   ThemesRadioGroup.ItemIndex := Ord(ASettings.ThemeSelection);
   CbFont.ItemIndex := CbFont.Items.IndexOf(ASettings.FontName);
   FontSizeUpDown.Position := ASettings.FontSize;
-  if not WinSvgSupported then
-  begin
-    PreferD2DCheckBox.Visible := False;
-    PreferD2DCheckBox.Checked := False;
-  end
-  else
-    PreferD2DCheckBox.Checked := ASettings.PreferD2D;
+  EngineRadioGroup.Enabled := WinSvgSupported;
   EngineRadioGroup.ItemIndex := Ord(ASettings.SVGEngine);
   PopulateAvailThemes;
 end;
@@ -570,7 +567,6 @@ begin
   ASettings.FontName := CbFont.Text;
   ASettings.FontSize := FontSizeUpDown.Position;
   ASettings.StyleName := SelectedStyleName;
-  ASettings.PreferD2D := PreferD2DCheckBox.Checked;
   ASettings.SVGEngine := TSVGEngine(EngineRadioGroup.ItemIndex);
 end;
 
@@ -649,7 +645,8 @@ end;
 procedure TUserSettingsForm.ExitFromSettings(Sender: TObject);
 begin
   //Salva i parametri su file
-  CloneSynEdit(SynEdit, FSourceSynEdit);
+  if Assigned(FSourceSynEdit) and Assigned(SynEdit) then
+    CloneSynEdit(SynEdit, FSourceSynEdit);
   ModalResult := mrOk;
 end;
 

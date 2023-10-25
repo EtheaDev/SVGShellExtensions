@@ -2,16 +2,12 @@ unit Img32;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 July 2022                                                    *
+* Version   :  4.4                                                             *
+* Date      :  1 May 2023                                                      *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2019-2022                                         *
-*                                                                              *
+* Copyright :  Angus Johnson 2019-2023                                         *
 * Purpose   :  The core module of the Image32 library                          *
-*                                                                              *
-* License   :  Use, modification & distribution is subject to                  *
-*              Boost Software License Ver 1                                    *
-*              http://www.boost.org/LICENSE_1_0.txt                            *
+* License   :  http://www.boost.org/LICENSE_1_0.txt                            *
 *******************************************************************************)
 
 interface
@@ -20,8 +16,15 @@ interface
 
 uses
   Types, SysUtils, Classes,
-  {$IFDEF MSWINDOWS} Windows,{$ENDIF} {$IFDEF USING_VCL_LCL} Graphics, Forms,{$ENDIF}
-  {$IFDEF XPLAT_GENERICS} Generics.Collections, Generics.Defaults, Character,{$ENDIF}
+  {$IFDEF MSWINDOWS} Windows,{$ENDIF}
+  {$IFDEF USING_VCL_LCL}
+    {$IFDEF USES_NAMESPACES} Vcl.Graphics, Vcl.Forms,
+    {$ELSE}Graphics, Forms,
+    {$ENDIF}
+  {$ENDIF}
+  {$IFDEF XPLAT_GENERICS}
+    Generics.Collections, Generics.Defaults, Character,
+  {$ENDIF}
   {$IFDEF UITYPES} UITypes,{$ENDIF} Math;
 
 type
@@ -31,6 +34,15 @@ type
   TPointD = record
     X, Y: double;
   end;
+
+  PARGB = ^TARGB;
+  TARGB = packed record
+    case boolean of
+      false: (B: Byte; G: Byte; R: Byte; A: Byte);
+      true : (Color: TColor32);
+  end;
+  TArrayOfARGB = array of TARGB;
+  PArgbArray = ^TArrayOfARGB;
 
 const
   clNone32     = TColor32($00000000);
@@ -133,11 +145,14 @@ type
   //file storage formats (eg BMP, PNG, GIF & JPG).<br>
   //Derived classes register with TImage32 using TImage32.RegisterImageFormatClass.
   TImageFormat = class
+  public
     class function IsValidImageStream(stream: TStream): Boolean; virtual; abstract;
-    procedure SaveToStream(stream: TStream; img32: TImage32); virtual; abstract;
-    function SaveToFile(const filename: string; img32: TImage32): Boolean; virtual;
-    function LoadFromStream(stream: TStream; img32: TImage32): Boolean; virtual; abstract;
+    procedure SaveToStream(stream: TStream; img32: TImage32; quality: integer = 0); virtual; abstract;
+    function SaveToFile(const filename: string; img32: TImage32; quality: integer = 0): Boolean; virtual;
+    function LoadFromStream(stream: TStream;
+      img32: TImage32; imgIndex: integer = 0): Boolean; virtual; abstract;
     function LoadFromFile(const filename: string; img32: TImage32): Boolean; virtual;
+    class function GetImageCount(stream: TStream): integer; virtual;
     class function CanCopyToClipboard: Boolean; virtual;
     class function CopyToClipboard(img32: TImage32): Boolean; virtual; abstract;
     class function CanPasteFromClipboard: Boolean; virtual; abstract;
@@ -165,7 +180,7 @@ type
     fOnResize: TNotifyEvent;
     fUpdateCnt: integer;
     fAntiAliased: Boolean;
-    fNotifyBlocked: Boolean;
+    fNotifyBlockCnt: integer;
     function GetPixel(x,y: Integer): TColor32;
     procedure SetPixel(x,y: Integer; color: TColor32);
     function GetIsBlank: Boolean;
@@ -189,14 +204,17 @@ type
       const srcRec, dstRec: TRect; blendFunc: TBlendFunction);
     procedure  Changed; virtual;
     procedure  Resized; virtual;
+    function   SetPixels(const newPixels: TArrayOfColor32): Boolean;
     property   UpdateCount: integer read fUpdateCnt;
   public
     constructor Create(width: Integer = 0; height: Integer = 0); overload;
     constructor Create(src: TImage32); overload;
     constructor Create(src: TImage32; const srcRec: TRect); overload;
     destructor Destroy; override;
+    //BeginUpdate/EndUpdate: postpones calls to OnChange event (can be nested)
     procedure BeginUpdate;
     procedure EndUpdate;
+    //BlockUpdate/UnBlockUpdate: blocks calls to OnChange event (can be nested)
     procedure BlockNotify;
     procedure UnblockNotify;
 
@@ -204,12 +222,9 @@ type
     procedure AssignTo(dst: TImage32);
     //SetSize: Erases any current image, and fills with the specified color.
     procedure SetSize(newWidth, newHeight: Integer; color: TColor32 = 0);
-    //Resize: is similar to Scale() in that it won't eraze the existing
-    //image. Depending on the stretchImage parameter it will either stretch
-    //or crop the image. Don't confuse Resize() with SetSize(), as the latter
-    //does erase the image.
-    procedure Resize(newWidth, newHeight: Integer; stretchImage: Boolean = true);
-    //ScaleToFit: The new image will be scaled to fit within 'rec'
+    //Resize: is very similar to Scale()
+    procedure Resize(newWidth, newHeight: Integer);
+    //ScaleToFit: The image will be scaled proportionally
     procedure ScaleToFit(width, height: integer);
     //ScaleToFitCentered: The new image will be scaled and also centred
     procedure ScaleToFitCentered(width, height: integer); overload;
@@ -295,10 +310,10 @@ type
     class function GetImageFormatClass(const ext: string): TImageFormatClass; overload;
     class function GetImageFormatClass(stream: TStream): TImageFormatClass; overload;
     class function IsRegisteredFormat(const ext: string): Boolean;
-    function SaveToFile(filename: string): Boolean;
+    function SaveToFile(filename: string; quality: integer = 0): Boolean;
     function SaveToStream(stream: TStream; const FmtExt: string): Boolean;
     function LoadFromFile(const filename: string): Boolean;
-    function LoadFromStream(stream: TStream): Boolean;
+    function LoadFromStream(stream: TStream; imgIdx: integer = 0): Boolean;
     function LoadFromResource(const resName: string; resType: PChar): Boolean;
 
     //properties ...
@@ -349,15 +364,6 @@ type
     property IsImageOwner: Boolean read fIsImageOwner write fIsImageOwner;
     property Last: TImage32 read GetLast;
   end;
-
-  PARGB = ^TARGB;
-  TARGB = packed record
-    case boolean of
-      false: (B: Byte; G: Byte; R: Byte; A: Byte);
-      true : (Color: TColor32);
-  end;
-  TArrayOfARGB = array of TARGB;
-  PArgbArray = ^TArrayOfARGB;
 
   THsl = packed record
     hue  : byte;
@@ -441,6 +447,8 @@ type
   {$IFDEF MSWINDOWS}
   //Color32: Converts a Graphics.TColor value into a TColor32 value.
   function Color32(rgbColor: Integer): TColor32; overload;
+
+  procedure FixPalette(p: PARGB; count: integer);
   {$ENDIF}
   function Color32(a, r, g, b: Byte): TColor32; overload;
 
@@ -543,6 +551,9 @@ var
   MulTable: array [Byte,Byte] of Byte;
   //DivTable[a,b] = a * 255/b (for a &lt;= b)
   DivTable: array [Byte,Byte] of Byte;
+
+  //Sigmoid: weight byte values towards each end
+  Sigmoid: array[Byte] of Byte;
 
   dpiAware1   : integer = 1;
   DpiAwareOne : double  = 1.0;
@@ -1037,6 +1048,19 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+procedure FixPalette(p: PARGB; count: integer);
+var
+  i: integer;
+begin
+  for i := 1 to count do
+  begin
+    p.Color := SwapRedBlue(p.Color);
+    p.A := 255;
+    inc(p);
+  end;
+end;
+//------------------------------------------------------------------------------
+
 function Get32bitBitmapInfoHeader(width, height: Integer): TBitmapInfoHeader;
 begin
   FillChar(Result, sizeof(Result), #0);
@@ -1273,9 +1297,9 @@ var
   c, x, m, a: Integer;
 begin
   //formula from https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-  c := (255 - abs(2 * hsl.lum - 255)) * hsl.sat div 255;
-  a := (hsl.hue mod 85) * 6 - 255;
-  x := c * (255 - abs(a)) div 255;
+  c := ((255 - abs(2 * hsl.lum - 255)) * hsl.sat) shr 8;
+  a := 252 - (hsl.hue mod 85) * 6;
+  x := (c * (255 - abs(a))) shr 8;
   m := hsl.lum - c div 2;
   rgba.A := hsl.alpha;
   case (hsl.hue * 6) shr 8 of
@@ -1515,27 +1539,42 @@ class procedure TImage32.RegisterImageFormatClass(ext: string;
 var
   i: Integer;
   imgFmtRec: PImgFmtRec;
+  isNewFormat: Boolean;
 begin
   if not Assigned(ImageFormatClassList) then CreateImageFormatList;
 
   if (ext = '') or (ext = '.') then Exit;
   if (ext[1] = '.') then Delete(ext, 1,1);
   if not IsAlphaChar(ext[1]) then Exit;
-  //avoid duplicates
+  isNewFormat := true;
+
+  // avoid duplicates but still allow overriding
   for i := 0 to imageFormatClassList.count -1 do
   begin
     imgFmtRec := PImgFmtRec(imageFormatClassList[i]);
-    if SameText(imgFmtRec.Fmt, ext) then Exit;
+    if SameText(imgFmtRec.Fmt, ext) then
+    begin
+      imgFmtRec.Obj := bm32ExClass; // replace prior class
+      if imgFmtRec.SortOrder = clipPriority then
+        Exit; // re-sorting isn't required
+      imgFmtRec.SortOrder := clipPriority;
+      isNewFormat := false;
+      Break;
+    end;
   end;
 
-  //ImageFormatClassList is sorted with lowest priority first in list
-  new(imgFmtRec);
-  imgFmtRec.Fmt := ext;
-  imgFmtRec.SortOrder := clipPriority;
-  imgFmtRec.Obj := bm32ExClass;
-  ImageFormatClassList.Add(imgFmtRec);
-  //sorting here is arguably inefficient, but there will be so few
-  //entries in the list that this inefficiency will be inconsequential.
+  if isNewFormat then
+  begin
+    new(imgFmtRec);
+    imgFmtRec.Fmt := ext;
+    imgFmtRec.SortOrder := clipPriority;
+    imgFmtRec.Obj := bm32ExClass;
+    ImageFormatClassList.Add(imgFmtRec);
+  end;
+
+  // Sort with lower priority before higher.
+  // Sorting here is arguably inefficient but, with so few
+  // entries, this inefficiency will be inconsequential.
 
 {$IFDEF XPLAT_GENERICS}
   ImageFormatClassList.Sort(TComparer<PImgFmtRec>.Construct(
@@ -1632,16 +1671,26 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+function TImage32.SetPixels(const newPixels: TArrayOfColor32): Boolean;
+var
+  len: integer;
+begin
+  len := Length(newPixels);
+  Result := (len > 0)and (len = Width * height);
+  if Result then fPixels := System.Copy(newPixels, 0, len);
+end;
+//------------------------------------------------------------------------------
+
 procedure TImage32.BeginUpdate;
 begin
-  if fNotifyBlocked then Exit;
+  if fNotifyBlockCnt > 0 then Exit;
   inc(fUpdateCnt);
 end;
 //------------------------------------------------------------------------------
 
 procedure TImage32.EndUpdate;
 begin
-  if fNotifyBlocked then Exit;
+  if fNotifyBlockCnt > 0 then Exit;
   dec(fUpdateCnt);
   if fUpdateCnt = 0 then Changed;
 end;
@@ -1649,17 +1698,15 @@ end;
 
 procedure TImage32.BlockNotify;
 begin
-  if fUpdateCnt <> 0 then Exit;
+  inc(fNotifyBlockCnt);
   inc(fUpdateCnt);
-  fNotifyBlocked := true;
 end;
 //------------------------------------------------------------------------------
 
 procedure TImage32.UnblockNotify;
 begin
-  if not fNotifyBlocked then Exit;
+  dec(fNotifyBlockCnt);
   dec(fUpdateCnt);
-  fNotifyBlocked := false;
 end;
 //------------------------------------------------------------------------------
 
@@ -1838,7 +1885,7 @@ var
 begin
   RectWidthHeight(rec, w, h);
   if (w = Width) and (h = Height) then Exit;
-  newPixels := CopyPixels(rec);
+  newPixels := CopyPixels(rec); // get pixels **before** resizing
   BlockNotify;
   try
     SetSize(w, h);
@@ -1873,20 +1920,14 @@ begin
   fPixels := nil; //forces a blank image
   SetLength(fPixels, fwidth * fheight);
   fIsPremultiplied := false;
-  if color > 0 then
-  begin
-    BlockNotify;
-    Clear(color);
-    UnblockNotify;
-  end;
+  BlockNotify;
+  Clear(color);
+  UnblockNotify;
   Resized;
 end;
 //------------------------------------------------------------------------------
 
-procedure TImage32.Resize(newWidth, newHeight: Integer; stretchImage: Boolean);
-var
-  tmp: TImage32;
-  rec: TRect;
+procedure TImage32.Resize(newWidth, newHeight: Integer);
 begin
 
   if (newWidth <= 0) or (newHeight <= 0) then
@@ -1906,23 +1947,12 @@ begin
 
   BlockNotify;
   try
-    if stretchImage then
-    begin
-      if fResampler = 0 then
-        NearestNeighborResize(newWidth, newHeight)
-      else
-        ResamplerResize(newWidth, newHeight);
-    end else
-    begin
-      tmp := TImage32.create(self);
-      try
-        rec := Bounds;
-        SetSize(newWidth, newHeight, clNone32);
-        Copy(tmp, rec, rec); //this will clip as required.
-      finally
-        tmp.Free;
-      end;
-    end;
+    if (newWidth < Width) and (newHeight < Height) then
+      BoxDownSampling(self, newWidth, newHeight)
+    else if fResampler = 0 then
+      NearestNeighborResize(newWidth, newHeight)
+    else
+      ResamplerResize(newWidth, newHeight);
   finally
     UnblockNotify;
   end;
@@ -1987,7 +2017,6 @@ end;
 
 procedure TImage32.Scale(sx, sy: double);
 begin
-  //sx := Min(sx, 100); sy := Min(sy, 100);
   if (sx > 0) and (sy > 0) then
     ReSize(Round(width * sx), Round(height * sy));
 end;
@@ -1997,7 +2026,7 @@ procedure TImage32.ScaleToFit(width, height: integer);
 var
   sx, sy: double;
 begin
-  if IsEmpty or (width <= 0) or (height <= 0) then Exit;
+  if IsEmpty or (width < 2) or (height < 2) then Exit;
   sx := width / self.Width;
   sy := height / self.Height;
   if sx <= sy then
@@ -2197,7 +2226,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TImage32.SaveToFile(filename: string): Boolean;
+function TImage32.SaveToFile(filename: string; quality: integer = 0): Boolean;
 var
   fileFormatClass: TImageFormatClass;
 begin
@@ -2210,7 +2239,7 @@ begin
   if assigned(fileFormatClass) then
     with fileFormatClass.Create do
     try
-      result := SaveToFile(filename, self);
+      result := SaveToFile(filename, self, quality);
     finally
       free;
     end;
@@ -2250,7 +2279,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TImage32.LoadFromStream(stream: TStream): Boolean;
+function TImage32.LoadFromStream(stream: TStream; imgIdx: integer): Boolean;
 var
   ifc: TImageFormatClass;
 begin
@@ -2260,7 +2289,7 @@ begin
 
   with ifc.Create do
   try
-    result := LoadFromStream(stream, self);
+    result := LoadFromStream(stream, self, imgIdx);
   finally
     free;
   end;
@@ -2466,6 +2495,7 @@ end;
 //------------------------------------------------------------------------------
 
 {$IFDEF MSWINDOWS}
+
 procedure TImage32.CopyFromDC(srcDc: HDC; const srcRect: TRect);
 var
   bi: TBitmapInfoHeader;
@@ -2706,10 +2736,13 @@ var
 begin
   if not Assigned(bmp) then Exit;
   bmp.PixelFormat := pf32bit;
-  bmp.SetSize(Width, Height);
+  bmp.Width := Width;
+  bmp.Height := Height;
 {$IFDEF MSWINDOWS}
   {$IFNDEF FPC}
+  {$IFDEF ALPHAFORMAT}
   bmp.AlphaFormat := afDefined;
+  {$ENDIF}
   {$ENDIF}
   SetBitmapBits(bmp.Handle, Width * Height * 4, PixelBase);
 {$ELSE}
@@ -3312,7 +3345,7 @@ end;
 //------------------------------------------------------------------------------
 
 function TImageFormat.SaveToFile(const filename: string;
-  img32: TImage32): Boolean;
+  img32: TImage32; quality: integer): Boolean;
 var
   fs: TFileStream;
 begin
@@ -3322,7 +3355,7 @@ begin
 
   fs := TFileStream.Create(filename, fmCreate);
   try
-    SaveToStream(fs, img32);
+    SaveToStream(fs, img32, quality);
   finally
     fs.Free;
   end;
@@ -3332,6 +3365,12 @@ end;
 class function TImageFormat.CanCopyToClipboard: Boolean;
 begin
   Result := false;
+end;
+//------------------------------------------------------------------------------
+
+class function TImageFormat.GetImageCount(stream: TStream): integer;
+begin
+  Result := 1;
 end;
 
 //------------------------------------------------------------------------------
@@ -3396,6 +3435,7 @@ begin
   for j := 0 to 255 do DivTable[0, j] := 0;
   for i := 0 to 255 do DivTable[i, 0] := 0;
   for i := 1 to 255 do
+  begin
     for j := 1 to 255 do
     begin
       MulTable[i, j] := Round(i * j * div255);
@@ -3403,6 +3443,13 @@ begin
         DivTable[i, j] := 255 else
         DivTable[i, j] := Round(i * $FF / j);
     end;
+  end;
+
+  Sigmoid[128] := 128;
+  for i := 1 to 127 do
+    Sigmoid[128+i] := 128 + Round(127 * sin(angle90 * i/127));
+  for i := 0 to 127 do
+    Sigmoid[i] := 255- Sigmoid[255-i];
 end;
 //------------------------------------------------------------------------------
 

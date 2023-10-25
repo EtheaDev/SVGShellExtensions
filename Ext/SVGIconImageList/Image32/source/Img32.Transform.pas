@@ -2,8 +2,8 @@ unit Img32.Transform;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 May 2022                                                     *
+* Version   :  4.4                                                             *
+* Date      :  7 April 2023                                                    *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2019-2021                                         *
 *                                                                              *
@@ -65,11 +65,9 @@ type
     const srcPts, dstPts: TPathD; const margins: TRect): Boolean;
 
   function SplineVertTransform(img: TImage32; const topSpline: TPathD;
-    splineType: TSplineType; backColor: TColor32; reverseFill: Boolean;
-    out offset: TPoint): Boolean;
+    splineType: TSplineType; backColor: TColor32; out offset: TPoint): Boolean;
   function SplineHorzTransform(img: TImage32; const leftSpline: TPathD;
-    splineType: TSplineType; backColor: TColor32; reverseFill: Boolean;
-    out offset: TPoint): Boolean;
+    splineType: TSplineType; backColor: TColor32; out offset: TPoint): Boolean;
 
   function ExtractAngleFromMatrix(const mat: TMatrixD): double;
   function ExtractScaleFromMatrix(const mat: TMatrixD): TSizeD;
@@ -88,7 +86,8 @@ type
     fColorTotB: Int64;
     function GetColor: TColor32;
   public
-    procedure Reset; {$IFDEF INLINE} inline; {$ENDIF}
+    procedure Reset; overload; {$IFDEF INLINE} inline; {$ENDIF}
+    procedure Reset(c: TColor32; w: Integer = 1); overload; {$IFDEF INLINE} inline; {$ENDIF}
     procedure Add(c: TColor32; w: Integer = 1); overload;
     procedure Add(const other: TWeightedColor); overload;
       {$IFDEF INLINE} inline; {$ENDIF}
@@ -686,8 +685,7 @@ end;
 //------------------------------------------------------------------------------
 
 function SplineVertTransform(img: TImage32; const topSpline: TPathD;
-  splineType: TSplineType; backColor: TColor32; reverseFill: Boolean;
-  out offset: TPoint): Boolean;
+  splineType: TSplineType; backColor: TColor32; out offset: TPoint): Boolean;
 var
   i,j, w,h, len: integer;
   y, q: double;
@@ -755,8 +753,7 @@ end;
 //------------------------------------------------------------------------------
 
 function SplineHorzTransform(img: TImage32; const leftSpline: TPathD;
-  splineType: TSplineType; backColor: TColor32; reverseFill: Boolean;
-  out offset: TPoint): Boolean;
+  splineType: TSplineType; backColor: TColor32; out offset: TPoint): Boolean;
 var
   i,j, len, w,h: integer;
   x, q, prevY: double;
@@ -836,6 +833,29 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+procedure TWeightedColor.Reset(c: TColor32; w: Integer);
+var
+  a: Integer;
+  argb: TARGB absolute c;
+begin
+  fAddCount := w;
+  a := w * argb.A;
+  if a = 0 then
+  begin
+    fAlphaTot := 0;
+    fColorTotB := 0;
+    fColorTotG := 0;
+    fColorTotR := 0;
+  end else
+  begin
+    fAlphaTot := a;
+    fColorTotB := (a * argb.B);
+    fColorTotG := (a * argb.B);
+    fColorTotR := (a * argb.B);
+  end;
+end;
+//------------------------------------------------------------------------------
+
 procedure TWeightedColor.AddWeight(w: Integer);
 begin
   inc(fAddCount, w);
@@ -844,7 +864,7 @@ end;
 
 procedure TWeightedColor.Add(c: TColor32; w: Integer);
 var
-  a: Integer;
+  a: Int64;
   argb: TARGB absolute c;
 begin
   inc(fAddCount, w);
@@ -869,7 +889,7 @@ end;
 
 procedure TWeightedColor.Subtract(c: TColor32; w: Integer);
 var
-  a: Integer;
+  a: Int64;
   argb: TARGB absolute c;
 begin
   dec(fAddCount, w);

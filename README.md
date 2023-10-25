@@ -1,6 +1,6 @@
 ﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.0.0 - 24 Sep 2022**
+**Latest Version 3.1.0 - 25 Oct 2023**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
 
@@ -42,7 +42,7 @@ A useful Text editor with preview of SVG Image:
 
 ![SVG Text Editor Dark](./Images/SVGTextEditorDark.png)
 
-### New 32 Bit Support for XYplorer ###
+### Support for XYplorer ###
 
 As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the [configuration guide...](https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support)
 
@@ -50,7 +50,7 @@ As requested by many users of popular shell alternative, the new version support
 
 ### Manual Build and Installation (for Delphi developers) ###
 
-If you have Delphi 10.4 Sydney or Delphi 11.0 Alexandria, you can manually build the project:
+If you have Delphi 11 or Delphi 12, you can manually build the project:
 
 ***Warning: To build the DLL you need also other open-source projects***
 
@@ -73,6 +73,13 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+25 Oct 2023: ver. 3.1.0
+- Added "close button" over Tabs
+- Removed "TSVG" rendering option
+- Updated to Image32 ver. 4.4 (30 Jan 2023)
+- Updated to Skia4Delphi ver. 6.0.0 beta 5
+- Added support for Delphi 12
 
 24 Sep 2022: ver. 3.0.0
 - Fixed Scrollbar colors viewing text in preview
@@ -186,7 +193,7 @@ Third Party libraries and tools used:
 - [SynEdit][5]
 
 
-![Delphi 11 Alexandria Support](/Setup/SupportingDelphi.jpg)
+![Delphi Support](/Setup/SupportingDelphi.jpg)
 
 Related links: [embarcadero.com][10] - [learndelphi.org][11]
 

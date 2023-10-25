@@ -2,10 +2,10 @@ unit Img32.Fmt.JPG;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 May 2022                                                     *
+* Version   :  4.4                                                             *
+* Date      :  12 March 2023                                                   *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2019-2021                                         *
+* Copyright :  Angus Johnson 2019-2023                                         *
 * Purpose   :  JPG/JPEG file format extension for TImage32                     *
 * License   :  http://www.boost.org/LICENSE_1_0.txt                            *
 *******************************************************************************)
@@ -22,8 +22,10 @@ type
   TImageFormat_JPG = class(TImageFormat)
   public
     class function IsValidImageStream(stream: TStream): Boolean; override;
-    function LoadFromStream(stream: TStream; img32: TImage32): Boolean; override;
-    procedure SaveToStream(stream: TStream; img32: TImage32); override;
+    function LoadFromStream(stream: TStream;
+      img32: TImage32; imgIndex: integer = 0): Boolean; override;
+    procedure SaveToStream(stream: TStream;
+      img32: TImage32; quality: integer = 0); override;
     class function CopyToClipboard(img32: TImage32): Boolean; override;
     class function CanPasteFromClipboard: Boolean; override;
     class function PasteFromClipboard(img32: TImage32): Boolean; override;
@@ -58,7 +60,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TImageFormat_JPG.LoadFromStream(stream: TStream; img32: TImage32): Boolean;
+function TImageFormat_JPG.LoadFromStream(stream: TStream;
+  img32: TImage32; imgIndex: integer = 0): Boolean;
 var
   jpeg: TJpegImage;
 begin
@@ -86,13 +89,16 @@ end;
 // Saving (writing) Jpeg images to file ...
 //------------------------------------------------------------------------------
 
-procedure TImageFormat_JPG.SaveToStream(stream: TStream; img32: TImage32);
+procedure TImageFormat_JPG.SaveToStream(stream: TStream;
+  img32: TImage32; quality: integer = 0);
 var
   Jpeg: TJpegImage;
 begin
   Jpeg := TJpegImage.Create;
   with TJpegImageHack(jpeg) do
   try
+    if (quality > 0) and (quality <= 100) then
+      CompressionQuality := quality;
     NewImage;
     NewBitmap;
     Bitmap.Width := img32.Width;

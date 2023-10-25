@@ -9,8 +9,7 @@ unit SkiaSVGFactory;
 interface
 
 Uses
-  SVGInterfaces
-  , Skia.Vcl;
+  SVGInterfaces;
 
 // Factory Methods
 function GetSkiaSVGFactory: ISVGFactory;
@@ -24,7 +23,6 @@ Uses
   Winapi.Windows,
   Winapi.Messages,
   Winapi.GDIPAPI,
-  SVGCommon,
   System.Types,
   System.UIConsts,
   System.UITypes,
@@ -32,7 +30,8 @@ Uses
   System.Classes,
   System.Math.Vectors,
   //Skia engine
-  Skia;
+  Vcl.Skia,
+  System.Skia;
 
 type
   { TSkSvgBrushEx }

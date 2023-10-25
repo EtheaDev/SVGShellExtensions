@@ -1,8 +1,8 @@
 object PreviewContainer: TPreviewContainer
   Left = 753
   Top = 443
-  ClientHeight = 274
-  ClientWidth = 300
+  ClientHeight = 273
+  ClientWidth = 296
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

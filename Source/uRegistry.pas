@@ -38,6 +38,9 @@ function IsWindowsAppThemeLight: Boolean;
 
 implementation
 
+uses
+  SysUtils;
+
 function RegWriteStr(const RegPath, RegValue: string; const Str: string; const RootKey: HKEY): boolean;
 var
   Reg: TRegistry;
@@ -142,16 +145,11 @@ begin
     Reg.RootKey := HKEY_LOCAL_MACHINE;
     case VersionInfo.dwPlatformID of
       VER_PLATFORM_WIN32_WINDOWS:
-      begin
         Reg.OpenKeyReadOnly('\Software\Microsoft\Windows\CurrentVersion');
-        Result := Reg.ReadString('CurrentBuild') = '22000';
-      end;
     else
-      begin
-        Reg.OpenKeyReadOnly('\Software\Microsoft\Windows NT\CurrentVersion');
-        Result := Reg.ReadString('CurrentBuild') = '22000';
-      end;
+      Reg.OpenKeyReadOnly('\Software\Microsoft\Windows NT\CurrentVersion');
     end;
+    Result :=  StrToIntDef(Reg.ReadString('CurrentBuild'), 0) >= 22000;
     Reg.CloseKey;
   Finally
     Reg.Free;

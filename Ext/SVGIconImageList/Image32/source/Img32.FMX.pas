@@ -2,10 +2,10 @@ unit Img32.FMX;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 May 2022                                                     *
+* Version   :  4.4                                                             *
+* Date      :  3 September 2023                                                *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2019-2022                                         *
+* Copyright :  Angus Johnson 2019-2023                                         *
 * Purpose   :  Image file format support for TImage32 and FMX                  *
 * License   :  http://www.boost.org/LICENSE_1_0.txt                            *
 *******************************************************************************)
@@ -20,15 +20,19 @@ uses
   FMX.Platform, FMX.Types, FMX.Surfaces, FMX.Graphics, Img32;
 
 type
+
   TImageFormat_FMX = class(TImageFormat)
   private
     fExt: string;
     fPixelFormat: FMX.Types.TPixelFormat;
   public
     class function IsValidImageStream(stream: TStream): Boolean; override;
-    function LoadFromStream(stream: TStream; img32: TImage32): Boolean; override;
-    function SaveToFile(const filename: string; img32: TImage32): Boolean; override;
-    procedure SaveToStream(stream: TStream; img32: TImage32); override;
+    function LoadFromStream(stream: TStream;
+      img32: TImage32; imgIndex: integer = 0): Boolean; override;
+    function SaveToFile(const filename: string;
+      img32: TImage32; quality: integer = 0): Boolean; override;
+    procedure SaveToStream(stream: TStream;
+      img32: TImage32; quality: integer = 0); override;
     class function CopyToClipboard(img32: TImage32): Boolean; override;
     class function CanPasteFromClipboard: Boolean; override;
     class function PasteFromClipboard(img32: TImage32): Boolean; override;
@@ -73,7 +77,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TImageFormat_FMX.LoadFromStream(stream: TStream; img32: TImage32): Boolean;
+function TImageFormat_FMX.LoadFromStream(stream: TStream;
+  img32: TImage32; imgIndex: integer = 0): Boolean;
 var
   cm: TBitmapCodecManager;
   surf: TBitmapSurface;
@@ -101,14 +106,16 @@ end;
 // Saving (writing) Jpeg images to file ...
 //------------------------------------------------------------------------------
 
-function TImageFormat_FMX.SaveToFile(const filename: string; img32: TImage32): Boolean;
+function TImageFormat_FMX.SaveToFile(const filename: string;
+  img32: TImage32; quality: integer): Boolean;
 begin
   Ext := ExtractFileExt(filename);
   result := inherited;
 end;
 //------------------------------------------------------------------------------
 
-procedure TImageFormat_FMX.SaveToStream(stream: TStream; img32: TImage32);
+procedure TImageFormat_FMX.SaveToStream(stream: TStream;
+  img32: TImage32; quality: integer);
 var
   cm: TBitmapCodecManager;
   surf: TBitmapSurface;
@@ -119,7 +126,6 @@ begin
   try
     surf.SetSize(img32.Width, img32.Height, TPixelFormat.BGRA);
     Move(img32.PixelBase^, surf.Scanline[0]^, img32.Width * img32.Height * 4);
-
     if Ext = '' then
       cm.SaveToStream(stream, surf, 'PNG') else
       cm.SaveToStream(stream, surf, Ext);
@@ -138,7 +144,6 @@ begin
   Result := assigned(img32) and not img32.IsEmpty and
     TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, svc);
   if not Result then Exit;
-
   surf := TBitmapSurface.Create;
   try
     surf.SetSize(img32.Width, img32.Height, TPixelFormat.BGRA);
@@ -162,7 +167,6 @@ begin
   end else
     Result := false;
 end;
-
 //------------------------------------------------------------------------------
 
 class function TImageFormat_FMX.PasteFromClipboard(img32: TImage32): Boolean;
@@ -175,10 +179,8 @@ begin
   if not assigned(img32) or
     not TPlatformServices.Current.SupportsPlatformService(
     IFMXClipboardService, svc) then Exit;
-
   value := svc.GetClipboard;
   if not Value.IsObject then Exit;
-
   if Value.IsType<TBitmapSurface> and
     ((Value.AsType<TBitmapSurface>.PixelFormat = TPixelFormat.RGBA) or
     (Value.AsType<TBitmapSurface>.PixelFormat = TPixelFormat.BGRA)) then
@@ -198,8 +200,11 @@ var
   src, dst: TBitmapData; //TBitmapData is a record.
 begin
   if not Assigned(img) or not Assigned(bmp) then Exit;
-
+{$IF DEFINED(ANDROID)} //todo: check this on android devices
+  src := TBitmapData.Create(img.Width, img.Height, TPixelFormat.RGBA);
+{$ELSE}
   src := TBitmapData.Create(img.Width, img.Height, TPixelFormat.BGRA);
+{$IFEND}
   src.Data := img.PixelBase;
   src.Pitch := img.Width * 4;
   bmp.SetSize(img.Width, img.Height);
@@ -210,9 +215,9 @@ begin
     bmp.Unmap(dst);
   end;
 end;
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 procedure CheckScreenScale;
 var
   ScreenService: IFMXScreenService;
@@ -237,4 +242,3 @@ initialization
 {$ENDIF}
 
 end.
-

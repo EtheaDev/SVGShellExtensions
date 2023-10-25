@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -223,7 +223,7 @@ begin
         LCommand := Reg.ReadString('');
         LCommand := StringReplace(LCommand,' "%1"','', []);
         LFileName := format('"%s"',[FFileName]);
-        TLogPreview.Add(Format('TMDContextMenuHandler: Command: %s FileName %s',
+        TLogPreview.Add(Format('TSVGContextMenuHandler: Command: %s FileName %s',
           [LCommand, LFileName]));
         if (FFileName <> '') and FileExists(FFileName) then
         begin

@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -51,7 +51,7 @@ resourcestring
 type
   TThemeSelection = (tsAsWindows, tsDarkTheme, tsLightTheme);
   TThemeType = (ttLight, ttDark);
-  TSVGEngine = (enImage32, enTSVG);
+  TSVGEngine = (enImage32, enDirect2D);
 
   //Class to register Theme attributes (like dark or light)
   TThemeAttribute = class
@@ -72,7 +72,6 @@ type
     FUseDarkStyle: boolean;
     FFontName: string;
     FShowEditor: Boolean;
-    FPreferD2D: Boolean;
     FActivePageIndex: Integer;
     FThemeSelection: TThemeSelection;
     FSVGEngine: TSVGEngine;
@@ -82,7 +81,6 @@ type
     FPngExportFolder: string;
     function GetUseDarkStyle: Boolean;
     procedure SetSVGEngine(const Value: TSVGEngine);
-    procedure SetPreferD2D(const Value: Boolean);
     function GetThemeSectionName: string;
     function GetButtonTextColor: TColor;
     class function GetSettingsFileName: string; static;
@@ -116,7 +114,6 @@ type
     property StyleName: string read FStyleName write FStyleName;
     property ShowEditor: Boolean read FShowEditor write FShowEditor;
     property SplitterPos: Integer read FSplitterPos write FSplitterPos;
-    property PreferD2D: Boolean read FPreferD2D write SetPreferD2D;
     property SVGEngine: TSVGEngine read FSVGEngine write SetSVGEngine;
     property ActivePageIndex: Integer read FActivePageIndex write FActivePageIndex;
     property ThemeSelection: TThemeSelection read FThemeSelection write FThemeSelection;
@@ -156,7 +153,6 @@ implementation
 uses
   Vcl.Controls,
   SVGInterfaces,
-  PasSVGFactory,
   D2DSVGFactory,
   Image32SVGFactory,
   System.Types,
@@ -271,11 +267,7 @@ begin
   FSettingsFileName := ASettingFileName;
   FSettingsPath := ExtractFilePath(ASettingFileName);
   System.SysUtils.ForceDirectories(FSettingsPath);
-  {$IFDEF Image32_SVGEngine}
   FSVGEngine := enImage32;
-  {$ELSE}
-  FSVGEngine := enTSVG;
-  {$ENDIF}
   ReadSettings(ASynEditHighilighter, ASynEditorOptions);
 end;
 
@@ -326,7 +318,6 @@ procedure TSettings.ReadSettings(const ASynEditHighilighter: TSynCustomHighlight
 var
   LThemeSection: string;
   I: Integer;
-  LPreferD2D: Integer;
   LAttribute: TSynHighlighterAttributes;
   LValue: TPngExportSize;
   LName: string;
@@ -336,8 +327,6 @@ begin
   FFontName := FIniFile.ReadString('Global', 'FontName', 'Consolas');
   FShowEditor := FIniFile.ReadInteger('Global', 'ShowEditor', 1) = 1;
   FSplitterPos := FIniFile.ReadInteger('Global', 'SplitterPos', 33);
-  LPreferD2D := FIniFile.ReadInteger('Global', 'PreferD2D', 0);
-  PreferD2D := not ((LPreferD2D = 0) or (LPreferD2D = 255));
   SVGEngine := TSVGEngine(FIniFile.ReadInteger('Global', 'SVGEngine', 0));
   FActivePageIndex := FIniFile.ReadInteger('Global', 'ActivePageIndex', 0);
   FStyleName := FIniFile.ReadString('Global', 'StyleName', DefaultStyleName);
@@ -385,20 +374,9 @@ end;
 
 procedure TSettings.UpdateEngine;
 begin
-  if WinSvgSupported and FPreferD2D then
-    SetGlobalSvgFactory(GetD2DSVGFactory)
-  else if FSVGEngine = enImage32 then
-    SetGlobalSvgFactory(GetImage32SVGFactory)
-  else
-    SetGlobalSvgFactory(GetPasSVGFactory);
-end;
-
-procedure TSettings.SetPreferD2D(const Value: Boolean);
-begin
-  if FPreferD2D <> Value then
-  begin
-    FPreferD2D := Value;
-    UpdateEngine;
+  case FSVGEngine of
+    enImage32: SetGlobalSvgFactory(GetImage32SVGFactory);
+    enDirect2D: SetGlobalSvgFactory(GetD2DSVGFactory);
   end;
 end;
 
@@ -451,7 +429,6 @@ begin
   FIniFile.WriteString('Global', 'StyleName', FStyleName);
   FIniFile.WriteInteger('Global', 'ShowEditor', Ord(FShowEditor));
   FIniFile.WriteInteger('Global', 'SplitterPos', FSplitterPos);
-  FIniFile.WriteInteger('Global', 'PreferD2D', Ord(FPreferD2D));
   FIniFile.WriteInteger('Global', 'SVGEngine', Ord(FSVGEngine));
   FIniFile.WriteInteger('Global', 'ActivePageIndex', FActivePageIndex);
   FIniFile.WriteInteger('Global', 'ThemeSelection', Ord(FThemeSelection));

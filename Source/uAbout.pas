@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -60,8 +60,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnIssuesClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure LinkLabel1Click(Sender: TObject);
     procedure btnCheckUpdatesClick(Sender: TObject);
+    procedure LinkLabel1LinkClick(Sender: TObject; const Link: string;
+      LinkType: TSysLinkType);
   private
     FTitle: string;
     procedure SetTitle(const Value: string);
@@ -177,7 +178,7 @@ begin
   MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');
-  MemoCopyRights.Lines.Add('Copyright © 2021-2022 all rights reserved.');
+  MemoCopyRights.Lines.Add('Copyright © 2021-2023 all rights reserved.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Third Party libraries and tools used from Ethea:');
   MemoCopyRights.Lines.Add('SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/');
@@ -189,18 +190,15 @@ begin
   MemoCopyRights.Lines.Add('Third Party libraries and tools used');
   MemoCopyRights.Lines.Add('SynEdit http://synedit.svn.sourceforge.net/viewvc/synedit/ all rights reserved.');
   MemoCopyRights.Lines.Add('');
-  MemoCopyRights.Lines.Add('TSVG Library - http://www.mwcs.de');
-  MemoCopyRights.Lines.Add('Original version © 2005, 2008 Martin Walter.');
-  MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Image32 Library - http://www.angusj.com/delphi/image32/Docs/_Body.htm');
   MemoCopyRights.Lines.Add('Copyright ©2019-2022 Angus Johnson.');
   MemoCopyRights.Lines.Add('');
 end;
 
-procedure TFrmAbout.LinkLabel1Click(Sender: TObject);
+procedure TFrmAbout.LinkLabel1LinkClick(Sender: TObject; const Link: string;
+  LinkType: TSysLinkType);
 begin
-   ShellExecute(Handle, 'open',
-    PChar('https://github.com/EtheaDev/SVGShellExtensions'), nil, nil, SW_SHOW);
+   ShellExecute(Handle, 'open', PChar(Link), nil, nil, SW_SHOW);
 end;
 
 procedure TFrmAbout.SetTitle(const Value: string);

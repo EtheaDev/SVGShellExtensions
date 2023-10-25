@@ -422,19 +422,12 @@ object UserSettingsForm: TUserSettingsForm
         Top = 37
         Width = 284
         Height = 102
-        Caption = 'Engine'
+        Caption = 'SVG rendering options'
+        ItemIndex = 0
         Items.Strings = (
           'Delphi Image32'
-          'Delphi TSVG')
+          'Windows Direct 2D')
         TabOrder = 1
-      end
-      object PreferD2DCheckBox: TCheckBox
-        Left = 13
-        Top = 145
-        Width = 284
-        Height = 18
-        Caption = 'Prefer Direct 2D Engine (if available in Windows)'
-        TabOrder = 2
       end
     end
   end

@@ -75,6 +75,7 @@ begin
   TLogPreview.Add('TComFilePreviewHandler.InternalDoPreview');
   CheckContainer;
   Container.LoadFromFile(FFilePath);
+  Container.Show;
 end;
 
 procedure TComFilePreviewHandler.InternalUnload;

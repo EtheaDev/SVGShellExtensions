@@ -56,7 +56,6 @@ type
     FOwner: TNCControls;
     function GetItem(Index: Integer): TNCControl;
     procedure SetItem(Index: Integer; Value: TNCControl);
-    //function Add: TNCControl;
   protected
     function GetOwner: TPersistent; override;
   public
@@ -2108,12 +2107,6 @@ begin
 end;
 
 { TListNCButtons }
-(*
-function TListNCControls.Add: TNCControl;
-begin
-  Result := TNCControl(inherited Add);
-end;
-*)
 function RttiMethodInvokeEx(const MethodName: string; RttiType: TRttiType; Instance: TValue;
   const Args: array of TValue): TValue;
 var

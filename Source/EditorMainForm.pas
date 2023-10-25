@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -72,7 +72,7 @@ resourcestring
   STATE_INSERT = 'Insert';
   STATE_OVERWRITE = 'OverWrite';
   CLOSING_PROBLEMS = 'Closing problems!';
-  CONFIRM_ABANDON = '%s not saved! Abandon Changes?';
+  CONFIRM_CHANGES = 'ATTENTION: the content of file "%s" is changed: do you want to save the file?';
   SVG_PARSING_OK = 'SVG Parsing is correct.';
 
 type
@@ -185,6 +185,8 @@ type
     StatusStaticText: TStaticText;
     StatusSplitter: TSplitter;
     CloseAll1: TMenuItem;
+    VirtualImageList20: TVirtualImageList;
+    PanelCloseButton: TPanel;
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure acOpenFileExecute(Sender: TObject);
     procedure acSaveExecute(Sender: TObject);
@@ -259,7 +261,13 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure acEditCopyUpdate(Sender: TObject);
+    procedure PageControlMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure PageControlMouseEnter(Sender: TObject);
+    procedure PageControlMouseLeave(Sender: TObject);
+    procedure SVGIconImageCloseButtonClick(Sender: TObject);
   private
+    FirstAction: Boolean;
     MinFormWidth, MinFormHeight, MaxFormWidth, MaxFormHeight: Integer;
     FProcessingFiles: Boolean;
     FEditorSettings: TEditorSettings;
@@ -311,6 +319,8 @@ type
     procedure LoadOpenedFiles;
     function CanAcceptFileName(const AFileName: string): Boolean;
     function AcceptedExtensions: string;
+    procedure ConfirmChanges(EditingFile: TEditingFile);
+    procedure ShowTabCloseButtonOnHotTab;
     property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
   protected
     procedure CreateWindowHandle(const Params: TCreateParams); override;
@@ -406,7 +416,10 @@ begin
   Ext := ExtractFileExt(FFileName);
   EditFileType := dmResources.GetEditFileType(Ext);
   if TabSheet <> nil then
+  begin
     TabSheet.Caption := Name;
+    TabSheet.Hint := FFileName;
+  end;
 end;
 
 destructor TEditingFile.Destroy;
@@ -647,6 +660,14 @@ begin
     SV.OpenedWidth := SV.Width;
 end;
 
+procedure TfrmMain.SVGIconImageCloseButtonClick(Sender: TObject);
+begin
+  PanelCloseButton.Visible := False;
+  PageControl.ActivePageIndex := PanelCloseButton.Tag;
+  acClose.Execute;
+  ShowTabCloseButtonOnHotTab;
+end;
+
 procedure TfrmMain.SVGIconImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 var
@@ -780,10 +801,8 @@ begin
     for I := 0 to EditFileList.Count -1 do
     begin
       LEditingFile := TEditingFile(EditFileList.Items[I]);
-      if LEditingFile.SynEditor.Modified and
-        (MessageDlg(Format(CONFIRM_ABANDON,[LEditingFile.FileName]),
-          mtWarning, [mbYes, mbNo], 0) = mrNo) then
-          Abort;
+      //Confirm save changes
+      ConfirmChanges(LEditingFile);
       LFileList.Add(LEditingFile.FileName);
     end;
     if CurrentEditFile <> nil then
@@ -802,12 +821,14 @@ var
   I: Integer;
   LFileName: string;
   LIndex: Integer;
+  LCurrentFileName: string;
 begin
   LIndex := -1;
   for I := 0 to FEditorSettings.OpenedFileList.Count-1 do
   begin
+    LCurrentFileName := FEditorSettings.CurrentFileName;
     LFileName := FEditorSettings.OpenedFileList.Strings[I];
-    if OpenFile(LFileName, False) and SameText(LFileName, FEditorSettings.CurrentFileName) then
+    if OpenFile(LFileName, False) and SameText(LFileName, LCurrentFileName) then
       LIndex := I;
   end;
   if LIndex <> -1 then
@@ -817,7 +838,6 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 var
-  InitialDir : string;
   FileVersionStr: string;
 begin
   //Build opened-files list
@@ -853,23 +873,6 @@ begin
 
   //Initialize print output
   InitSynEditPrint;
-
-  //Load previous opened-files
-  LoadOpenedFiles;
-
-  //Initialize Open and Save Dialog with application path
-  if ParamStr(1) <> '' then
-  begin
-    //Load file passed at command line
-    InitialDir := ParamStr(1);
-    OpenFile(ParamStr(1));
-    AssignSVGToImage;
-  end
-  else
-    InitialDir := '.';
-
-  OpenDialog.InitialDir := InitialDir;
-  SaveDialog.InitialDir := InitialDir;
 
   //Update all editor options
   UpdateEditorsOptions;
@@ -981,6 +984,7 @@ begin
     //Use TAG of tabsheet to store the object pointer
     LTabSheet.Tag := NativeInt(EditingFile);
     LTabSheet.Caption := EditingFile.Name;
+    LTabSheet.Hint := EditingFile.FileName;
     LTabSheet.Imagename := 'svg-logo-gray';
     LTabSheet.Parent := PageControl;
     LTabSheet.TabVisible := True;
@@ -1078,6 +1082,43 @@ begin
   AssignSVGToImage;
 end;
 
+procedure TfrmMain.PageControlMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+{$WRITEABLECONST ON}
+const oldPos : integer = -2;
+{$WRITEABLECONST OFF}
+var
+  iot : integer;
+
+  LhintPause: Integer;
+  LTabIndex: Integer;
+begin
+  inherited;
+  LTabIndex := PageControl.IndexOfTabAt(X, Y);
+  if (LTabIndex >= 0) and (PageControl.Hint <> PageControl.Pages[LTabIndex].Hint) then
+  begin
+    LHintPause := Application.HintPause;
+    try
+      if PageControl.Hint <> '' then
+        Application.HintPause := 0;
+      Application.CancelHint;
+      PageControl.Hint := PageControl.Pages[LTabIndex].Hint;
+      PageControl.ShowHint := true;
+      Application.ProcessMessages; // force hint to appear
+    finally
+      Application.HintPause := LHintPause;
+    end;
+  end;
+
+  iot := TTabControl(Sender).IndexOfTabAt(x,y);
+  if (iot > -1) then
+  begin
+    if iot <> oldPos then
+      ShowTabCloseButtonOnHotTab;
+  end;
+  oldPos := iot;
+end;
+
 procedure TfrmMain.acSaveUpdate(Sender: TObject);
 begin
   acSave.Enabled := (CurrentEditor <> nil) and (CurrentEditor.Modified);
@@ -1110,6 +1151,23 @@ begin
     Result := nil;
 end;
 
+procedure TfrmMain.ConfirmChanges(EditingFile: TEditingFile);
+var
+  LConfirm: integer;
+begin
+  //Confirm save changes
+  if EditingFile.SynEditor.Modified then
+  begin
+    LConfirm := MessageDlg(Format(CONFIRM_CHANGES,[EditingFile.FileName]),
+      mtWarning, [mbYes, mbNo], 0);
+    if LConfirm = mrYes then
+      EditingFile.SaveToFile
+    else if LConfirm = mrCancel then
+      Abort;
+    //if LConfirm = mrNo continue without saving
+  end;
+end;
+
 procedure TfrmMain.RemoveEditingFile(EditingFile: TEditingFile);
 var
   i : integer;
@@ -1127,13 +1185,10 @@ begin
   if pos = -1 then
     raise EComponentError.Create(CLOSING_PROBLEMS);
 
-  //Confirm abandon changes
-  if EditingFile.SynEditor.Modified then
-  begin
-    if MessageDlg(Format(CONFIRM_ABANDON,[EditingFile.FileName]),
-      mtWarning, [mbYes, mbNo], 0) = mrNo then
-      Abort;
-  end;
+  //Confirm save changes
+  ConfirmChanges(EditingFile);
+
+  PanelCloseButton.Visible := False;
 
   //Delete the file from the Opened-List
   EditFileList.Delete(pos);
@@ -1158,6 +1213,7 @@ procedure TfrmMain.acCloseAllExecute(Sender: TObject);
 begin
   FProcessingFiles := True;
   try
+    PanelCloseButton.Visible := False;
     while EditFileList.Count > 0 do
       RemoveEditingFile(TEditingFile(EditFileList.items[0]));
   finally
@@ -1520,8 +1576,33 @@ end;
 
 procedure TfrmMain.ActionListUpdate(Action: TBasicAction;
   var Handled: Boolean);
+var
+  InitialDir: string;
+  LFileName: TFileName;
 begin
   UpdateStatusBarPanels;
+  if not FirstAction then
+  begin
+    FirstAction := True;
+
+    //Load previous opened-files
+    LoadOpenedFiles;
+
+    //Initialize Open and Save Dialog with application path
+    LFileName := ParamStr(1);
+    if LFileName <> '' then
+    begin
+      //Load file passed at command line
+      InitialDir := ExtractFilePath(LFileName);
+      OpenFile(LFileName);
+      AssignSVGToImage;
+    end
+    else
+      InitialDir := '.';
+
+    OpenDialog.InitialDir := InitialDir;
+    SaveDialog.InitialDir := InitialDir;
+  end;
 end;
 
 procedure TfrmMain.actMenuExecute(Sender: TObject);
@@ -1685,6 +1766,46 @@ end;
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
   BackgroundTrackBarChange(nil);
+end;
+
+procedure TfrmMain.ShowTabCloseButtonOnHotTab;
+var
+  iot : integer;
+  cp : TPoint;
+  rectOver: TRect;
+begin
+  cp := PageControl.ScreenToClient(Mouse.CursorPos);
+  iot := PageControl.IndexOfTabAt(cp.X, cp.Y);
+
+  if iot > -1 then
+  begin
+    rectOver := PageControl.TabRect(iot);
+
+    PanelCloseButton.Left := rectOver.Right - PanelCloseButton.Width;
+    PanelCloseButton.Top := rectOver.Top + ((rectOver.Height div 2) - (PanelCloseButton.Height div 2)) + 1;
+
+    PanelCloseButton.Tag := iot;
+    PanelCloseButton.Show;
+  end
+  else
+  begin
+    PanelCloseButton.Tag := -1;
+    PanelCloseButton.Hide;
+  end;
+end;
+
+procedure TfrmMain.PageControlMouseEnter(Sender: TObject);
+begin
+  ShowTabCloseButtonOnHotTab;
+end;
+
+procedure TfrmMain.PageControlMouseLeave(Sender: TObject);
+begin
+  if PanelCloseButton <> FindVCLWindow(Mouse.CursorPos) then
+  begin
+    PanelCloseButton.Hide;
+    PanelCloseButton.Tag := -1;
+  end;
 end;
 
 initialization

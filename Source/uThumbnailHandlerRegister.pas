@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2023 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -146,14 +146,6 @@ begin
   if Instancing = ciInternal then
     Exit;
 
-(*
-<!-- Registry Key for Class Registration of Svg Thumbnail Provider -->
-            <RegistryValue Type="string" Key="InprocServer32" Value="[FileExplorerPreviewInstallFolder]SvgThumbnailProvider.comhost.dll" />
-            <RegistryValue Type="string" Key="InprocServer32" Name="Assembly" Value="SvgThumbnailProvider, Version=$(var.Version).0, Culture=neutral" />
-            <RegistryValue Type="string" Key="InprocServer32\$(var.Version).0" Name="Assembly" Value="SvgThumbnailProvider, Version=$(var.Version).0, Culture=neutral" />
-            <RegistryValue Type="string" Key="InprocServer32\$(var.Version).0" Name="Class" Value="Microsoft.PowerToys.ThumbnailHandler.Svg.SvgThumbnailProvider" />
-        </RegistryKey>
-*)
   ComServer.GetRegRootAndPrefix(RootKey, RootPrefix);
   RootUserReg := IfThen(ComServer.PerUserRegistration, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE);
   sClassID := SysUtils.GUIDToString(ClassID);

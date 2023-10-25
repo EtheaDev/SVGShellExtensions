@@ -5,10 +5,10 @@ inherited FrmPreview: TFrmPreview
   ClientWidth = 617
   DoubleBuffered = True
   Font.Name = 'Segoe UI'
-  OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
+  StyleElements = [seFont, seClient, seBorder]
   OnResize = FormResize
-  ExplicitWidth = 633
-  ExplicitHeight = 656
+  ExplicitWidth = 629
+  ExplicitHeight = 655
   TextHeight = 13
   object Splitter: TSplitter
     Left = 0
@@ -20,7 +20,6 @@ inherited FrmPreview: TFrmPreview
     AutoSnap = False
     MinSize = 100
     OnMoved = SplitterMoved
-    ExplicitWidth = 888
   end
   object PanelTop: TPanel
     Left = 0
@@ -30,7 +29,6 @@ inherited FrmPreview: TFrmPreview
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 613
     object ToolBar: TToolBar
       Left = 0
       Top = 0
@@ -45,7 +43,6 @@ inherited FrmPreview: TFrmPreview
       Images = SVGIconImageList
       List = True
       TabOrder = 0
-      ExplicitWidth = 613
       object ToolButtonShowText: TToolButton
         Left = 0
         Top = 0
@@ -146,7 +143,6 @@ inherited FrmPreview: TFrmPreview
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 613
     object SynEdit: TSynEdit
       Left = 0
       Top = 0
@@ -177,9 +173,6 @@ inherited FrmPreview: TFrmPreview
       Gutter.ShowLineNumbers = True
       ReadOnly = True
       FontSmoothing = fsmNone
-      ExplicitTop = 6
-      ExplicitWidth = 218
-      ExplicitHeight = 185
     end
   end
   object StatusBar: TStatusBar
@@ -191,11 +184,9 @@ inherited FrmPreview: TFrmPreview
     ParentFont = True
     SimplePanel = True
     SimpleText = 
-      ' SVG Preview - Ver.%s (%dbit)- Copyright '#169' 2021-2022 Ethea S.r.l' +
+      ' SVG Preview - Ver.%s (%dbit)- Copyright '#169' 2021-2023 Ethea S.r.l' +
       '. - Author: Carlo Barazzetta'
     UseSystemFont = False
-    ExplicitTop = 597
-    ExplicitWidth = 613
   end
   object ImagePanel: TPanel
     Left = 0
@@ -207,8 +198,6 @@ inherited FrmPreview: TFrmPreview
     ParentBackground = False
     TabOrder = 3
     StyleElements = []
-    ExplicitWidth = 613
-    ExplicitHeight = 262
     object SVGIconImage: TSVGIconImage
       Left = 0
       Top = 40
@@ -224,9 +213,7 @@ inherited FrmPreview: TFrmPreview
       Height = 40
       Align = alTop
       ParentBackground = False
-      ShowCaption = False
       TabOrder = 0
-      ExplicitWidth = 613
       object BackgroundGrayScaleLabel: TLabel
         Left = 10
         Top = 6
@@ -242,6 +229,7 @@ inherited FrmPreview: TFrmPreview
         Top = 4
         Width = 532
         Height = 32
+        Cursor = crHandPoint
         Margins.Left = 80
         Align = alClient
         Max = 255
@@ -250,7 +238,6 @@ inherited FrmPreview: TFrmPreview
         TabOrder = 0
         TabStop = False
         OnChange = BackgroundTrackBarChange
-        ExplicitWidth = 528
       end
     end
   end

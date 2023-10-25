@@ -3,8 +3,8 @@ object FrmAbout: TFrmAbout
   Top = 323
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  ClientHeight = 316
-  ClientWidth = 446
+  ClientHeight = 315
+  ClientWidth = 442
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,10 +14,9 @@ object FrmAbout: TFrmAbout
   Position = poDefault
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
   DesignSize = (
-    446
-    316)
+    442
+    315)
   TextHeight = 13
   object TitleLabel: TLabel
     Left = 190
@@ -128,20 +127,22 @@ object FrmAbout: TFrmAbout
   end
   object Panel1: TPanel
     Left = 0
-    Top = 265
-    Width = 446
+    Top = 264
+    Width = 442
     Height = 51
     Align = alBottom
     BevelOuter = bvNone
     Color = clWindow
     ParentBackground = False
     TabOrder = 0
+    ExplicitTop = 266
+    ExplicitWidth = 450
     object btnOK: TButton
       Left = 360
       Top = 16
       Width = 75
       Height = 25
-      Caption = 'OK'
+      Caption = 'CLOSE'
       Default = True
       TabOrder = 0
       OnClick = btnOKClick
@@ -172,7 +173,7 @@ object FrmAbout: TFrmAbout
     Left = 8
     Top = 83
     Width = 427
-    Height = 176
+    Height = 175
     Anchors = [akLeft, akTop, akBottom]
     Color = clBtnFace
     ReadOnly = True
@@ -182,13 +183,13 @@ object FrmAbout: TFrmAbout
   object LinkLabel1: TLinkLabel
     Left = 8
     Top = 62
-    Width = 395
-    Height = 29
+    Width = 267
+    Height = 19
     Caption = 
       '<a href="https://github.com/EtheaDev/SVGShellExtensions">https:/' +
       '/github.com/EtheaDev/SVGShellExtensions</a>'
     TabOrder = 2
     UseVisualStyle = True
-    OnClick = LinkLabel1Click
+    OnLinkClick = LinkLabel1LinkClick
   end
 end

@@ -2,8 +2,8 @@ unit Img32.SVG.Reader;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 May 2022                                                     *
+* Version   :  4.4                                                             *
+* Date      :  7 April 2023                                                    *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2019-2022                                         *
 *                                                                              *
@@ -120,6 +120,8 @@ type
     fRootElement      : TSvgRootElement;
     fFontCache        : TFontCache;
     fUsePropScale     : Boolean;
+    fSimpleDraw       : Boolean;
+    fSimpleDrawList   : TList;
     function  LoadInternal: Boolean;
     function  GetIsEmpty: Boolean;
     procedure SetBlurQuality(quality: integer);
@@ -156,12 +158,24 @@ type
     property  KeepAspectRatio: Boolean
       read fUsePropScale write fUsePropScale;
     property  RootElement     : TSvgRootElement read fRootElement;
+    //RecordSimpleDraw: record simple drawing instructions
+    property  RecordSimpleDraw: Boolean read fSimpleDraw write fSimpleDraw;
+    //SimpleDrawList: list of PSimpleDrawData records;
+    property  SimpleDrawList  : TList read fSimpleDrawList;
+  end;
+
+  PSimpleDrawData = ^TSimpleDrawData;
+  TSimpleDrawData = record
+    paths     : TPathsD;
+    fillRule  : TFillRule;
+    color     : TColor32;
+    tag       : integer;
   end;
 
 implementation
 
 uses
-  Img32.Extra;
+  Img32.Extra, Img32.Clipper2;
 
 type
   TFourDoubles = array [0..3] of double;
@@ -174,6 +188,11 @@ type
   //-------------------------------------
 
   TShapeElement = class(TSvgElement)
+  private
+    procedure SimpleDrawFill(const paths: TPathsD;
+      fillRule: TFillRule; color: TColor32);
+    procedure SimpleDrawStroke(const paths: TPathsD; width: double;
+      joinStyle: TJoinStyle; endStyle: TEndStyle; color: TColor32);
   protected
     hasPaths    : Boolean;
     drawPathsO  : TPathsD; //open only
@@ -318,6 +337,7 @@ type
   protected
     text      : UTF8String;
     procedure GetPaths(const drawDat: TDrawData); override;
+    function  GetBounds: TRectD; override;
   public
     constructor Create(parent: TSvgElement; svgEl: TSvgTreeEl); override;
   end;
@@ -547,17 +567,17 @@ const
   buffSize    = 32;
   clAlphaSet  = $00010101;
   SourceImage   : UTF8String = 'SourceGraphic';
-  SourceAlpha   : UTF8String = 'SourceAlpha';
+  //SourceAlpha   : UTF8String = 'SourceAlpha';
   tmpFilterImg  : UTF8String = 'tmp';
 
   //https://www.w3.org/TR/css-fonts-3/#font-family-prop
   emptyDrawInfo: TDrawData =
     (currentColor: clInvalid;
     fillColor: clInvalid; fillOpacity: InvalidD;
-    fillRule: frNonZero; fillEl: '';
+    fillRule: frNegative; fillEl: '';
     strokeColor: clInvalid; strokeOpacity: InvalidD;
     strokeWidth: (rawVal: InvalidD; unitType: utNumber);
-    strokeCap: esPolygon; strokeJoin: jsAuto; strokeMitLim: 0.0; strokeEl : '';
+    strokeCap: esPolygon; strokeJoin: jsMiter; strokeMitLim: 0.0; strokeEl : '';
     dashArray: nil; dashOffset: 0;
     fontInfo: (family: ttfUnknown; size: 0; spacing: 0.0;
     textLength: 0; italic: sfsUndefined; weight: -1; align: staUndefined;
@@ -627,7 +647,8 @@ begin
   begin
     if currentColor <> clInvalid then
       thisElement.fReader.currentColor := currentColor;
-    drawDat.fillRule := fillRule;
+    if fillRule <> frNegative then
+      drawDat.fillRule := fillRule;
     if (fillColor = clCurrent) then
       drawDat.fillColor := thisElement.fReader.currentColor
     else if (fillColor <> clInvalid) then
@@ -720,14 +741,14 @@ end;
 
 function MergeColorAndOpacity(color: TColor32; opacity: double): TColor32;
 begin
-  if (opacity < 0) or (opacity >= 1.0) then Result := color
+  if (opacity < 0) or (opacity >= 1.0) then Result := color or $FF000000
   else if opacity = 0 then Result := clNone32
   else Result := (color and $FFFFFF) + Round(opacity * 255) shl 24;
 end;
 //------------------------------------------------------------------------------
 
 function UTF8StringToFloat(const ansiValue: UTF8String;
-  var value: double): Boolean;
+  out value: double): Boolean;
 var
   c: PUTF8Char;
 begin
@@ -824,6 +845,8 @@ begin
   if fChilds.Count = 0 then Exit;
 
   UpdateDrawInfo(drawDat, self);
+  if drawDat.fillRule = frNegative then
+    drawDat.fillRule := frNonZero;
 
   maskEl := FindRefElement(drawDat.maskElRef);
   clipEl := FindRefElement(drawDat.clipElRef);
@@ -845,7 +868,11 @@ begin
     try
       DrawChildren(tmpImg, drawDat);
       with TClipPathElement(clipEl) do
-        EraseOutsidePaths(tmpImg, clipPaths, fDrawData.fillRule, clipRec);
+      begin
+        if fDrawData.fillRule = frNegative then
+          EraseOutsidePaths(tmpImg, clipPaths, frNonZero, clipRec) else
+          EraseOutsidePaths(tmpImg, clipPaths, fDrawData.fillRule, clipRec);
+      end;
       image.CopyBlend(tmpImg, clipRec, clipRec, BlendToAlpha);
     finally
       tmpImg.Free;
@@ -1373,7 +1400,7 @@ end;
 
 function TFilterElement.GetRelFracLimit: double;
 begin
-  //always assume fractional values below 2.5 are relative
+  // assume fractional values below 2.5 are always relative
   Result := 2.5;
 end;
 //------------------------------------------------------------------------------
@@ -1512,7 +1539,7 @@ begin
         begin
           Result := AddNamedImage(name);
           Result.Copy(fSrcImg, fFilterBounds, Result.Bounds);
-          Result.SetRGB(clNone32, Result.Bounds);
+          Result.SetRGB(clBlack32, Result.Bounds);
         end;
         Exit;
       end;
@@ -1555,7 +1582,8 @@ begin
         hfeSpecularLighting : TFeSpecLightElement(fChilds[i]).Apply;
       end;
     end;
-    fSrcImg.Copy(fLastImg, fLastImg.Bounds, fFilterBounds);
+    if Assigned(fLastImg) then
+      fSrcImg.Copy(fLastImg, fLastImg.Bounds, fFilterBounds);
   finally
     Clear;
   end;
@@ -1851,7 +1879,7 @@ begin
     dstImg.ReduceOpacity(alpha);
   if stdDev > 0 then
     FastGaussianBlur(dstImg, dstRec,
-      Ceil(stdDev *0.75 * ParentFilterEl.fScale) , 0);
+      Ceil(stdDev *0.75 * ParentFilterEl.fScale) , 1);
   dstImg.CopyBlend(dropShadImg, dropShadImg.Bounds, dstRec, BlendToAlpha);
 end;
 
@@ -1900,8 +1928,7 @@ begin
 
   //FastGaussianBlur is a very good approximation and also very much faster.
   //Empirically stdDev * PI/4 more closely emulates other renderers.
-  FastGaussianBlur(dstImg, dstRec,
-    Ceil(stdDev * PI/4 * ParentFilterEl.fScale), fReader.fBlurQuality);
+  FastGaussianBlur(dstImg, dstRec, Ceil(stdDev * PI/4 * ParentFilterEl.fScale));
 end;
 
 //------------------------------------------------------------------------------
@@ -2070,6 +2097,7 @@ begin
 
   if not (filled or stroked) or not hasPaths then Exit;
   drawDat.bounds := GetBoundsD(drawPathsF);
+  if drawDat.bounds.IsEmpty then drawDat.bounds := GetBounds;
 
   img := image;
   clipRec2 := NullRect;
@@ -2111,6 +2139,14 @@ begin
     end else
     begin
       clipRec := drawDat.bounds;
+      if clipRec.IsEmpty and (drawDat.fontInfo.textLength > 0) and
+        (self is TSubtextElement) then
+      begin
+        clipRec.Left := fParent.elRectWH.left.rawVal;
+        clipRec.Bottom := fParent.elRectWH.top.rawVal;
+        clipRec.Right := clipRec.Left + drawDat.fontInfo.textLength;
+        clipRec.Top := clipRec.Bottom - drawDat.fontInfo.size;
+      end;
       if stroked and drawDat.strokeWidth.IsValid then
       begin
         with drawDat.strokeWidth do
@@ -2162,7 +2198,11 @@ begin
     TMaskElement(maskEl).ApplyMask(img, drawDat)
   else if Assigned(clipPathEl) then
     with TClipPathElement(clipPathEl) do
-      EraseOutsidePaths(img, clipPaths, fDrawData.fillRule, clipRec2);
+    begin
+      if fDrawData.fillRule = frNegative then
+        EraseOutsidePaths(img, clipPaths, frNonZero, clipRec2) else
+        EraseOutsidePaths(img, clipPaths, fDrawData.fillRule, clipRec2);
+    end;
 
   if usingTempImage and (img <> image) then
     image.CopyBlend(img, clipRec2, clipRec2, BlendToAlpha);
@@ -2267,6 +2307,8 @@ begin
   if not assigned(drawPathsF) then Exit;
   if drawDat.fillColor = clCurrent then
     drawDat.fillColor := fReader.currentColor;
+  if drawDat.fillRule = frNegative then
+    drawDat.fillRule := frNonZero;
 
   fillPaths := MatrixApply(drawPathsF, drawDat.matrix);
   if (drawDat.fillEl <> '') then
@@ -2295,11 +2337,20 @@ begin
     end;
   end
   else if drawDat.fillColor = clInvalid then
-    DrawPolygon(img, fillPaths, drawDat.fillRule, clBlack32)
+  begin
+    if fReader.RecordSimpleDraw then
+      SimpleDrawFill(fillPaths, drawDat.fillRule, clBlack32);
+    DrawPolygon(img, fillPaths, drawDat.fillRule, clBlack32);
+  end
   else
     with drawDat do
+    begin
+      if fReader.RecordSimpleDraw then
+        SimpleDrawFill(fillPaths, fillRule,
+          MergeColorAndOpacity(fillColor, fillOpacity));
       DrawPolygon(img, fillPaths, fillRule,
         MergeColorAndOpacity(fillColor, fillOpacity));
+    end;
 end;
 //------------------------------------------------------------------------------
 
@@ -2387,11 +2438,48 @@ begin
     end;
   end
   else if (joinStyle = jsMiter) then
+  begin
+    if fReader.RecordSimpleDraw then
+      SimpleDrawStroke(strokePaths, scaledStrokeWidth,
+        joinStyle, endStyle, strokeClr);
     DrawLine(img, strokePaths, scaledStrokeWidth,
-      strokeClr, endStyle, joinStyle, drawDat.strokeMitLim)
-  else
+      strokeClr, endStyle, joinStyle, drawDat.strokeMitLim);
+  end else
+  begin
+    if fReader.RecordSimpleDraw then
+      SimpleDrawStroke(strokePaths, scaledStrokeWidth,
+        joinStyle, endStyle, strokeClr);
     DrawLine(img, strokePaths, scaledStrokeWidth,
       strokeClr, endStyle, joinStyle, roundingScale);
+  end;
+end;
+//------------------------------------------------------------------------------
+
+procedure TShapeElement.SimpleDrawFill(const paths: TPathsD;
+  fillRule: TFillRule; color: TColor32);
+var
+  sdd: PSimpleDrawData;
+begin
+  if TARGB(color).A < 128 then Exit;
+  new(sdd);
+  sdd.paths := CopyPaths(paths);
+  sdd.fillRule := fillRule;
+  sdd.color := color or $FF000000;
+  fReader.SimpleDrawList.Add(sdd);
+end;
+//------------------------------------------------------------------------------
+
+procedure TShapeElement.SimpleDrawStroke(const paths: TPathsD;
+  width: double; joinStyle: TJoinStyle; endStyle: TEndStyle; color: TColor32);
+var
+  sdd: PSimpleDrawData;
+begin
+  if TARGB(color).A < 128 then Exit;
+  new(sdd);
+  sdd.paths := InflatePaths(paths, width, joinStyle, ClipperEndType(endStyle));
+  sdd.fillRule := frNonZero;
+  sdd.color := color or $FF000000;
+  fReader.SimpleDrawList.Add(sdd);
 end;
 
 //------------------------------------------------------------------------------
@@ -2463,6 +2551,7 @@ function TPathElement.GetSimplePath(const drawDat: TDrawData): TPathsD;
 var
   i: integer;
 begin
+  Result := nil;
   SetLength(Result, fSvgPaths.Count);
   for i := 0 to fSvgPaths.Count -1 do
     Result[i] := fSvgPaths[i].GetSimplePath;
@@ -2780,6 +2869,7 @@ end;
 procedure TTextElement.GetPaths(const drawDat: TDrawData);
 var
   i         : integer;
+  dy        : double;
   el        : TSvgElement;
   di        : TDrawData;
   topTextEl : TTextElement;
@@ -2790,6 +2880,7 @@ begin
 
   if Self is TTSpanElement then
   begin
+    // nb: don't use GetTopTextElement here
     el := fParent;
     while (el is TTSpanElement) do
       el := el.fParent;
@@ -2818,6 +2909,23 @@ begin
       currentPt.Y := elRectWH.top.rawVal else
       currentPt.Y := 0;
     startX := currentPt.X;
+    topTextEl := nil;
+end;
+
+  if (di.fontInfo.textLength > 0) and
+    Assigned(fReader.fFontCache) then
+  begin
+    with fReader.fFontCache.FontReader.FontInfo do
+      dy := descent/ (ascent + descent);
+    if not Assigned(topTextEl) then
+      topTextEl := GetTopTextElement;
+    with fDrawData.bounds do
+    begin
+      Left := topTextEl.currentPt.X;
+      Bottom := topTextEl.currentPt.Y + di.fontInfo.size * dy;
+      Right := Left + di.fontInfo.textLength;
+      Top  := Bottom - di.fontInfo.size;
+    end;
   end;
 
   for i := 0 to fChilds.Count -1 do
@@ -2829,7 +2937,7 @@ end;
 procedure TTextElement.ResetTmpPt;
 begin
   startX    := 0;
-  currentPt := InvalidPointD;
+  currentPt := InvalidPointD;//NullPointD;
 end;
 //------------------------------------------------------------------------------
 
@@ -2842,6 +2950,9 @@ begin
     UpdateDrawInfo(drawDat, self);
     //get child paths
     GetPaths(drawDat);
+
+    if not IsValid(currentPt) then //Exit;
+      currentPt := NullPointD;
 
     case drawDat.FontInfo.align of
       staCenter:
@@ -2907,6 +3018,17 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+function IsBlankText(const text: UnicodeString): Boolean;
+var
+  i: integer;
+begin
+  Result := false;
+  for i := 1 to Length(text) do
+    if (text[i] > #32) and (text[i] <> #160) then Exit;
+  Result := true;
+end;
+//------------------------------------------------------------------------------
+
 procedure TSubtextElement.GetPaths(const drawDat: TDrawData);
 var
   el : TSvgElement;
@@ -2940,7 +3062,13 @@ begin
   {$ENDIF}
   s := FixSpaces(s);
 
-  drawPathsC := fReader.fFontCache.GetTextOutline(0, 0, s, tmpX);
+ if IsBlankText(s) then
+  begin
+    drawPathsC := nil;
+    tmpX := drawDat.fontInfo.textLength;
+  end else
+    drawPathsC := fReader.fFontCache.GetTextOutline(0, 0, s, tmpX);
+
   //by not changing the fontCache.FontHeight, the quality of
   //small font render improves very significantly (though of course
   //this requires additional glyph scaling and offsetting).
@@ -2952,6 +3080,8 @@ begin
     X := X + tmpX * scale;
   end;
 
+  if not Assigned(drawPathsC) then Exit;
+
   with drawDat.fontInfo do
     if baseShift.rawVal = 0 then
       bs := 0 else
@@ -2962,6 +3092,21 @@ begin
   MatrixTranslate(mat, offsetX, topTextEl.currentPt.Y - bs);
   MatrixApply(mat, drawPathsC);
   drawPathsF := drawPathsC;
+end;
+//------------------------------------------------------------------------------
+
+function  TSubtextElement.GetBounds: TRectD;
+var
+  textEl: TTextElement;
+begin
+  textEl := TTextElement(fParent);
+{$IFDEF UNICODE}
+  if IsBlankText(UTF8ToUnicodeString(text)) then
+{$ELSE}
+  if IsBlankText(Utf8Decode(text)) then
+{$ENDIF}
+    Result := textEl.fDrawData.bounds else
+    Result := inherited GetBounds;
 end;
 
 //------------------------------------------------------------------------------
@@ -2982,18 +3127,31 @@ end;
 // TTextPathElement
 //------------------------------------------------------------------------------
 
+function GetPathDistance(const path: TPathD): double;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 1 to High(path) do
+    Result := Result + Distance(path[i-1], path[i]);
+end;
+//------------------------------------------------------------------------------
+
 procedure TTextPathElement.GetPaths(const drawDat: TDrawData);
 var
   parentTextEl, topTextEl: TTextElement;
   el: TSvgElement;
   isFirst: Boolean;
   s: UnicodeString;
-  i, len, charsThatFit: integer;
+  i, dy, len, charsThatFit: integer;
   d, fontScale, spacing: double;
+  pathDist: double;
   utf8: UTF8String;
   mat: TMatrixD;
   tmpPath: TPathD;
   isClosed: Boolean;
+const
+  dblSpace: UnicodeString = #32#32;
 begin
   if Assigned(drawPathsC) then Exit;
   fReader.GetBestFontForFontCache(drawDat.FontInfo);
@@ -3044,11 +3202,11 @@ begin
   for i := 1 to Length(s) do
     if s[i] < #32 then s[i] := #32;
 
-  i := PosEx(#32#32, s);
+  i := PosEx(dblSpace, s);
   while i > 0 do
   begin
     Delete(s, i, 1);
-    i := PosEx(#32#32, s, i);
+    i := PosEx(dblSpace, s, i);
   end;
 
   el := FindRefElement(pathEl);
@@ -3056,9 +3214,25 @@ begin
   fontScale := drawDat.FontInfo.size/fReader.fFontCache.FontHeight;
   spacing := spacing /fontScale;
 
+  if topTextEl.offset.Y.IsValid then
+    dy := Round(topTextEl.offset.Y.rawVal * fontScale) else
+    dy := 0;
+
   //adjust glyph spacing when fFontInfo.textLength is assigned.
   len := Length(s);
-  if (len > 1) and (drawDat.FontInfo.textLength > 0) then
+
+  if (len > 1) and (drawDat.FontInfo.align = staJustify) and
+    (TPathElement(el).fsvgPaths.count = 1) then
+      with TPathElement(el) do
+      begin
+        Flatten(0, fontScale, tmpPath, isClosed);
+        pathDist := GetPathDistance(tmpPath);
+        d := fReader.fFontCache.GetTextWidth(s);
+        spacing := (pathDist/fontScale) - d;
+        spacing := spacing / (len -1);
+      end
+
+  else if (len > 1) and (drawDat.FontInfo.textLength > 0) then
   begin
     d := fReader.fFontCache.GetTextWidth(s);
     spacing := (drawDat.FontInfo.textLength/fontScale) - d;
@@ -3077,7 +3251,7 @@ begin
       MatrixApply(mat, tmpPath);
       AppendPath(self.drawPathsC,
         GetTextOutlineOnPath(s, tmpPath, fReader.fFontCache,
-          taLeft, 0, spacing, charsThatFit));
+          taLeft, dy, spacing, charsThatFit));
       if charsThatFit = Length(s) then Break;
       Delete(s, 1, charsThatFit);
     end;
@@ -3677,8 +3851,9 @@ procedure TextAlign_Attrib(aOwnerEl: TSvgElement; const value: UTF8String);
 begin
   with aOwnerEl.fDrawData.FontInfo do
     case GetHash(value) of
-      hMiddle : align := staCenter;
-      hEnd    : align := staRight;
+      hMiddle   : align := staCenter;
+      hEnd      : align := staRight;
+      hJustify  : align := staJustify;
       else align := staLeft;
     end;
 end;
@@ -3962,6 +4137,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+
+procedure Visibility_Attrib(aOwnerEl: TSvgElement; const value: UTF8String);
+begin
+  case GetHash(value) of
+    hCollapse: aOwnerEl.fDrawData.visible := false;
+    hHidden: aOwnerEl.fDrawData.visible := false;
+    hVisible: aOwnerEl.fDrawData.visible := true;
+  end;
+end;
+//------------------------------------------------------------------------------
+
 
 procedure Height_Attrib(aOwnerEl: TSvgElement; const value: UTF8String);
 var
@@ -4313,90 +4499,91 @@ end;
 procedure TSvgElement.LoadAttribute(attrib: PSvgAttrib);
 begin
   with attrib^ do
-  case hash of
-    hbaseline_045_shift:    BaselineShift_Attrib(self, value);
-    hColor:                 Color_Attrib(self, value);
-    hClip_045_path:         ClipPath_Attrib(self, value);
-    hCx:                    Cx_Attrib(self, value);
-    hCy:                    Cy_Attrib(self, value);
-    hD:                     D_Attrib(self, value);
-    hDisplay:               Display_Attrib(self, value);
-    hDx:                    Dx_Attrib(self, value);
-    hDy:                    Dy_Attrib(self, value);
-    hStroke_045_DashArray:  DashArray_Attrib(self, value);
-    hStroke_045_DashOffset: DashOffset_Attrib(self, value);
-    hFill:                  Fill_Attrib(self, value);
-    hFill_045_Opacity:      FillOpacity_Attrib(self, value);
-    hFill_045_Rule:         FillRule_Attrib(self, value);
-    hFilter:                Filter_Attrib(self, value);
-    hflood_045_color:       Fill_Attrib(self, value);
-    hflood_045_opacity:     FillOpacity_Attrib(self, value);
-    hFont:                  Font_Attrib(self, value);
-    hFont_045_Family:       FontFamily_Attrib(self, value);
-    hFont_045_Size:         FontSize_Attrib(self, value);
-    hFont_045_Style:        FontStyle_Attrib(self, value);
-    hFont_045_Weight:       FontWeight_Attrib(self, value);
-    hFx:                    Fx_Attrib(self, value);
-    hFy:                    Fy_Attrib(self, value);
-    hGradientTransform:     GradientTransform_Attrib(self, value);
-    hGradientUnits:         GradientUnits_Attrib(self, value);
-    hHeight:                Height_Attrib(self, value);
-    hHref:                  Href_Attrib(self, value);
-    hId:                    Id_Attrib(self, value);
-    hIn:                    In_Attrib(self, value);
-    hIn2:                   In2_Attrib(self, value);
-    hk1:                    K1_Attrib(self, value);
-    hk2:                    K2_Attrib(self, value);
-    hk3:                    K3_Attrib(self, value);
-    hk4:                    K4_Attrib(self, value);
-    hletter_045_spacing:    LetterSpacing_Attrib(self, value);
-//    hlighting_045_color:    LightingColor_Attrib(self, value);
-    hMarker_045_End:        MarkerEnd_Attrib(self, value);
-    hMarkerHeight:          Height_Attrib(self, value);
-    hMarker_045_Mid:        MarkerMiddle_Attrib(self, value);
-    hMarker_045_Start:      MarkerStart_Attrib(self, value);
-    hMarkerWidth:           Width_Attrib(self, value);
-    hMask:                  Mask_Attrib(self, value);
-    hOffset:                Offset_Attrib(self, value);
-    hOpacity:               Opacity_Attrib(self, value);
-    hOperator:              Operator_Attrib(self, value);
-    hOrient:                Orient_Attrib(self, value);
-    hPatternUnits:          GradientUnits_Attrib(self, value);
-    hPatternTransform:      Transform_Attrib(self, value);
-    hPoints:                Points_Attrib(self, value);
-    hR:                     Rx_Attrib(self, value);
-    hRefX:                  Rx_Attrib(self, value);
-    hRefY:                  Ry_Attrib(self, value);
-    hResult:                Result_Attrib(self, value);
-    hRx:                    Rx_Attrib(self, value);
-    hRy:                    Ry_Attrib(self, value);
-    hspecularExponent:      SpectacularExponent(self, value);
-    hSpreadMethod:          SpreadMethod_Attrib(self, value);
-    hstdDeviation:          StdDev_Attrib(self, value);
-    hStop_045_Color:        StopColor_Attrib(self, value);
-    hStop_045_Opacity:      StopOpacity_Attrib(self, value);
-    hStroke:                Stroke_Attrib(self, value);
-    hstroke_045_linecap:    StrokeLineCap_Attrib(self, value);
-    hstroke_045_linejoin:   StrokeLineJoin_Attrib(self, value);
-    hstroke_045_miterlimit: StrokeMiterLimit_Attrib(self, value);
-    hStroke_045_Opacity:    StrokeOpacity_Attrib(self, value);
-    hStroke_045_Width:      StrokeWidth_Attrib(self, value);
-    hText_045_Anchor:       TextAlign_Attrib(self, value);
-    hText_045_Decoration:   TextDecoration_Attrib(self, value);
-    hTextLength:            TextLength_Attrib(self, value);
-    hTransform:             Transform_Attrib(self, value);
-    hValues:                Values_Attrib(self, value);
-    hViewbox:               Viewbox_Attrib(self, value);
-    hWidth:                 Width_Attrib(self, value);
-    hX:                     X1_Attrib(self, value);
-    hX1:                    X1_Attrib(self, value);
-    hX2:                    X2_Attrib(self, value);
-    hXlink_058_Href:        Href_Attrib(self, value);
-    hY:                     Y1_Attrib(self, value);
-    hY1:                    Y1_Attrib(self, value);
-    hY2:                    Y2_Attrib(self, value);
-    hZ:                     Z_Attrib(self, value);
-  end;
+    case hash of
+      hbaseline_045_shift:    BaselineShift_Attrib(self, value);
+      hColor:                 Color_Attrib(self, value);
+      hClip_045_path:         ClipPath_Attrib(self, value);
+      hCx:                    Cx_Attrib(self, value);
+      hCy:                    Cy_Attrib(self, value);
+      hD:                     D_Attrib(self, value);
+      hDisplay:               Display_Attrib(self, value);
+      hDx:                    Dx_Attrib(self, value);
+      hDy:                    Dy_Attrib(self, value);
+      hStroke_045_DashArray:  DashArray_Attrib(self, value);
+      hStroke_045_DashOffset: DashOffset_Attrib(self, value);
+      hFill:                  Fill_Attrib(self, value);
+      hFill_045_Opacity:      FillOpacity_Attrib(self, value);
+      hFill_045_Rule:         FillRule_Attrib(self, value);
+      hFilter:                Filter_Attrib(self, value);
+      hflood_045_color:       Fill_Attrib(self, value);
+      hflood_045_opacity:     FillOpacity_Attrib(self, value);
+      hFont:                  Font_Attrib(self, value);
+      hFont_045_Family:       FontFamily_Attrib(self, value);
+      hFont_045_Size:         FontSize_Attrib(self, value);
+      hFont_045_Style:        FontStyle_Attrib(self, value);
+      hFont_045_Weight:       FontWeight_Attrib(self, value);
+      hFx:                    Fx_Attrib(self, value);
+      hFy:                    Fy_Attrib(self, value);
+      hGradientTransform:     GradientTransform_Attrib(self, value);
+      hGradientUnits:         GradientUnits_Attrib(self, value);
+      hHeight:                Height_Attrib(self, value);
+      hHref:                  Href_Attrib(self, value);
+      hId:                    Id_Attrib(self, value);
+      hIn:                    In_Attrib(self, value);
+      hIn2:                   In2_Attrib(self, value);
+      hk1:                    K1_Attrib(self, value);
+      hk2:                    K2_Attrib(self, value);
+      hk3:                    K3_Attrib(self, value);
+      hk4:                    K4_Attrib(self, value);
+      hletter_045_spacing:    LetterSpacing_Attrib(self, value);
+  //    hlighting_045_color:    LightingColor_Attrib(self, value);
+      hMarker_045_End:        MarkerEnd_Attrib(self, value);
+      hMarkerHeight:          Height_Attrib(self, value);
+      hMarker_045_Mid:        MarkerMiddle_Attrib(self, value);
+      hMarker_045_Start:      MarkerStart_Attrib(self, value);
+      hMarkerWidth:           Width_Attrib(self, value);
+      hMask:                  Mask_Attrib(self, value);
+      hOffset:                Offset_Attrib(self, value);
+      hOpacity:               Opacity_Attrib(self, value);
+      hOperator:              Operator_Attrib(self, value);
+      hOrient:                Orient_Attrib(self, value);
+      hPatternUnits:          GradientUnits_Attrib(self, value);
+      hPatternTransform:      Transform_Attrib(self, value);
+      hPoints:                Points_Attrib(self, value);
+      hR:                     Rx_Attrib(self, value);
+      hRefX:                  Rx_Attrib(self, value);
+      hRefY:                  Ry_Attrib(self, value);
+      hResult:                Result_Attrib(self, value);
+      hRx:                    Rx_Attrib(self, value);
+      hRy:                    Ry_Attrib(self, value);
+      hspecularExponent:      SpectacularExponent(self, value);
+      hSpreadMethod:          SpreadMethod_Attrib(self, value);
+      hstdDeviation:          StdDev_Attrib(self, value);
+      hStop_045_Color:        StopColor_Attrib(self, value);
+      hStop_045_Opacity:      StopOpacity_Attrib(self, value);
+      hStroke:                Stroke_Attrib(self, value);
+      hstroke_045_linecap:    StrokeLineCap_Attrib(self, value);
+      hstroke_045_linejoin:   StrokeLineJoin_Attrib(self, value);
+      hstroke_045_miterlimit: StrokeMiterLimit_Attrib(self, value);
+      hStroke_045_Opacity:    StrokeOpacity_Attrib(self, value);
+      hStroke_045_Width:      StrokeWidth_Attrib(self, value);
+      hText_045_Anchor:       TextAlign_Attrib(self, value);
+      hText_045_Decoration:   TextDecoration_Attrib(self, value);
+      hTextLength:            TextLength_Attrib(self, value);
+      hTransform:             Transform_Attrib(self, value);
+      hValues:                Values_Attrib(self, value);
+      hViewbox:               Viewbox_Attrib(self, value);
+      hVisibility:            Visibility_Attrib(self, value);
+      hWidth:                 Width_Attrib(self, value);
+      hX:                     X1_Attrib(self, value);
+      hX1:                    X1_Attrib(self, value);
+      hX2:                    X2_Attrib(self, value);
+      hXlink_058_Href:        Href_Attrib(self, value);
+      hY:                     Y1_Attrib(self, value);
+      hY1:                    Y1_Attrib(self, value);
+      hY2:                    Y2_Attrib(self, value);
+      hZ:                     Z_Attrib(self, value);
+    end;
 end;
 //------------------------------------------------------------------------------
 
@@ -4475,11 +4662,12 @@ begin
   fLinGradRenderer  := TLinearGradientRenderer.Create;
   fRadGradRenderer  := TSvgRadialGradientRenderer.Create;
   fImgRenderer      := TImageRenderer.Create;
-
   fIdList             := TStringList.Create;
   fIdList.Duplicates  := dupIgnore;
   fIdList.CaseSensitive := false;
   fIdList.Sorted      := True;
+  fSimpleDrawList    := TList.Create;
+
 
   fBlurQuality        := 1; //0: draft (faster); 1: good; 2: excellent (slow)
   currentColor        := clBlack32;
@@ -4498,11 +4686,15 @@ begin
   fRadGradRenderer.Free;
   fImgRenderer.Free;
   FreeAndNil(fFontCache);
+  fSimpleDrawList.Free;
+
   inherited;
 end;
 //------------------------------------------------------------------------------
 
 procedure TSvgReader.Clear;
+var
+  i: integer;
 begin
   FreeAndNil(fRootElement);
   fSvgParser.Clear;
@@ -4513,6 +4705,9 @@ begin
   fImgRenderer.Image.Clear;
   currentColor := clBlack32;
   userSpaceBounds := NullRectD;
+  for i := 0 to fSimpleDrawList.Count -1 do
+    Dispose(PSimpleDrawData(fSimpleDrawList[i]));
+  fSimpleDrawList.Clear;
 end;
 //------------------------------------------------------------------------------
 
@@ -4680,7 +4875,9 @@ var
   bestFontReader: TFontReader;
   fi: TFontInfo;
 begin
-  fi.fontFamily := svgFontInfo.family;
+  if svgFontInfo.family = ttfUnknown then
+    fi.fontFamily := ttfSansSerif else
+    fi.fontFamily := svgFontInfo.family;
   fi.faceName := ''; //just match to a family here, not to a specific facename
   fi.macStyles := [];
   if svgFontInfo.italic = sfsItalic then
@@ -4718,4 +4915,3 @@ end;
 //------------------------------------------------------------------------------
 
 end.
-

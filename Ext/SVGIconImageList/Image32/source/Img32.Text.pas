@@ -2,16 +2,12 @@ unit Img32.Text;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.2                                                             *
-* Date      :  30 May 2022                                                     *
+* Version   :  4.4                                                             *
+* Date      :  19 May 2023                                                     *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2019-2022                                         *
-*                                                                              *
+* Copyright :  Angus Johnson 2019-2023                                         *
 * Purpose   :  TrueType fonts for TImage32 (without Windows dependencies)      *
-*                                                                              *
-* License   :  Use, modification & distribution is subject to                  *
-*              Boost Software License Ver 1                                    *
-*              http://www.boost.org/LICENSE_1_0.txt                            *
+* License   :  http://www.boost.org/LICENSE_1_0.txt                            *
 *******************************************************************************)
 
 interface
@@ -282,13 +278,19 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Clear;
+    function GetFont(const fontName: string): TFontReader;
 {$IFDEF MSWINDOWS}
-    function Load(const fontName: string): TFontReader;
+    function Load(const fontName: string; Weight: Integer = FW_NORMAL; Italic: Boolean = False): TFontReader;
 {$ENDIF}
     function LoadFromStream(stream: TStream): TFontReader;
     function LoadFromResource(const resName: string; resType: PChar): TFontReader;
     function LoadFromFile(const filename: string): TFontReader;
     function GetBestMatchFont(const fontInfo: TFontInfo): TFontReader;
+    // FindReaderContainingGlyph: will return false either when no TFontReader
+    // is found, or a TFontReader is found but not in the specified family.
+    // When the latter occurs, fntReader will be assigned and index will be > 0.
+    function FindReaderContainingGlyph(missingUnicode: Word;
+      fntFamily: TTtfFontFamily; out fontReader: TFontReader): integer;
     function Delete(fontReader: TFontReader): Boolean;
     property MaxFonts: integer read fMaxFonts write SetMaxFonts;
   end;
@@ -309,8 +311,6 @@ type
     fTbl_hhea          : TFontTable_Hhea;
     fTbl_cmap          : TFontTable_Cmap;
     fTbl_maxp          : TFontTable_Maxp;
-    fTbl_glyf          : TFontTable_Glyf;
-    fTbl_hmtx          : TFontTable_Hmtx;
     fTbl_post          : TFontTable_Post;
     fTbl_loca2         : TArrayOfWord;
     fTbl_loca4         : TArrayOfCardinal;
@@ -333,18 +333,21 @@ type
     procedure GetTable_kern;
     procedure GetTable_post;
 
-    function GetGlyphPaths(glyphIdx: integer): TPathsEx;
+    procedure GetFontFamily;
+    function GetGlyphPaths(glyphIdx: integer;
+      var tbl_hmtx: TFontTable_Hmtx; out tbl_glyf: TFontTable_Glyf): TPathsEx;
     function GetGlyphIdxFromCmapIdx(idx: Word): integer;
-    function GetSimpleGlyph: TPathsEx;
-    function GetCompositeGlyph: TPathsEx;
+    function GetSimpleGlyph(tbl_glyf: TFontTable_Glyf): TPathsEx;
+    function GetCompositeGlyph(var tbl_glyf: TFontTable_Glyf;
+      var tbl_hmtx: TFontTable_Hmtx): TPathsEx;
     function ConvertSplinesToBeziers(const pathsEx: TPathsEx): TPathsEx;
     procedure GetPathCoords(var paths: TPathsEx);
-    function GetGlyphHorzMetrics(glyphIdx: integer): Boolean;
+    function GetGlyphHorzMetrics(glyphIdx: integer;
+      out tbl_hmtx: TFontTable_Hmtx): Boolean;
     function GetFontInfo: TFontInfo;
     function GetGlyphKernList(glyphIdx: integer): TArrayOfTKern;
-    function GetGlyphMetricsInternal(glyphIdx: integer): TGlyphMetrics;
+    function GetGlyphMetricsInternal(glyphIdx: integer; out pathsEx: TPathsEx): TGlyphMetrics;
     function GetWeight: integer;
-    function GetFontFamily: TTtfFontFamily;
     procedure BeginUpdate;
     procedure EndUpdate;
     procedure NotifyRecipients(notifyFlag: TImg32Notification);
@@ -354,23 +357,24 @@ type
     constructor Create; overload;
     constructor CreateFromResource(const resName: string; resType: PChar);
 {$IFDEF MSWINDOWS}
-    constructor Create(const fontname: string); overload;
+    constructor Create(const fontname: string; Weight: Integer = FW_NORMAL; Italic: Boolean = False); overload;
 {$ENDIF}
     destructor Destroy; override;
     procedure Clear;
     procedure AddRecipient(recipient: INotifyRecipient);
     procedure DeleteRecipient(recipient: INotifyRecipient);
     function IsValidFontFormat: Boolean;
+    function HasGlyph(unicode: Word): Boolean;
     function LoadFromStream(stream: TStream): Boolean;
     function LoadFromResource(const resName: string; resType: PChar): Boolean;
     function LoadFromFile(const filename: string): Boolean;
 {$IFDEF MSWINDOWS}
-    function Load(const fontname: string): Boolean;
+    function Load(const fontname: string; Weight: Integer = FW_NORMAL; Italic: Boolean = False): Boolean;
     function LoadUsingFontHdl(hdl: HFont): Boolean;
 {$ENDIF}
     function GetGlyphInfo(unicode: Word; out paths: TPathsD;
       out nextX: integer; out glyphMetrics: TGlyphMetrics): Boolean;
-    property FontFamily: TTtfFontFamily read GetFontFamily;
+    property FontFamily: TTtfFontFamily read fFontInfo.FontFamily;
     property FontInfo: TFontInfo read GetFontInfo;
     property Weight: integer read GetWeight; //range 100-900
   end;
@@ -512,6 +516,9 @@ type
       startLine, endLine: integer): TPathsD; overload;
     function GetTextOutline(x, y: double; const text: UnicodeString;
       out nextX: double; underlineIdx: integer = 0): TPathsD; overload;
+    function GetVerticalTextOutline(x, y: double;
+      const text: UnicodeString; interCharSpace: double =0): TPathsD;
+
 
     function GetAngledTextGlyphs(x, y: double; const text: UnicodeString;
       angleRadians: double; const rotatePt: TPointD;
@@ -865,10 +872,10 @@ end;
 //------------------------------------------------------------------------------
 
 {$IFDEF MSWINDOWS}
-constructor TFontReader.Create(const fontname: string);
+constructor TFontReader.Create(const fontname: string; Weight: Integer; Italic: Boolean);
 begin
   Create;
-  Load(fontname);
+  Load(fontname, Weight, Italic);
 end;
 //------------------------------------------------------------------------------
 {$ENDIF}
@@ -895,7 +902,6 @@ begin
   fFormat4EndCodes      := nil;
   fKernTable            := nil;
   FillChar(fTbl_post, SizeOf(fTbl_post), 0);
-  fTbl_glyf.numContours := 0;
   fFontInfo.fontFormat  := ffInvalid;
   fFontInfo.fontFamily  := ttfUnknown;
   fFontWeight           := 0;
@@ -1023,7 +1029,7 @@ begin
 
   memDc := CreateCompatibleDC(0);
   try
-    SelectObject(memDc, hdl);
+    if SelectObject(memDc, hdl) = 0 then Exit;
     //get the required size of the font data (file)
     cnt := Windows.GetFontData(memDc, 0, 0, nil, 0);
     result := cnt <> $FFFFFFFF;
@@ -1051,7 +1057,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TFontReader.Load(const fontname: string): Boolean;
+function TFontReader.Load(const fontname: string; Weight: Integer; Italic: Boolean): Boolean;
 var
   logfont: TLogFont;
   hdl: HFont;
@@ -1059,6 +1065,8 @@ begin
   Result := false;
   FillChar(logfont, SizeOf(logfont), 0);
   StrPCopy(@logfont.lfFaceName[0], fontname);
+  logFont.lfWeight := Max(1, Min(9, Weight));
+  logFont.lfItalic := Byte(Italic);
   hdl := CreateFontIndirect(logfont);
   if hdl = 0 then Exit;
   try
@@ -1135,7 +1143,7 @@ begin
   if (fTblIdxes[tblKern] >= 0) then GetTable_kern;
   if (fTblIdxes[tblPost] >= 0) then GetTable_post;
 
-  fFontInfo.fontFamily := GetFontFamily;
+  GetFontFamily;
 end;
 //------------------------------------------------------------------------------
 
@@ -1219,17 +1227,14 @@ var
   i: integer;
   w: WORD;
 begin
-
+  result := 0; //default to the 'missing' glyph
   if fFormat4Offset = 0 then
   begin
-    if idx > 255 then Result := 0
-    else Result := fFormat0CodeMap[idx];
+    if idx <= 255 then Result := fFormat0CodeMap[idx];
     Exit;
   end;
 
   //Format4 mapping
-
-  result := 0; //default to the 'missing' glyph
   for i := 0 to High(fFormat4EndCodes) do
     if idx <= fFormat4EndCodes[i] then
     begin
@@ -1420,9 +1425,10 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TFontReader.GetGlyphHorzMetrics(glyphIdx: integer): Boolean;
+function TFontReader.GetGlyphHorzMetrics(glyphIdx: integer;
+  out tbl_hmtx: TFontTable_Hmtx): Boolean;
 var
-  tbl            : TFontTable;
+  tbl : TFontTable;
 begin
   tbl := fTables[fTblIdxes[tblHmtx]];
   Result := (fStream.Size >= tbl.offset + tbl.length);
@@ -1430,17 +1436,17 @@ begin
   if glyphIdx < fTbl_hhea.numLongHorMets then
   begin
     fStream.Position := Integer(tbl.offset) + glyphIdx * 4;
-    GetWord(fStream, fTbl_hmtx.advanceWidth);
-    GetInt16(fStream, fTbl_hmtx.leftSideBearing);
+    GetWord(fStream, tbl_hmtx.advanceWidth);
+    GetInt16(fStream, tbl_hmtx.leftSideBearing);
   end else
   begin
     fStream.Position := Integer(tbl.offset) +
       Integer(fTbl_hhea.numLongHorMets -1) * 4;
-    GetWord(fStream, fTbl_hmtx.advanceWidth);
+    GetWord(fStream, tbl_hmtx.advanceWidth);
     fStream.Position := Integer(tbl.offset +
       fTbl_hhea.numLongHorMets * 4) +
       2 * (glyphIdx - Integer(fTbl_hhea.numLongHorMets));
-    GetInt16(fStream, fTbl_hmtx.leftSideBearing);
+    GetInt16(fStream, tbl_hmtx.leftSideBearing);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1552,7 +1558,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TFontReader.GetGlyphPaths(glyphIdx: integer): TPathsEx;
+function TFontReader.GetGlyphPaths(glyphIdx: integer;
+  var tbl_hmtx: TFontTable_Hmtx; out tbl_glyf: TFontTable_Glyf): TPathsEx;
 var
   offset: cardinal;
   glyfTbl: TFontTable;
@@ -1572,15 +1579,15 @@ begin
   inc(offset, glyfTbl.offset);
 
   fStream.Position := offset;
-  GetInt16(fStream, fTbl_glyf.numContours);
-  GetInt16(fStream, fTbl_glyf.xMin);
-  GetInt16(fStream, fTbl_glyf.yMin);
-  GetInt16(fStream, fTbl_glyf.xMax);
-  GetInt16(fStream, fTbl_glyf.yMax);
+  GetInt16(fStream, tbl_glyf.numContours);
+  GetInt16(fStream, tbl_glyf.xMin);
+  GetInt16(fStream, tbl_glyf.yMin);
+  GetInt16(fStream, tbl_glyf.xMax);
+  GetInt16(fStream, tbl_glyf.yMax);
 
-  if fTbl_glyf.numContours < 0 then
-    result := GetCompositeGlyph else
-    result := GetSimpleGlyph;
+  if tbl_glyf.numContours < 0 then
+    result := GetCompositeGlyph(tbl_glyf, tbl_hmtx) else
+    result := GetSimpleGlyph(tbl_glyf);
 end;
 //------------------------------------------------------------------------------
 
@@ -1594,14 +1601,14 @@ const
   Y_DELTA                   = $20;
 //------------------------------------------------------------------------------
 
-function TFontReader.GetSimpleGlyph: TPathsEx;
+function TFontReader.GetSimpleGlyph(tbl_glyf: TFontTable_Glyf): TPathsEx;
 var
   i,j: integer;
   instructLen: WORD;
   flag, repeats: byte;
   contourEnds: TArrayOfWord;
 begin
-  SetLength(contourEnds, fTbl_glyf.numContours);
+  SetLength(contourEnds, tbl_glyf.numContours);
   for i := 0 to High(contourEnds) do
     GetWord(fStream, contourEnds[i]);
 
@@ -1609,7 +1616,7 @@ begin
   GetWord(fStream, instructLen);
   fStream.Position := fStream.Position + instructLen;
 
-  setLength(result, fTbl_glyf.numContours);
+  setLength(result, tbl_glyf.numContours);
   setLength(result[0], contourEnds[0] +1);
   for i := 1 to High(result) do
     setLength(result[i], contourEnds[i] - contourEnds[i-1]);
@@ -1629,7 +1636,8 @@ begin
       result[i][j].flag := flag;
     end;
   end;
-  GetPathCoords(result);
+  if tbl_glyf.numContours > 0 then
+    GetPathCoords(result);
 end;
 //------------------------------------------------------------------------------
 
@@ -1640,8 +1648,6 @@ var
   flag, xb,yb: byte;
   pt: TPoint;
 begin
-  if fTbl_glyf.numContours = 0 then Exit;
-
   //get X coords
   pt := Point(0,0);
   xi := 0;
@@ -1757,7 +1763,7 @@ const
   q = 9.2863575e-4; // 33/35536
 var
   i,j: integer;
-  m0,n0,m,n,xx: double;
+  m0,n0,m,n,xx,me,nf: double;
 begin
   m0 := max(abs(a), abs(b));
   n0 := max(abs(c), abs(d));
@@ -1782,19 +1788,21 @@ begin
     if (abs(a)-abs(c))< q then m := 2 * m0 else m := m0;
     if (abs(b)-abs(d))< q then n := 2 * n0 else n := n0;
 
+    me := m*e; nf := n*f;
     for i := 0 to High(pathsEx) do
       for j := 0 to High(pathsEx[i]) do
         with pathsEx[i][j].pt do
         begin
-          xx := m * ((a/m)*X + (c/m)*Y + e);
-          y := m * ((b/n)*X + (d/n)*Y + f);
+          xx :=a*X + c*Y + me;
+          y := b*X + d*Y + nf; // (#23)
           X := xx;
         end;
   end;
 end;
 //------------------------------------------------------------------------------
 
-function TFontReader.GetCompositeGlyph: TPathsEx;
+function TFontReader.GetCompositeGlyph(var tbl_glyf: TFontTable_Glyf;
+  var tbl_hmtx: TFontTable_Hmtx): TPathsEx;
 var
   streamPos: integer;
   flag, glyphIndex: WORD;
@@ -1803,7 +1811,8 @@ var
   tmp: single;
   a,b,c,d,e,f: double;
   componentPaths: TPathsEx;
-  tbl_glyf_old: TFontTable_Glyf;
+  component_tbl_glyf: TFontTable_Glyf;
+  component_tbl_hmtx: TFontTable_Hmtx;
 const
   ARG_1_AND_2_ARE_WORDS     = $1;
   ARGS_ARE_XY_VALUES        = $2;
@@ -1817,7 +1826,6 @@ const
 begin
   result := nil;
   flag := MORE_COMPONENTS;
-
   while (flag and MORE_COMPONENTS <> 0) do
   begin
     glyphIndex := 0;
@@ -1864,32 +1872,62 @@ begin
       Get2Dot14(fStream, tmp); d := tmp;
     end;
 
-    tbl_glyf_old := fTbl_glyf;
 
     streamPos := fStream.Position;
-    componentPaths := GetGlyphPaths(glyphIndex);
+    component_tbl_hmtx := tbl_hmtx;
+    componentPaths := GetGlyphPaths(glyphIndex, component_tbl_hmtx, component_tbl_glyf);
     fStream.Position := streamPos;
 
     if (flag and ARGS_ARE_XY_VALUES <> 0) then
-    begin
-      if (flag and USE_MY_METRICS <> 0) then
-      begin
-        if Result <> nil then
-          AffineTransform(a,b,c,d,e,f, result);
-      end else
-        AffineTransform(a,b,c,d,e,f, componentPaths);
-    end;
+      AffineTransform(a,b,c,d,e,f, componentPaths);
 
-    if tbl_glyf_old.numContours > 0 then
-    begin
-      inc(fTbl_glyf.numContours, tbl_glyf_old.numContours);
-      fTbl_glyf.xMin := Min(fTbl_glyf.xMin, tbl_glyf_old.xMin);
-      fTbl_glyf.xMax := Max(fTbl_glyf.xMax, tbl_glyf_old.xMax);
-      fTbl_glyf.yMin := Min(fTbl_glyf.yMin, tbl_glyf_old.yMin);
-      fTbl_glyf.yMax := Max(fTbl_glyf.yMax, tbl_glyf_old.yMax);
-    end;
+    if (flag and USE_MY_METRICS <> 0) then
+      tbl_hmtx := component_tbl_hmtx;               //(#24)
 
+    if component_tbl_glyf.numContours > 0 then
+    begin
+      inc(tbl_glyf.numContours, component_tbl_glyf.numContours);
+      tbl_glyf.xMin := Min(tbl_glyf.xMin, component_tbl_glyf.xMin);
+      tbl_glyf.xMax := Max(tbl_glyf.xMax, component_tbl_glyf.xMax);
+      tbl_glyf.yMin := Min(tbl_glyf.yMin, component_tbl_glyf.yMin);
+      tbl_glyf.yMax := Max(tbl_glyf.yMax, component_tbl_glyf.yMax);
+    end;
     AppendPathsEx(result, componentPaths);
+  end;
+end;
+//------------------------------------------------------------------------------
+
+function TFontReader.HasGlyph(unicode: Word): Boolean;
+begin
+  Result := GetGlyphIdxFromCmapIdx(unicode) > 0;
+end;
+//------------------------------------------------------------------------------
+
+function FlattenPathExBeziers(pathsEx: TPathsEx): TPathsD;
+var
+  i,j : integer;
+  pt2: TPointEx;
+  bez: TPathD;
+begin
+  setLength(Result, length(pathsEx));
+  for i := 0 to High(pathsEx) do
+  begin
+    SetLength(Result[i],1);
+    Result[i][0] := pathsEx[i][0].pt;
+    for j := 1 to High(pathsEx[i]) do
+    begin
+      if OnCurve(pathsEx[i][j].flag) then
+      begin
+        AppendPoint(Result[i], pathsEx[i][j].pt);
+      end else
+      begin
+        if j = High(pathsEx[i]) then
+          pt2 := pathsEx[i][0] else
+          pt2 := pathsEx[i][j+1];
+        bez := FlattenQBezier(pathsEx[i][j-1].pt, pathsEx[i][j].pt, pt2.pt);
+        AppendPath(Result[i], bez);
+      end;
+    end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1897,48 +1935,33 @@ end;
 function TFontReader.GetGlyphInfo(unicode: Word; out paths: TPathsD;
   out nextX: integer; out glyphMetrics: TGlyphMetrics): Boolean;
 var
-  i,j, glyphIdx: integer;
-  pt2: TPointEx;
-  bez: TPathD;
+  glyphIdx: integer;
+  tbl_hmtx: TFontTable_Hmtx;
   pathsEx: TPathsEx;
+  altFontReader: TFontReader;
 begin
   paths  := nil;
   Result := IsValidFontFormat;
   if not Result then Exit;
 
   glyphIdx := GetGlyphIdxFromCmapIdx(unicode);
-  if not GetGlyphHorzMetrics(glyphIdx) then Exit;
-
-  pathsEx := GetGlyphPaths(glyphIdx); //gets raw splines
-  pathsEx := ConvertSplinesToBeziers(pathsEx);
-  glyphMetrics := GetGlyphMetricsInternal(glyphIdx); //nb: must follow GetGlyphPaths
-  nextX   := fTbl_hmtx.advanceWidth;
-  if pathsEx = nil then Exit; //eg space character
-
-  //now flatten ...
-  setLength(paths, length(pathsEx));
-  for i := 0 to High(pathsEx) do
+  if (glyphIdx = 0) then
   begin
-    SetLength(paths[i],1);
-    paths[i][0] := pathsEx[i][0].pt;
-    for j := 1 to High(pathsEx[i]) do
-    begin
-      if OnCurve(pathsEx[i][j].flag) then
-      begin
-        AppendPoint(paths[i], pathsEx[i][j].pt);
-      end else
-      begin
-        if j = High(pathsEx[i]) then
-          pt2 := pathsEx[i][0] else
-          pt2 := pathsEx[i][j+1];
-        bez := FlattenQBezier(pathsEx[i][j-1].pt,
-                  pathsEx[i][j].pt, pt2.pt);
-        AppendPath(paths[i], bez);
-      end;
-    end;
-  end;
+    if (unicode > 32) and Assigned(fFontManager)  then
+      glyphIdx := fFontManager.FindReaderContainingGlyph(unicode,
+        fFontInfo.fontFamily, altFontReader);
+    if (glyphIdx > 0) then
+      glyphMetrics := altFontReader.GetGlyphMetricsInternal(glyphIdx, pathsEx)
+    else
+      glyphMetrics := GetGlyphMetricsInternal(glyphIdx, pathsEx);
+  end else
+    glyphMetrics := GetGlyphMetricsInternal(glyphIdx, pathsEx);
+
+  if pathsEx = nil then Exit; //eg space character
+  pathsEx := ConvertSplinesToBeziers(pathsEx);
+  nextX   := tbl_hmtx.advanceWidth;
+  paths := FlattenPathExBeziers(PathsEx);
 end;
-//------------------------------------------------------------------------------
 
 function TFontReader.GetFontInfo: TFontInfo;
 begin
@@ -1972,17 +1995,21 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TFontReader.GetGlyphMetricsInternal(glyphIdx: integer): TGlyphMetrics;
+function TFontReader.GetGlyphMetricsInternal(glyphIdx: integer;
+  out pathsEx: TPathsEx): TGlyphMetrics;
 begin
-  if IsValidFontFormat then
+  if IsValidFontFormat and
+    GetGlyphHorzMetrics(glyphIdx, result.hmtx) then
   begin
     result.glyphIdx := glyphIdx;
     result.unitsPerEm  := fTbl_head.unitsPerEm;
-    result.glyf := fTbl_glyf;
-    result.hmtx := ftbl_hmtx;
+      pathsEx := GetGlyphPaths(glyphIdx, result.hmtx, result.glyf); //gets raw splines
     Result.kernList := GetGlyphKernList(glyphIdx);
   end else
-    FillChar(result, sizeOf(Result), 0)
+  begin
+    FillChar(result, sizeOf(Result), 0);
+    pathsEx := nil;
+  end;
 end;
 //------------------------------------------------------------------------------
 
@@ -2031,31 +2058,44 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function TFontReader.GetFontFamily: TTtfFontFamily;
+procedure TFontReader.GetFontFamily;
 var
-  dummy: integer;
-  glyphsT, glyphsI, glyphsM: TPathsD;
-  gmT, gmI, gmM: TGlyphMetrics;
+  giT, giI, giM: integer;
+  dummy, hmtxI, hmtxM: TFontTable_Hmtx;
+  dummy2: TFontTable_Glyf;
+  pathsEx: TPathsEx;
+  paths: TPathsD;
 begin
-  result := ttfUnknown;
+  fFontInfo.FontFamily := ttfUnknown;
+
   if (fTbl_post.majorVersion > 0) and
     (fTbl_post.isFixedPitch <> 0) then
   begin
-    result := ttfMonospace;
+    fFontInfo.FontFamily := ttfMonospace;
     Exit;
-  end else
-  begin
-    if not GetGlyphInfo(Ord('T'), glyphsT, dummy, gmT) or
-      not Assigned(glyphsT) or
-      not GetGlyphInfo(Ord('i'), glyphsI, dummy, gmI) or
-      not GetGlyphInfo(Ord('m'), glyphsM, dummy, gmM) then
-        Exit;
-    if gmi.hmtx.advanceWidth = gmm.hmtx.advanceWidth then
-      Result := ttfMonospace
-    else if Length(glyphsT[0]) <= 12 then //probably <= 8 is fine too.
-      Result := ttfSansSerif else
-      Result := ttfSerif;
   end;
+
+  //Get Tim :)
+  giT := GetGlyphIdxFromCmapIdx(Ord('T'));
+  giI := GetGlyphIdxFromCmapIdx(Ord('i'));
+  giM := GetGlyphIdxFromCmapIdx(Ord('m'));
+  if (giT = 0) or (giI = 0) or (giM = 0) then Exit;
+
+  GetGlyphHorzMetrics(giI, hmtxI);
+  GetGlyphHorzMetrics(giM, hmtxM);
+  if hmtxI.advanceWidth = hmtxM.advanceWidth then
+  begin
+    fFontInfo.FontFamily := ttfMonospace;
+    Exit;
+  end;
+
+  pathsEx := GetGlyphPaths(giT, dummy, dummy2); //gets raw splines
+  if pathsEx = nil then Exit;
+  pathsEx := ConvertSplinesToBeziers(pathsEx);
+  paths := FlattenPathExBeziers(pathsEx);
+  if Length(paths[0]) > 10 then
+    fFontInfo.FontFamily := ttfSerif else
+    fFontInfo.FontFamily := ttfSansSerif;
 end;
 
 //------------------------------------------------------------------------------
@@ -2483,42 +2523,41 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-//function TFontCache.GetTextOutlineInternal(x, y: double;
-//  const text: UnicodeString; out glyphs: TArrayOfPathsD;
-//  out nextX: double): Boolean;
-//var
-//  i,j, len: integer;
-//  unicodes: TArrayOfWord;
-//  glyphInfo: PGlyphInfo;
-//  currGlyph: TPathsD;
-//  prevGlyphKernList: TArrayOfTKern;
-//begin
-//  len := Length(text);
-//  unicodes := nil;
-//  setLength(unicodes, len);
-//  for i := 0 to len -1 do
-//    unicodes[i] := Ord(text[i +1]);
-//  Result := true;
-//  GetMissingGlyphs(unicodes);
-//  nextX := x;
-//  prevGlyphKernList := nil;
-//  for i := 0 to len -1 do
-//  begin
-//    glyphInfo := GetCharInfo(unicodes[i]);
-//    if not assigned(glyphInfo) then Break;
-//    if fUseKerning and assigned(prevGlyphKernList) then
-//    begin
-//      j := FindInKernList(glyphInfo.metrics.glyphIdx, prevGlyphKernList);
-//      if (j >= 0) then
-//        nextX := nextX + prevGlyphKernList[j].kernValue * fScale ;
-//    end;
-//
-//    currGlyph := OffsetPath(glyphInfo.contours, nextX, y);
-//    AppendPath(glyphs, currGlyph);
-//    nextX := nextX + glyphInfo.metrics.hmtx.advanceWidth * fScale;
-//    prevGlyphKernList := glyphInfo.metrics.kernList;
-//  end;
-//end;
+function TFontCache.GetVerticalTextOutline(x, y: double;
+  const text: UnicodeString; interCharSpace: double): TPathsD;
+var
+  i, xxMax: integer;
+  glyphInfo: PGlyphInfo;
+  dx, dy: double;
+begin
+  Result := nil;
+  if not IsValidFont then Exit;
+
+  xxMax := 0;
+  for i := 1 to Length(text) do
+  begin
+    glyphInfo := GetCharInfo(ord(text[i]));
+    if not assigned(glyphInfo) then Exit;
+    with glyphInfo.metrics.glyf do
+      if xMax > xxMax then
+         xxMax := xMax;
+  end;
+
+  for i := 1 to Length(text) do
+  begin
+    glyphInfo := GetCharInfo(ord(text[i]));
+    with glyphInfo.metrics.glyf do
+    begin
+      dx :=  (xxMax - xMax) * 0.5 * scale;
+      y := y + yMax  * scale; //yMax = char ascent
+      dy := - yMin * scale;   //yMin = char descent
+    end;
+    AppendPath(Result, Img32.Vector.OffsetPath( glyphInfo.contours, x + dx, y));
+    if text[i] = #32 then
+      y := y + dy - interCharSpace else
+      y := y + dy + interCharSpace;
+  end;
+end;
 //------------------------------------------------------------------------------
 
 function TFontCache.GetTextOutlineInternal(x, y: double;
@@ -2602,14 +2641,9 @@ end;
 procedure TFontCache.UpdateScale;
 begin
   if IsValidFont and (fFontHeight > 0) then
-  begin
-    fScale := fFontHeight / fFontReader.FontInfo.unitsPerEm;
-    NotifyRecipients(inStateChange);
-  end else
-  begin
+    fScale := fFontHeight / fFontReader.FontInfo.unitsPerEm else
     fScale := 1;
-    NotifyRecipients(inDestroy);
-  end;
+  NotifyRecipients(inStateChange);
 end;
 //------------------------------------------------------------------------------
 
@@ -3449,15 +3483,32 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+function TFontManager.GetFont(const fontName: string): TFontReader;
+var
+  i: integer;
+begin
+  Result := nil;
+  for i := 0 to fFontList.Count -1 do
+    if SameText(TFontReader(fFontList[i]).fFontInfo.faceName, fontName) then
+    begin
+      Result := fFontList[i];
+      Exit;
+    end;
+end;
+//------------------------------------------------------------------------------
+
 {$IFDEF MSWINDOWS}
-function TFontManager.Load(const fontName: string): TFontReader;
+function TFontManager.Load(const fontName: string; Weight: Integer; Italic: Boolean): TFontReader;
 begin
   if fFontList.Count >= fMaxFonts then
     raise Exception.Create(rsTooManyFonts);
 
+  Result := GetFont(fontname);
+  if Assigned(Result) then Exit;
+
   Result := TFontReader.Create;
   try
-    if not Result.Load(fontName) or
+    if not Result.Load(fontName, Weight, Italic) or
       not ValidateAdd(Result) then
         FreeAndNil(Result);
   except
@@ -3610,6 +3661,30 @@ begin
     end;
   end;
   Result := TFontReader(fFontList[bestIdx]);
+end;
+//------------------------------------------------------------------------------
+
+function TFontManager.FindReaderContainingGlyph(missingUnicode: Word;
+  fntFamily: TTtfFontFamily; out fontReader: TFontReader): integer;
+var
+  i: integer;
+  reader: TFontReader;
+begin
+  fontReader := nil;
+  for i := 1 to fFontList.Count -1 do
+  begin
+    reader := TFontReader(fFontList[i]);
+    Result := reader.GetGlyphIdxFromCmapIdx(missingUnicode);
+    // if a font family is specified, then only return true
+    // when finding the glyph within that font family
+    if (Result > 0) and ((fntFamily = ttfUnknown) or
+      (fntFamily = reader.FontFamily)) then
+    begin
+      fontReader := reader;
+      break;
+    end;
+  end;
+  Result := 0;
 end;
 //------------------------------------------------------------------------------
 

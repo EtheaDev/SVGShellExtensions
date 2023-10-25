@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.FormStyleHooks.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2023 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -1441,7 +1441,11 @@ end;
 
 function TFormStyleHookHelper._GetBorderSizeAddr: Pointer;
 var
+  {$if compilerversion >35}
+  MethodAddr: function(UseActiveStyle: Boolean): TRect of object;
+  {$else}
   MethodAddr: function: TRect of object;
+  {$ifend}
 begin
   with Self do
     MethodAddr := GetBorderSize;
