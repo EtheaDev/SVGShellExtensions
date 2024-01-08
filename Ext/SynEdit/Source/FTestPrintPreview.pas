@@ -2,7 +2,7 @@
 {                                                                   }
 {   Ethea SynEdit print preview                                     }
 {                                                                   }
-{   Copyright (c) 2005-2023 Ethea S.r.l.                            }
+{   Copyright (c) 2005-2024 Ethea S.r.l.                            }
 {   ALL RIGHTS RESERVED / TUTTI I DIRITTI RISERVATI                 }
 {                                                                   }
 {*******************************************************************}
@@ -129,8 +129,8 @@ begin
   SetBounds(
     Self.Monitor.Left,
     Self.Monitor.Top,
-    Self.Monitor.Right-Self.Monitor.Left+1,
-    Self.Monitor.Bottom-Self.Monitor.Top+1);
+    Self.Monitor.Width,
+    Self.Monitor.Height);
   SynEditPrintPreview.SynEditPrint.Font.Name := 'Consolas';
   SynEditPrintPreview.SynEditPrint.Font.Size := 8;
   SynEditPrintPreview.UpdatePreview;

@@ -184,7 +184,7 @@ inherited FrmPreview: TFrmPreview
     ParentFont = True
     SimplePanel = True
     SimpleText = 
-      ' SVG Preview - Ver.%s (%dbit)- Copyright '#169' 2021-2023 Ethea S.r.l' +
+      ' SVG Preview - Ver.%s (%dbit)- Copyright '#169' 2021-2024 Ethea S.r.l' +
       '. - Author: Carlo Barazzetta'
     UseSystemFont = False
   end
