@@ -135,9 +135,7 @@ object FrmAbout: TFrmAbout
     Color = clWindow
     ParentBackground = False
     TabOrder = 0
-    ExplicitTop = 266
-    ExplicitWidth = 450
-    object btnOK: TButton
+    object btnOK: TStyledButton
       Left = 360
       Top = 16
       Width = 75
@@ -147,7 +145,7 @@ object FrmAbout: TFrmAbout
       TabOrder = 0
       OnClick = btnOKClick
     end
-    object btnIssues: TButton
+    object btnIssues: TStyledButton
       Left = 8
       Top = 16
       Width = 125
@@ -157,7 +155,7 @@ object FrmAbout: TFrmAbout
       TabOrder = 1
       OnClick = btnIssuesClick
     end
-    object btnCheckUpdates: TButton
+    object btnCheckUpdates: TStyledButton
       Left = 139
       Top = 16
       Width = 125

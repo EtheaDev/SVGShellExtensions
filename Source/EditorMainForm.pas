@@ -53,8 +53,13 @@ uses
   , Vcl.Styles.Utils.StdCtrls
   , Vcl.Styles.Ext
   , uDragDropUtils
+  , Vcl.StyledButton
+  , Vcl.StyledToolbar
   , dlgExportPNG
   , SVGIconUtils
+  , Vcl.ButtonStylesAttributes
+  , Vcl.StyledButtonGroup
+  , Vcl.StyledCategoryButtons
   ;
 
 const
@@ -62,7 +67,7 @@ const
 
 resourcestring
   PAGE_HEADER_FIRST_LINE_LEFT = '$TITLE$';
-  PAGE_HEADER_FIRST_LINE_RIGHT = 'Tot. Pages: $PAGECOUNT$';
+  PAGE_HEADER_FIRST_LINE_RIGHT = 'Page count: $PAGECOUNT$';
   PAGE_FOOTER_FIRST_LINE_LEFT = 'Print Date: $DATE$. Time: $TIME$';
   PAGE_FOOTER_FIRST_LINE_RIGHT = 'Page $PAGENUM$ of $PAGECOUNT$';
   FILE_NOT_FOUND = 'File "%s" not found!';
@@ -72,7 +77,10 @@ resourcestring
   STATE_INSERT = 'Insert';
   STATE_OVERWRITE = 'OverWrite';
   CLOSING_PROBLEMS = 'Closing problems!';
+  STR_ERROR = 'ERROR!';
+  STR_UNEXPECTED_ERROR = 'UNEXPECTED ERROR!';
   CONFIRM_CHANGES = 'ATTENTION: the content of file "%s" is changed: do you want to save the file?';
+  FILE_CHANGED_RELOAD = 'File "%s" Date/Time changed! Do you want to reload it?';
   SVG_PARSING_OK = 'SVG Parsing is correct.';
 
 type
@@ -80,6 +88,7 @@ type
   private
     FIcon : TIcon;
     FFileName : string;
+    FFileAge: TDateTime;
     FName : string;
     FExtension: string;
     procedure ReadFromFile;
@@ -147,21 +156,19 @@ type
     RightSplitter: TSplitter;
     panelPreview: TPanel;
     SV: TSplitView;
-    catMenuItems: TCategoryButtons;
+    catMenuItems: TStyledCategoryButtons;
     panlTop: TPanel;
     lblTitle: TLabel;
-    SettingsToolBar: TToolBar;
-    ColorSettingsToolButton: TToolButton;
-    EditOptionsToolButton: TToolButton;
+    SettingsToolBar: TStyledToolbar;
+    ColorSettingsToolButton: TStyledToolButton;
+    EditOptionsToolButton: TStyledToolButton;
     VirtualImageList: TVirtualImageList;
     actMenu: TAction;
-    MenuButtonToolbar: TToolBar;
-    ToolButton1: TToolButton;
-    PageSetupToolButton: TToolButton;
-    PrinterSetupToolButton: TToolButton;
-    AboutToolButton: TToolButton;
-    QuitToolButton: TToolButton;
-    ToolButton9: TToolButton;
+    MenuButtonToolbar: TStyledToolbar;
+    MenuToolButton: TStyledToolButton;
+    PageSetupToolButton: TStyledToolButton;
+    PrinterSetupToolButton: TStyledToolButton;
+    ToolButton9: TStyledToolButton;
     FlowPanel: TFlowPanel;
     SVGIconImage16: TSVGIconImage;
     SVGIconImage32: TSVGIconImage;
@@ -175,7 +182,7 @@ type
     CloseMenuItem: TMenuItem;
     Sep1MenuItem: TMenuItem;
     SelectAllMenuItem: TMenuItem;
-    Reformattext1: TMenuItem;
+    ReformatTextMenuItem: TMenuItem;
     ImagePreviewPanel: TPanel;
     ExportToPNGAction: TAction;
     N1: TMenuItem;
@@ -187,6 +194,8 @@ type
     CloseAll1: TMenuItem;
     VirtualImageList20: TVirtualImageList;
     PanelCloseButton: TPanel;
+    LoadTimer: TTimer;
+    CheckFileChangedTimer: TTimer;
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure acOpenFileExecute(Sender: TObject);
     procedure acSaveExecute(Sender: TObject);
@@ -266,7 +275,13 @@ type
     procedure PageControlMouseEnter(Sender: TObject);
     procedure PageControlMouseLeave(Sender: TObject);
     procedure SVGIconImageCloseButtonClick(Sender: TObject);
+    procedure CheckFileChangedTimerTimer(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure LoadTimerTimer(Sender: TObject);
+    procedure AppDeactivate(Sender: TObject);
+    procedure AppActivate(Sender: TObject);
   private
+    FEditingInProgress: Boolean;
     FirstAction: Boolean;
     MinFormWidth, MinFormHeight, MaxFormWidth, MaxFormHeight: Integer;
     FProcessingFiles: Boolean;
@@ -321,10 +336,14 @@ type
     function AcceptedExtensions: string;
     procedure ConfirmChanges(EditingFile: TEditingFile);
     procedure ShowTabCloseButtonOnHotTab;
+    procedure UpdateTabsheetImage(ATabSheet: TTabSheet; AModified: Boolean;
+      const AImageName: string);
     property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
   protected
     procedure CreateWindowHandle(const Params: TCreateParams); override;
     procedure DestroyWindowHandle; override;
+  public
+    procedure ManageExceptions(Sender: TObject; E: Exception);
   end;
 
 var
@@ -350,6 +369,7 @@ uses
   , Math
   , Winapi.SHFolder
   , SettingsForm
+  , Vcl.StyledTaskDialog
   ;
 
 {$R *.dfm}
@@ -433,13 +453,27 @@ var
   Extension: string;
 begin
   Extension := ExtractFileExt(AFileName);
-  SynEditor.Lines.LoadFromFile(AFileName, TEncoding.UTF8);
+  try
+    //Try loading UTF-8 file
+    SynEditor.Lines.LoadFromFile(AFileName, TEncoding.UTF8);
+  except
+    on E: EEncodingError do
+    begin
+      //Try to load ANSI file
+      SynEditor.Lines.LoadFromFile(AFileName, TEncoding.ANSI);
+    end
+    else
+      raise;
+  end;
+  SynEditor.Modified := False;
+  FileAge(AFileName, FFileAge);
 end;
 
 procedure TEditingFile.SaveToFile;
 begin
   SynEditor.Lines.SaveToFile(Self.FileName);
   SynEditor.Modified := False;
+  FileAge(Self.FileName, FFileAge);
   SynEditor.OnChange(SynEditor);
 end;
 
@@ -553,6 +587,16 @@ begin
   CurrentEditFile.SaveToFile;
 end;
 
+procedure TfrmMain.AppActivate(Sender: TObject);
+begin
+  CheckFileChangedTimerTimer(CheckFileChangedTimer);
+end;
+
+procedure TfrmMain.AppDeactivate(Sender: TObject);
+begin
+  CheckFileChangedTimer.Enabled := False;
+end;
+
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(EditFileList);
@@ -560,6 +604,11 @@ begin
   FreeAndNil(FEditorSettings);
   FreeAndNil(FEditorOptions);
   inherited;
+end;
+
+procedure TfrmMain.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  // if Key = Chr(27) then
 end;
 
 procedure TfrmMain.FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
@@ -836,10 +885,22 @@ begin
   AssignSVGToImage;
 end;
 
+procedure TfrmMain.LoadTimerTimer(Sender: TObject);
+begin
+  if FEditingInProgress then
+  begin
+    FEditingInProgress := False;
+  end;
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 var
   FileVersionStr: string;
 begin
+  //To check Application Focus
+  Application.OnActivate := AppActivate;
+  Application.OnDeactivate := AppDeactivate;
+
   //Build opened-files list
   EditFileList := TObjectList.Create(True);
   FEditorOptions := TSynEditorOptionsContainer.create(self);
@@ -951,14 +1012,22 @@ begin
   acEditUndo.Enabled := (CurrentEditor <> nil) and CurrentEditor.Modified;
 end;
 
+procedure TfrmMain.UpdateTabsheetImage(ATabSheet: TTabSheet;
+  AModified: Boolean; const AImageName: string);
+begin
+  if AModified then
+    ATabSheet.ImageName := AImageName
+  else
+    ATabSheet.ImageName := AImageName+'-gray';
+end;
+
 procedure TfrmMain.SynEditChange(Sender: TObject);
 begin
   if Sender = CurrentEditor then
   begin
-    if CurrentEditor.Modified then
-      pageControl.ActivePage.Imagename := 'svg-logo'
-    else
-      pageControl.ActivePage.Imagename := 'svg-logo-gray';
+    FEditingInProgress := True;
+    LoadTimer.Enabled := False;
+    UpdateTabsheetImage(pageControl.ActivePage, CurrentEditor.Modified,'svg-logo');
     AssignSVGToImage;
   end;
 end;
@@ -999,12 +1068,14 @@ begin
     LEditor.Parent := LTabSheet;
     LEditor.SearchEngine := SynEditSearch;
     LEditor.PopupMenu := popEditor;
+
     //Assign user preferences to the editor
     FEditorOptions.AssignTo(LEditor);
     LEditor.MaxScrollWidth := 3000;
     EditingFile.SynEditor := LEditor;
     UpdateFromSettings(LEditor);
     UpdateHighlighter(LEditor);
+
     LEditor.Visible := True;
 
     //Show the tabsheet
@@ -1122,6 +1193,38 @@ end;
 procedure TfrmMain.acSaveUpdate(Sender: TObject);
 begin
   acSave.Enabled := (CurrentEditor <> nil) and (CurrentEditor.Modified);
+end;
+
+procedure TfrmMain.CheckFileChangedTimerTimer(Sender: TObject);
+var
+  LFileAge: TDateTime;
+begin
+  CheckFileChangedTimer.Enabled := False;
+  Try
+    //Check if opened files are changed on Disk
+    for var I := 0 to EditFileList.Count -1 do
+    begin
+      var LEditFile := TEditingFile(EditFileList.items[I]);
+      if FileAge(LEditFile.FileName, LFileAge) then
+      begin
+        if LFileAge <> LEditFile.FFileAge then
+        begin
+          var LConfirm := StyledMessageDlg(Format(FILE_CHANGED_RELOAD,[LEditFile.FileName]),
+            mtWarning, [mbYes, mbNo], 0);
+          if LConfirm = mrYes then
+          begin
+            LEditFile.ReadFromFile;
+            UpdateTabsheetImage(LEditFile.TabSheet, False, 'svg-logo');
+            SynEditChange(LEditFile.SynEditor);
+          end
+          else
+            LEditFile.FFileAge := LFileAge;
+        end;
+      end;
+    end;
+  Finally
+    CheckFileChangedTimer.Enabled := True;
+  End;
 end;
 
 procedure TfrmMain.CloseSplitViewMenu;
@@ -1388,18 +1491,49 @@ begin
 end;
 
 procedure TfrmMain.UpdateFromSettings(AEditor: TSynEdit);
+var
+  LStyle: TStyledButtonDrawType;
 begin
+  UpdateApplicationStyle(FEditorSettings.StyleName);
   if AEditor <> nil then
-    FEditorSettings.ReadSettings(AEditor.Highlighter, self.FEditorOptions)
+  begin
+    FEditorSettings.ReadSettings(AEditor.Highlighter, self.FEditorOptions);
+    AEditor.ReadOnly := False;
+  end
   else
     FEditorSettings.ReadSettings(nil, self.FEditorOptions);
+
+  //Rounded Buttons for StyledButtons
+  if FEditorSettings.ButtonDrawRounded then
+    LStyle := btRounded
+  else
+    LStyle := btRoundRect;
+  TStyledButton.RegisterDefaultRenderingStyle(LStyle);
+
+  //Rounded Buttons for StyledToolbars
+  if FEditorSettings.ToolbarDrawRounded then
+    LStyle := btRounded
+  else
+    LStyle := btRoundRect;
+  TStyledToolbar.RegisterDefaultRenderingStyle(LStyle);
+  SettingsToolBar.StyleDrawType := LStyle;
+
+  //Rounded Buttons for menus: StyledCategories and StyledButtonGroup
+  if FEditorSettings.MenuDrawRounded then
+    LStyle := btRounded
+  else
+    LStyle := btRoundRect;
+  TStyledCategoryButtons.RegisterDefaultRenderingStyle(LStyle);
+  TStyledButtonGroup.RegisterDefaultRenderingStyle(LStyle);
+  catMenuItems.StyleDrawType := LStyle;
+  MenuButtonToolbar.StyleDrawType := LStyle;
+
   if FEditorSettings.FontSize >= MinfontSize then
     EditorFontSize := FEditorSettings.FontSize
   else
     EditorFontSize := MinfontSize;
   InitEditorOptions;
   UpdateEditorsOptions;
-  UpdateApplicationStyle(FEditorSettings.StyleName);
   UpdateHighlighter(AEditor);
   BackgroundTrackBar.Position := FEditorSettings.LightBackground;
   SVGIconImage.UpdateSVGFactory;
@@ -1603,6 +1737,7 @@ begin
     OpenDialog.InitialDir := InitialDir;
     SaveDialog.InitialDir := InitialDir;
   end;
+  LoadTimer.Enabled := True;
 end;
 
 procedure TfrmMain.actMenuExecute(Sender: TObject);
@@ -1808,10 +1943,30 @@ begin
   end;
 end;
 
+procedure TfrmMain.ManageExceptions(Sender: TObject; E: Exception);
+begin
+  //This is an event-handler for exceptions that replace Delphi standard handler
+  if E is EAccessViolation then
+  begin
+    if StyledMessageDlg(STR_UNEXPECTED_ERROR,
+      Format('Unexpected Error: %s%s',[sLineBreak,E.Message]),
+      TMsgDlgType.mtError,
+      [TMsgDlgBtn.mbOK, TMsgDlgBtn.mbAbort], 0) = mrAbort then
+    Application.Terminate;
+  end
+  else
+  begin
+
+    StyledMessageDlg(STR_ERROR,
+      Format('Error: %s%s',[sLineBreak,E.Message]),
+      TMsgDlgType.mtError,
+      [TMsgDlgBtn.mbOK, TMsgDlgBtn.mbHelp], 0);
+  end;
+end;
+
 initialization
   {$IFDEF DEBUG}
   ReportMemoryLeaksOnShutdown := True;
   {$ENDIF}
 
 end.
-

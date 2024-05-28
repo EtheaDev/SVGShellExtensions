@@ -37,7 +37,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, pngimage, Vcl.ImgList, System.ImageList,
-  Vcl.Imaging.GIFImg, SVGIconImage;
+  Vcl.Imaging.GIFImg, SVGIconImage, Vcl.ButtonStylesAttributes, Vcl.StyledButton;
 
 resourcestring
   Title_SVGTextEditor = 'SVG Text Editor';
@@ -47,12 +47,12 @@ resourcestring
 type
   TFrmAbout = class(TForm)
     Panel1:    TPanel;
-    btnOK: TButton;
+    btnOK: TStyledButton;
     TitleLabel: TLabel;
     LabelVersion: TLabel;
     MemoCopyRights: TMemo;
-    btnIssues: TButton;
-    btnCheckUpdates: TButton;
+    btnIssues: TStyledButton;
+    btnCheckUpdates: TStyledButton;
     LinkLabel1: TLinkLabel;
     SVGIconImage1: TSVGIconImage;
     SVGIconImage2: TSVGIconImage;

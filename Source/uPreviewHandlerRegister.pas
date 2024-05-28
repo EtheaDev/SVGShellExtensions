@@ -187,7 +187,7 @@ begin
 
     LRegKey := Format('%sCLSID\%s',[RootPrefix, sClassID]);
     CreateRegKey(LRegKey, 'AppID', sAppID, RootKey);
-    CreateRegKey(LRegKey, 'DisplayName', 'Delphi Svg Preview Handler', RootKey);
+    CreateRegKey(LRegKey, 'DisplayName', 'Ethea''s Svg Preview Handler', RootKey);
     CreateRegKeyDWORD(LRegKey, 'DisableLowILProcessIsolation', 1, RootKey);
     CreateRegKeyREG_SZ(LRegKey, 'DllSurrogate', '%SystemRoot%\system32\prevhost.exe', RootKey);
 

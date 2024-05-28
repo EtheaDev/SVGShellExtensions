@@ -5,12 +5,15 @@ object frmMain: TfrmMain
   ClientHeight = 588
   ClientWidth = 899
   Color = clWindow
+  Constraints.MinHeight = 600
+  Constraints.MinWidth = 800
   Ctl3D = False
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  KeyPreview = True
   Position = poScreenCenter
   ShowHint = True
   OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
@@ -18,6 +21,7 @@ object frmMain: TfrmMain
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyPress = FormKeyPress
   OnMouseWheelDown = FormMouseWheelDown
   OnMouseWheelUp = FormMouseWheelUp
   OnResize = FormResize
@@ -28,25 +32,27 @@ object frmMain: TfrmMain
   TextHeight = 15
   object RightSplitter: TSplitter
     Left = 643
-    Top = 36
+    Top = 38
     Width = 6
-    Height = 533
+    Height = 531
     Align = alRight
     AutoSnap = False
     MinSize = 240
+    ExplicitTop = 36
+    ExplicitHeight = 533
   end
   object ClientPanel: TPanel
     Left = 44
-    Top = 36
+    Top = 38
     Width = 599
-    Height = 533
+    Height = 531
     Align = alClient
     TabOrder = 4
     object PageControl: TPageControl
       Left = 1
       Top = 1
       Width = 597
-      Height = 531
+      Height = 529
       Align = alClient
       Images = VirtualImageList
       TabOrder = 0
@@ -54,6 +60,8 @@ object frmMain: TfrmMain
       OnMouseEnter = PageControlMouseEnter
       OnMouseLeave = PageControlMouseLeave
       OnMouseMove = PageControlMouseMove
+      ExplicitLeft = 2
+      ExplicitTop = 3
     end
     object PanelCloseButton: TPanel
       Left = 122
@@ -62,9 +70,10 @@ object frmMain: TfrmMain
       Height = 22
       Cursor = crHandPoint
       BevelOuter = bvNone
-      ParentBackground = False
+      ParentColor = True
       TabOrder = 1
       Visible = False
+      StyleElements = [seFont, seBorder]
       object SVGIconImageCloseButton: TSVGIconImage
         Left = 0
         Top = 0
@@ -109,9 +118,9 @@ object frmMain: TfrmMain
   end
   object ImagePanel: TPanel
     Left = 649
-    Top = 36
+    Top = 38
     Width = 250
-    Height = 533
+    Height = 531
     Align = alRight
     BevelOuter = bvNone
     Color = clWhite
@@ -120,18 +129,19 @@ object frmMain: TfrmMain
     StyleElements = []
     object StatusSplitter: TSplitter
       Left = 0
-      Top = 495
+      Top = 493
       Width = 250
       Height = 4
       Cursor = crVSplit
       Align = alBottom
       AutoSnap = False
+      ExplicitTop = 495
     end
     object SVGIconImage: TSVGIconImage
       Left = 0
       Top = 172
       Width = 250
-      Height = 323
+      Height = 321
       AutoSize = False
       Align = alClient
       OnMouseMove = SVGIconImageMouseMove
@@ -231,7 +241,7 @@ object frmMain: TfrmMain
     end
     object StatusPanel: TPanel
       Left = 0
-      Top = 499
+      Top = 497
       Width = 250
       Height = 34
       Align = alBottom
@@ -277,7 +287,7 @@ object frmMain: TfrmMain
     OnClosing = SVClosing
     OnOpened = SVOpened
     OnOpening = SVOpening
-    object catMenuItems: TCategoryButtons
+    object catMenuItems: TStyledCategoryButtons
       Left = 0
       Top = 0
       Width = 160
@@ -391,7 +401,7 @@ object frmMain: TfrmMain
     Left = 0
     Top = 0
     Width = 899
-    Height = 36
+    Height = 38
     Align = alTop
     BevelOuter = bvNone
     ParentBackground = False
@@ -401,93 +411,77 @@ object frmMain: TfrmMain
       Left = 40
       Top = 3
       Width = 79
-      Height = 30
+      Height = 32
       Align = alLeft
       Caption = 'SVG Text Editor'
       Layout = tlCenter
+      ExplicitHeight = 15
     end
-    object SettingsToolBar: TToolBar
+    object SettingsToolBar: TStyledToolbar
       AlignWithMargins = True
       Left = 696
       Top = 3
       Width = 200
-      Height = 30
+      Height = 32
       Align = alRight
-      AutoSize = True
       ButtonHeight = 32
       ButtonWidth = 32
-      Color = clYellow
-      DrawingStyle = dsGradient
-      GradientEndColor = clBtnFace
-      GradientStartColor = clBtnFace
       Images = VirtualImageList
-      ParentColor = False
+      Indent = 3
       TabOrder = 0
-      Transparent = True
-      object ColorSettingsToolButton: TToolButton
+      object ColorSettingsToolButton: TStyledToolButton
         Left = 0
         Top = 0
         Action = actnColorSettings
       end
-      object EditOptionsToolButton: TToolButton
+      object EditOptionsToolButton: TStyledToolButton
         Left = 32
         Top = 0
         Action = actnEditOptions
       end
-      object PageSetupToolButton: TToolButton
+      object PageSetupToolButton: TStyledToolButton
         Left = 64
         Top = 0
         Action = actnPageSetup
       end
-      object PrinterSetupToolButton: TToolButton
+      object PrinterSetupToolButton: TStyledToolButton
         Left = 96
         Top = 0
         Action = actnPrinterSetup
       end
-      object ToolButton9: TToolButton
+      object ToolButton9: TStyledToolButton
         Left = 128
         Top = 0
-        Width = 8
-        ImageIndex = 23
-        ImageName = 'about'
         Style = tbsSeparator
       end
-      object AboutToolButton: TToolButton
-        Left = 136
+      object AbouTStyledToolButton: TStyledToolButton
+        Left = 134
         Top = 0
         Action = acAbout
       end
-      object QuitToolButton: TToolButton
-        Left = 168
+      object QuiTStyledToolButton: TStyledToolButton
+        Left = 166
         Top = 0
         Action = acQuit
         ImageName = 'Exit'
       end
     end
-    object MenuButtonToolbar: TToolBar
+    object MenuButtonToolbar: TStyledToolbar
       AlignWithMargins = True
       Left = 3
       Top = 3
       Width = 31
-      Height = 30
+      Height = 32
       Align = alLeft
-      AutoSize = True
       ButtonHeight = 32
       ButtonWidth = 32
-      Color = clYellow
-      DrawingStyle = dsGradient
-      GradientEndColor = clBtnFace
-      GradientStartColor = clBtnFace
       Images = VirtualImageList
-      ParentColor = False
+      Indent = 3
       TabOrder = 1
-      Transparent = True
-      object ToolButton1: TToolButton
-        AlignWithMargins = True
+      object MenuToolButton: TStyledToolButton
         Left = 0
         Top = 0
         Action = actMenu
-        AutoSize = True
       end
     end
   end
@@ -790,7 +784,7 @@ object frmMain: TfrmMain
     object Sep1MenuItem: TMenuItem
       Caption = '-'
     end
-    object Reformattext1: TMenuItem
+    object ReformatTextMenuItem: TMenuItem
       Action = actnFormatXML
     end
     object SelectAllMenuItem: TMenuItem
@@ -1105,5 +1099,17 @@ object frmMain: TfrmMain
     Height = 20
     Left = 448
     Top = 368
+  end
+  object LoadTimer: TTimer
+    Enabled = False
+    OnTimer = LoadTimerTimer
+    Left = 272
+    Top = 352
+  end
+  object CheckFileChangedTimer: TTimer
+    Interval = 3000
+    OnTimer = CheckFileChangedTimerTimer
+    Left = 144
+    Top = 352
   end
 end

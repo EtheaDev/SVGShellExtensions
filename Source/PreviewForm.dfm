@@ -7,8 +7,8 @@ inherited FrmPreview: TFrmPreview
   Font.Name = 'Segoe UI'
   StyleElements = [seFont, seClient, seBorder]
   OnResize = FormResize
-  ExplicitWidth = 629
-  ExplicitHeight = 655
+  ExplicitWidth = 633
+  ExplicitHeight = 656
   TextHeight = 13
   object Splitter: TSplitter
     Left = 0
@@ -29,7 +29,7 @@ inherited FrmPreview: TFrmPreview
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    object ToolBar: TToolBar
+    object StyledToolbar: TStyledToolbar
       Left = 0
       Top = 0
       Width = 617
@@ -38,100 +38,90 @@ inherited FrmPreview: TFrmPreview
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 35
-      EdgeInner = esNone
-      EdgeOuter = esNone
       Images = SVGIconImageList
       List = True
       TabOrder = 0
-      object ToolButtonShowText: TToolButton
+      object ToolButtonShowText: TStyledToolButton
         Left = 0
         Top = 0
-        Cursor = crHandPoint
-        AutoSize = True
+        OnMouseEnter = ToolButtonMouseEnter
+        OnMouseLeave = ToolButtonMouseLeave
+        OnClick = ToolButtonShowTextClick
+        Visible = False
         Caption = 'Hide text'
         ImageIndex = 1
         ImageName = 'Hide-Text'
-        Visible = False
-        OnClick = ToolButtonShowTextClick
-        OnMouseEnter = ToolButtonMouseEnter
-        OnMouseLeave = ToolButtonMouseLeave
+        AutoSize = True
       end
-      object ToolButtonSettings: TToolButton
+      object ToolButtonSettings: TStyledToolButton
         Left = 35
         Top = 0
-        Cursor = crHandPoint
         Hint = 'Preview settings...'
-        AutoSize = True
+        OnMouseEnter = ToolButtonMouseEnter
+        OnMouseLeave = ToolButtonMouseLeave
+        OnClick = ToolButtonSettingsClick
+        Visible = False
         Caption = 'Settings...'
         ImageIndex = 11
         ImageName = 'preferences-desktop'
-        Visible = False
-        OnClick = ToolButtonSettingsClick
-        OnMouseEnter = ToolButtonMouseEnter
-        OnMouseLeave = ToolButtonMouseLeave
+        AutoSize = True
       end
-      object ToolButtonAbout: TToolButton
+      object ToolButtonAbout: TStyledToolButton
         Left = 70
         Top = 0
-        Cursor = crHandPoint
         Hint = 'Show about...'
-        AutoSize = True
+        OnMouseEnter = ToolButtonMouseEnter
+        OnMouseLeave = ToolButtonMouseLeave
+        OnClick = ToolButtonAboutClick
+        Visible = False
         Caption = 'About...'
         ImageIndex = 2
         ImageName = 'about'
-        Visible = False
-        OnClick = ToolButtonAboutClick
-        OnMouseEnter = ToolButtonMouseEnter
-        OnMouseLeave = ToolButtonMouseLeave
+        AutoSize = True
       end
-      object ToolButtonReformat: TToolButton
+      object ToolButtonReformat: TStyledToolButton
         Left = 105
         Top = 0
-        Cursor = crHandPoint
         Hint = 'Reformat XML text'
-        AutoSize = True
+        OnMouseEnter = ToolButtonMouseEnter
+        OnMouseLeave = ToolButtonMouseLeave
+        OnClick = ToolButtonReformatClick
         Caption = 'Format'
         ImageIndex = 10
         ImageName = 'Reformat'
-        OnClick = ToolButtonReformatClick
-        OnMouseEnter = ToolButtonMouseEnter
-        OnMouseLeave = ToolButtonMouseLeave
+        AutoSize = True
       end
-      object SeparatorEditor: TToolButton
+      object SeparatorEditor: TStyledToolButton
         Left = 140
         Top = 0
-        Width = 8
-        Caption = 'SeparatorEditor'
         ImageName = 'settings'
         Style = tbsSeparator
       end
-      object ToolButtonZoomIn: TToolButton
-        Left = 148
+      object ToolButtonZoomIn: TStyledToolButton
+        Left = 146
         Top = 0
-        Cursor = crHandPoint
         Hint = 'Zoom in (increase font size)'
-        AutoSize = True
+        OnMouseEnter = ToolButtonMouseEnter
+        OnMouseLeave = ToolButtonMouseLeave
+        OnClick = ToolButtonZoomInClick
+        Visible = False
         Caption = 'Zoom In'
         ImageIndex = 6
         ImageName = 'plus'
-        Visible = False
-        OnClick = ToolButtonZoomInClick
+        AutoSize = True
+      end
+      object ToolButtonZoomOut: TStyledToolButton
+        Left = 181
+        Top = 0
+        Hint = 'Zoom out (decrease font size)'
         OnMouseEnter = ToolButtonMouseEnter
         OnMouseLeave = ToolButtonMouseLeave
-      end
-      object ToolButtonZoomOut: TToolButton
-        Left = 183
-        Top = 0
-        Cursor = crHandPoint
-        Hint = 'Zoom out (decrease font size)'
-        AutoSize = True
+        OnClick = ToolButtonZoomOutClick
+        Visible = False
         Caption = 'Zoom Out'
         ImageIndex = 7
         ImageName = 'minus'
-        Visible = False
-        OnClick = ToolButtonZoomOutClick
-        OnMouseEnter = ToolButtonMouseEnter
-        OnMouseLeave = ToolButtonMouseLeave
+        AutoSize = True
       end
     end
   end

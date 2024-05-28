@@ -1,0 +1,244 @@
+<style type="text/css">
+code{
+  font-family: "Consolas", monospace;
+}
+pre{
+  border: 1px solid #ddd;
+  border-left: 3px solid #f36d33;
+  overflow: auto;
+  padding: 1em 1.5em;
+  display: block;
+}
+Blockquote{
+  border-left: 3px solid #d0d0d0;
+  padding-left: 0.5em;
+  margin-left:1em;
+}
+Blockquote p{
+  margin: 0;
+}
+table{
+  border:1px solid;
+  border-collapse:collapse;
+}
+th{  padding:5px;
+  border:1px solid;
+}
+td{
+  padding:5px;
+  border:1px solid;
+}
+</style>
+<h1>SVG Shell Extensions <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg" alt="License"/></a></h1>
+<p><strong>Latest Version 3.2.1 - 28 May 2024</strong></p>
+<p><strong>A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):</strong></p>
+<ul>
+<li><p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers">Preview handler</a>  which allows you to see the SVG image and text without open it, in the &ldquo;Preview Panel&rdquo;.</p>
+</li>
+<li><p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers">Thumbnail handler</a> which allows you to see the SVG image into Windows Explorer.</p>
+</li>
+<li><p>An <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor">SVG-XML Text Editor</a> to manually edit and preview the text of SVG files.</p>
+</li>
+</ul>
+<h3>Features</h3>
+<ul>
+<li><p>Supports Windows Vista, 7, 8, 10 and 11 (for 32 bits and 64 bits).</p>
+</li>
+<li><p>Themes (Dark and Light) according to user preferences of Windows Theme</p>
+</li>
+<li><p>Integrated also with other Shell Applications (like XYplorer)</p>
+</li>
+</ul>
+<h3>Setup using the Installer</h3>
+<p>Click to download the <a href="https://github.com/EtheaDev/SVGShellExtensions/releases/latest/download/SVGShellExtensionsSetup.exe">SVGShellExtensionsSetup.exe</a> located also in the Release area. The Installer works both for 32 and 64 bit system.</p>
+<p><img src="./Images/Setup.png" alt="SVG Setup_Program"/></p>
+<p><strong><em>For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</em></strong></p>
+<h3>Preview Panel and Thumbnails in action</h3>
+<p>In Windows 10 with Light theme:</p>
+<p><img src="./Images/PreviewThumbnailsLight.png" alt="Preview Thumbnails Light"/></p>
+<p>In Windows 10 with Dark theme:</p>
+<p><img src="./Images/PreviewThumbnailsDark.png" alt="Preview Thumbnails Dark"/></p>
+<h3>SVG Text Editor</h3>
+<p>A useful Text editor with preview of SVG Image:</p>
+<p><img src="./Images/SVGTextEditorDark.png" alt="SVG Text Editor Dark"/></p>
+<h3>Support for XYplorer</h3>
+<p>As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support">configuration guide&hellip;</a></p>
+<p><img src="./Images/XYplorer_Preview.png" alt="XYplorer"/></p>
+<h3>Manual Build and Installation (for Delphi developers)</h3>
+<p>If you have Delphi 11 or Delphi 12, you can manually build the project:</p>
+<p><strong><em>Warning: To build the DLL you need also other open-source projects</em></strong></p>
+<ul>
+<li><p><a href="https://github.com/EtheaDev/SVGIconImageList">SVGIconImageList</a></p>
+</li>
+<li><p><a href="https://github.com/SynEdit/SynEdit">Synedit</a></p>
+</li>
+<li><p><a href="https://github.com/RRUZ/vcl-styles-utils">VCL-Style-Utils</a></p>
+</li>
+</ul>
+<p>To manually install the SVGShellExtensions.dll follow these steps:</p>
+<ol>
+<li><p>Close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</p>
+</li>
+<li><p>If you have already used the installer uninstall the components from system.</p>
+</li>
+<li><p>To install manually the dll run the <code>Setup\Register64bit.bat</code> (run-as-administrator).</p>
+</li>
+<li><p>If you wanto to uninstall the dll you use the <code>Setup\UnRegister64Bit.bat</code></p>
+</li>
+<li><p>When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).</p>
+</li>
+</ol>
+<h2>Release Notes</h2>
+<p>28 May 2024: ver. 3.2.1</p>
+<ul>
+<li>Aligned to latest Image32 Library</li>
+<li>Fixed Initialization of GDI+</li>
+<li>Added File Changed notification and reload</li>
+<li>Added use of StyledComponents and Rounded Buttons in Editor and Viewer</li>
+</ul>
+<p>08 Jan 2024: ver. 3.2.0</p>
+<ul>
+<li>Aligned to latest Image32 Library</li>
+<li>Updated Copyright</li>
+<li>Added Clipboard copy SVG as PNG</li>
+<li>Built with Delphi 12</li>
+</ul>
+<p>25 Oct 2023: ver. 3.1.0</p>
+<ul>
+<li>Added &ldquo;close button&rdquo; over Tabs</li>
+<li>Removed &ldquo;TSVG&rdquo; rendering option</li>
+<li>Updated to Image32 ver. 4.4 (30 Jan 2023)</li>
+<li>Updated to Skia4Delphi ver. 6.0.0 beta 5</li>
+<li>Added support for Delphi 12</li>
+</ul>
+<p>24 Sep 2022: ver. 3.0.0</p>
+<ul>
+<li>Fixed Scrollbar colors viewing text in preview</li>
+<li>Fixed &ldquo;empty panel&rdquo; viewing text in preview</li>
+<li>Fixed &ldquo;context-menu&rdquo; for export to PNG (image lost)</li>
+</ul>
+<p>18 Sep 2022: ver. 2.9.0</p>
+<ul>
+<li>Fixed Preview size in multi-monitor</li>
+<li>Fixed flickering of Preview</li>
+</ul>
+<p>13 Sep 2022: ver. 2.8.0</p>
+<ul>
+<li>Fixed load file with blanks in content menu</li>
+<li>Built with Delphi 11.2</li>
+</ul>
+<p>10 Apr 2022 - Version 2.7.0</p>
+<ul>
+<li>Updated Image32 Library</li>
+<li>Built with Delphi 11.1</li>
+</ul>
+<p>16 Feb 2022 - Version 2.6.1</p>
+<ul>
+<li>Updated Image32 Library</li>
+</ul>
+<p>20 Jan 2022 - Version 2.6</p>
+<ul>
+<li>Added support for Windows 11</li>
+<li>Updated Image32 Library</li>
+<li>Fixed resize content</li>
+</ul>
+<p>06 Nov 2021 - Version 2.5</p>
+<ul>
+<li>Fixed Export to png files</li>
+</ul>
+<p>23 Oct 2021 - Version 2.4</p>
+<ul>
+<li>Added new Windows11 Styles (Dark and Light)</li>
+</ul>
+<p>04 Sep 2021 - Version 2.3</p>
+<ul>
+<li>Added support for Delphi 11</li>
+<li>Built with Delphi 11</li>
+<li>Updated Image32 Library</li>
+</ul>
+<p>03 Aug 2021 - Version 2.2</p>
+<ul>
+<li>Fixed PreferDirect2D default to false</li>
+</ul>
+<p>31 Jul 2021 - Version 2.1</p>
+<ul>
+<li>Updated Image32 to 3.0 version</li>
+<li>Updated some sample images</li>
+</ul>
+<p>25 Jul 2021 - Version 2.0</p>
+<ul>
+<li>Changed default SVG engine to Image32 for better results</li>
+<li>Updated Setup</li>
+</ul>
+<p>05 Jul 2021</p>
+<ul>
+<li>Added drag-drop support for external files into editor</li>
+<li>Updated Setup with certificate</li>
+</ul>
+<p>21 Jun 2021</p>
+<ul>
+<li>Updated some icons</li>
+<li>Update icon preview when SVGFactory changes</li>
+</ul>
+<p>03 Apr 2021</p>
+<ul>
+<li>Fixed Close-All (Editor): clear preview</li>
+<li>Fixed save to png file extensions</li>
+<li>Removed memory-leak check closing app</li>
+</ul>
+<p>05 Mar 2021</p>
+<ul>
+<li>Fixed SVG XML Editor preview after loading file</li>
+<li>Added support for storing/remember Editor options</li>
+<li>Some minor fixes</li>
+</ul>
+<p>28 Feb 2021</p>
+<ul>
+<li>Fixed Context-Menu</li>
+</ul>
+<p>27 Feb 2021</p>
+<ul>
+<li>Added 32 bit support</li>
+<li>Fixed some issue into SVG Text Editor</li>
+</ul>
+<p>22 Feb 2021</p>
+<ul>
+<li>Added SVG Text Editor</li>
+<li>Added new Settings dialog</li>
+<li>Added Context-menu to open Editor and export to PNG</li>
+<li>Added Direct2D Engine for Preview Panel</li>
+</ul>
+<p>09 Feb 2021</p>
+<ul>
+<li>Added Setup asset</li>
+<li>Fixed check for active Windows Theme</li>
+<li>Released v.1.0.0</li>
+<li>Released v.1.0.1</li>
+</ul>
+<p>08 Feb 2021</p>
+<ul>
+<li>Added SVG Thumbnail Provider</li>
+</ul>
+<p>31 Jan 2021</p>
+<ul>
+<li>Added SVG file Preview panel</li>
+</ul>
+<h2>Credits</h2>
+<p>Many thanks to <strong>Rodrigo Ruz V.</strong> (author of <a href="https://theroadtodelphi.com/">theroadtodelphi.com</a> Blog) for his wonderful work on <a href="https://github.com/RRUZ/delphi-preview-handler">delphi-preview-handler</a> from which this project has used a lot of code and inspiration.</p>
+<h2>License</h2>
+<p>Licensed under the <a href="https://opensource.org/licenses/Apache-2.0">Apache License, Version 2.0</a> (the &ldquo;License&rdquo;);
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an &ldquo;AS IS&rdquo; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
+<p>Third Party libraries and tools used from Ethea:</p>
+<ul>
+<li><a href="https://github.com/EtheaDev/SVGIconImageList">SVGIconImageList</a></li>
+</ul>
+<p>The Initial Developer of the <a href="https://github.com/RRUZ/delphi-preview-handler">Original Code</a> is <strong>Rodrigo Ruz V</strong>. Portions created by him are Copyright © 2011-2021 Rodrigo Ruz V.</p>
+<p>Third Party libraries and tools used:</p>
+<ul>
+<li><p><a href="https://github.com/RRUZ/vcl-styles-utils">VCLStyles Utils</a></p>
+</li>
+<li><p><a href="https://github.com/SynEdit/SynEdit">SynEdit</a></p>
+</li>
+</ul>
+<p><img src="/Setup/SupportingDelphi.jpg" alt="Delphi Support"/></p>
+<p>Related links: <a href="https://www.embarcadero.com/">embarcadero.com</a> - <a href="https://learndelphi.org/">learndelphi.org</a></p>

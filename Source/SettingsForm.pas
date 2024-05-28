@@ -38,7 +38,8 @@ uses
   Dialogs, ComCtrls, ExtCtrls, ColorGrd, StdCtrls, CheckLst, SynEdit,
   ActnList, SynEditHighlighter, SynUnicode, System.ImageList, Vcl.ImgList,
   SVGIconImageListBase, SVGIconImageList, uSettings, Vcl.ButtonGroup,
-  Vcl.ToolWin, DResources, Vcl.VirtualImageList, uAbout, Vcl.WinXCtrls;
+  Vcl.ToolWin, DResources, Vcl.VirtualImageList, uAbout, Vcl.WinXCtrls,
+  Vcl.ButtonStylesAttributes, Vcl.StyledButtonGroup, Vcl.StyledButton;
 
 type
   TUserSettingsForm = class(TForm)
@@ -75,20 +76,24 @@ type
     ForegroundColorLabel: TLabel;
     BackgroundColorLabel: TLabel;
     BackgroundColorBox: TColorBox;
-    MenuButtonGroup: TButtonGroup;
+    MenuButtonGroup: TStyledButtonGroup;
     TitlePanel: TPanel;
     ThemeLeftPanel: TPanel;
     ThemesRadioGroup: TRadioGroup;
     SelectThemeRadioGroup: TRadioGroup;
     ThemeClientPanel: TPanel;
     ResetPanel: TPanel;
-    ResetButton: TButton;
+    ResetButton: TStyledButton;
     stGeneral: TTabSheet;
     PanelTopTheme: TPanel;
     PanelTopFont: TPanel;
     PanelTopEditor: TPanel;
     PanelTopPreviewSettings: TPanel;
     EngineRadioGroup: TRadioGroup;
+    RoundedButtonsGroupBox: TGroupBox;
+    ToolbarRoundedCheckBox: TCheckBox;
+    ButtonsRoundedCheckBox: TCheckBox;
+    MenuRoundedCheckBox: TCheckBox;
     procedure BoxElementsClick(Sender: TObject);
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
@@ -538,6 +543,9 @@ begin
   FontSizeUpDown.Position := ASettings.FontSize;
   EngineRadioGroup.Enabled := WinSvgSupported;
   EngineRadioGroup.ItemIndex := Ord(ASettings.SVGEngine);
+  ToolbarRoundedCheckBox.Checked := ASettings.ToolbarDrawRounded;
+  ButtonsRoundedCheckBox.Checked := ASettings.ButtonDrawRounded;
+  MenuRoundedCheckBox.Checked := ASettings.MenuDrawRounded;
   PopulateAvailThemes;
 end;
 
@@ -568,6 +576,10 @@ begin
   ASettings.FontSize := FontSizeUpDown.Position;
   ASettings.StyleName := SelectedStyleName;
   ASettings.SVGEngine := TSVGEngine(EngineRadioGroup.ItemIndex);
+  ASettings.ToolbarDrawRounded := ToolbarRoundedCheckBox.Checked;
+  ASettings.ButtonDrawRounded := ButtonsRoundedCheckBox.Checked;
+  ASettings.MenuDrawRounded := MenuRoundedCheckBox.Checked;
+
 end;
 
 procedure TUserSettingsForm.MenuButtonGroupButtonClicked(Sender: TObject;

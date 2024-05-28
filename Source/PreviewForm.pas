@@ -44,7 +44,9 @@ uses
   SynExportHTML, SynExportRTF, SynEditMiscClasses,
   uSettings, System.ImageList, SynEditCodeFolding,
   SVGIconImageList, SVGIconImageListBase, SVGIconImage, Vcl.VirtualImageList,
-  UPreviewContainer;
+  UPreviewContainer,
+  Vcl.ButtonStylesAttributes, Vcl.StyledButton,
+  Vcl.StyledToolbar, Vcl.StyledButtonGroup;
 
 type
   TFrmPreview = class(TPreviewContainer)
@@ -53,14 +55,14 @@ type
     PanelEditor: TPanel;
     StatusBar: TStatusBar;
     SVGIconImageList: TVirtualImageList;
-    ToolButtonZoomIn: TToolButton;
-    ToolButtonZoomOut: TToolButton;
-    ToolBar: TToolBar;
-    ToolButtonSettings: TToolButton;
-    ToolButtonAbout: TToolButton;
-    SeparatorEditor: TToolButton;
-    ToolButtonShowText: TToolButton;
-    ToolButtonReformat: TToolButton;
+    ToolButtonZoomIn: TStyledToolButton;
+    ToolButtonZoomOut: TStyledToolButton;
+    StyledToolBar: TStyledToolbar;
+    ToolButtonSettings: TStyledToolButton;
+    ToolButtonAbout: TStyledToolButton;
+    SeparatorEditor: TStyledToolButton;
+    ToolButtonShowText: TStyledToolButton;
+    ToolButtonReformat: TStyledToolButton;
     ImagePanel: TPanel;
     SVGIconImage: TSVGIconImage;
     Splitter: TSplitter;
@@ -249,19 +251,32 @@ procedure TFrmPreview.FormResize(Sender: TObject);
 begin
   PanelEditor.Height := Round(Self.Height * (FPreviewSettings.SplitterPos / 100));
   Splitter.Top := PanelEditor.Height;
-  if Self.Width < (550 * Self.ScaleFactor) then
-    ToolBar.ShowCaptions := False
+  if Self.Width < (560 * Self.ScaleFactor) then
+  begin
+    StyledToolBar.ShowCaptions := False;
+    StyledToolBar.ButtonWidth := Round(30 * Self.ScaleFactor);
+  end
   else
-    Toolbar.ShowCaptions := True;
+  begin
+    StyledToolbar.ShowCaptions := True;
+    StyledToolBar.ButtonWidth := Round(110 * Self.ScaleFactor);
+  end;
   UpdateGUI;
 end;
 
 procedure TFrmPreview.LoadFromFile(const AFileName: string);
+var
+  LOutStream: TStringStream;
 begin
   TLogPreview.Add('TFrmPreview.LoadFromFile Init');
   FFileName := AFileName;
-  SynEdit.Lines.LoadFromFile(FFileName);
-  SVGIconImage.SVGText := SynEdit.Lines.Text;
+  LOutStream := TStringStream.Create('', TEncoding.UTF8);
+  try
+    SynEdit.Lines.LoadFromFile(AFileName, TEncoding.UTF8);
+    SVGIconImage.SVGText := SynEdit.Lines.Text;
+  finally
+    LOutStream.Free;
+  end;
   TLogPreview.Add('TFrmEditor.LoadFromFile Done');
 end;
 
@@ -329,7 +344,7 @@ end;
 procedure TFrmPreview.SplitterMoved(Sender: TObject);
 begin
   FPreviewSettings.SplitterPos := splitter.Top * 100 div
-    (Self.Height - Toolbar.Height);
+    (Self.Height - StyledToolbar.Height);
   SaveSettings;
 end;
 
@@ -337,7 +352,7 @@ procedure TFrmPreview.ToolButtonShowTextClick(Sender: TObject);
 begin
   PanelEditor.Visible := not PanelEditor.Visible;
   SynEdit.Visible := PanelEditor.Visible;
-  ToolBar.Invalidate;
+  StyledToolBar.Invalidate;
   UpdateGUI;
   SaveSettings;
 end;
@@ -349,7 +364,7 @@ end;
 
 procedure TFrmPreview.ToolButtonMouseEnter(Sender: TObject);
 begin
-  StatusBar.SimpleText := (Sender as TToolButton).Hint;
+  StatusBar.SimpleText := (Sender as TStyledToolButton).Hint;
 end;
 
 procedure TFrmPreview.ToolButtonMouseLeave(Sender: TObject);
@@ -363,6 +378,8 @@ begin
 end;
 
 procedure TFrmPreview.UpdateFromSettings;
+var
+  LStyle: TStyledButtonDrawType;
 begin
   FPreviewSettings.ReadSettings(SynEdit.Highlighter, nil);
   if FPreviewSettings.FontSize >= MinfontSize then
@@ -370,6 +387,29 @@ begin
   else
     EditorFontSize := MinfontSize;
   SynEdit.Font.Name := FPreviewSettings.FontName;
+
+  //Rounded Buttons for StyledButtons
+  if FPreviewSettings.ButtonDrawRounded then
+    LStyle := btRounded
+  else
+    LStyle := btRoundRect;
+  TStyledButton.RegisterDefaultRenderingStyle(LStyle);
+
+  //Rounded Buttons for StyledToolbars
+  if FPreviewSettings.ToolbarDrawRounded then
+    LStyle := btRounded
+  else
+    LStyle := btRoundRect;
+  TStyledToolbar.RegisterDefaultRenderingStyle(LStyle);
+  StyledToolbar.StyleDrawType := LStyle;
+
+  //Rounded Buttons for menus: StyledCategories and StyledButtonGroup
+  if FPreviewSettings.MenuDrawRounded then
+    LStyle := btRounded
+  else
+    LStyle := btRoundRect;
+  TStyledButtonGroup.RegisterDefaultRenderingStyle(LStyle);
+
   PanelEditor.Visible := FPreviewSettings.ShowEditor;
 {$IFNDEF DISABLE_STYLES}
   TStyleManager.TrySetStyle(FPreviewSettings.StyleName, False);
@@ -391,7 +431,7 @@ end;
 
 procedure TFrmPreview.ToolButtonSelectModeClick(Sender: TObject);
 begin
-  TToolButton(Sender).CheckMenuDropdown;
+  //TStyledToolButton(Sender).CheckMenuDropdown;
 end;
 
 procedure TFrmPreview.ToolButtonZoomOutClick(Sender: TObject);

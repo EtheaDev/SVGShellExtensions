@@ -39,7 +39,8 @@ uses
   Windows,
   PropSys,
   SysUtils,
-  uLogExcept;
+  uLogExcept,
+  uMisc;
 
 type
   TComFilePreviewHandler = class(TComPreviewHandler, IInitializeWithFile)
@@ -66,6 +67,7 @@ end;
 function TComFilePreviewHandler.IInitializeWithFile_Initialize(pszFilePath: LPCWSTR; grfMode: DWORD): HRESULT;
 begin
   FFilePath := pszFilePath;
+  Initialize_GDI;
   FMode := grfMode;
   Result := S_OK;
 end;

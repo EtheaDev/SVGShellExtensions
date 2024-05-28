@@ -28,7 +28,7 @@ object UserSettingsForm: TUserSettingsForm
   object pc: TPageControl
     Left = 153
     Top = 41
-    Width = 666
+    Width = 662
     Height = 451
     ActivePage = tsColors
     Align = alClient
@@ -38,11 +38,14 @@ object UserSettingsForm: TUserSettingsForm
       Caption = 'Text color'
       ImageName = 'palette'
       object VertSplitter: TSplitter
-        Left = 143
-        Top = 0
+        Left = 193
+        Top = 25
         Width = 4
-        Height = 366
+        Height = 377
         MinSize = 100
+        ExplicitLeft = 143
+        ExplicitTop = 0
+        ExplicitHeight = 366
       end
       object paLeft: TPanel
         Left = 0
@@ -142,7 +145,7 @@ object UserSettingsForm: TUserSettingsForm
           DesignSize = (
             193
             42)
-          object ResetButton: TButton
+          object ResetButton: TStyledButton
             Left = 9
             Top = 6
             Width = 174
@@ -411,7 +414,7 @@ object UserSettingsForm: TUserSettingsForm
       object PanelTopPreviewSettings: TPanel
         Left = 0
         Top = 0
-        Width = 650
+        Width = 654
         Height = 25
         Align = alTop
         Caption = 'RENDERING OPTIONS'
@@ -429,6 +432,39 @@ object UserSettingsForm: TUserSettingsForm
           'Windows Direct 2D')
         TabOrder = 1
       end
+      object RoundedButtonsGroupBox: TGroupBox
+        AlignWithMargins = True
+        Left = 13
+        Top = 145
+        Width = 284
+        Height = 97
+        Caption = 'Rounded Buttons'
+        TabOrder = 2
+        object ToolbarRoundedCheckBox: TCheckBox
+          Left = 15
+          Top = 24
+          Width = 185
+          Height = 17
+          Caption = 'Apply to Toolbars'
+          TabOrder = 0
+        end
+        object ButtonsRoundedCheckBox: TCheckBox
+          Left = 15
+          Top = 47
+          Width = 185
+          Height = 17
+          Caption = 'Apply to Buttons'
+          TabOrder = 1
+        end
+        object MenuRoundedCheckBox: TCheckBox
+          Left = 15
+          Top = 70
+          Width = 185
+          Height = 17
+          Caption = 'Apply to Menu Buttons'
+          TabOrder = 2
+        end
+      end
     end
   end
   object StatusBar: TStatusBar
@@ -441,7 +477,7 @@ object UserSettingsForm: TUserSettingsForm
     SimplePanel = True
     UseSystemFont = False
   end
-  object MenuButtonGroup: TButtonGroup
+  object MenuButtonGroup: TStyledButtonGroup
     Left = 0
     Top = 41
     Width = 153

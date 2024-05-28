@@ -79,12 +79,18 @@ type
     FPngExportFormat: string;
     FPngExportCustomSize: Integer;
     FPngExportFolder: string;
+    FButtonDrawRounded: Boolean;
+    FToolbarDrawRounded: Boolean;
+    FMenuDrawRounded: Boolean;
     function GetUseDarkStyle: Boolean;
     procedure SetSVGEngine(const Value: TSVGEngine);
     function GetThemeSectionName: string;
     function GetButtonTextColor: TColor;
     class function GetSettingsFileName: string; static;
     procedure UpdateEngine;
+    procedure SetButtonDrawRounded(const Value: Boolean);
+    procedure SetToolbarDrawRounded(const Value: Boolean);
+    procedure SetMenuDrawRounded(const Value: Boolean);
   protected
     FIniFile: TIniFile;
   public
@@ -121,6 +127,9 @@ type
     property PngExportFormat: string read FPngExportFormat write FPngExportFormat;
     property PngExportSizes: TPngExportSizes read FPngExportSizes write FPngExportSizes;
     property PngExportCustomSize: Integer read FPngExportCustomSize write FPngExportCustomSize;
+    property ButtonDrawRounded: Boolean read FButtonDrawRounded write SetButtonDrawRounded;
+    property ToolbarDrawRounded: Boolean read FToolbarDrawRounded write SetToolbarDrawRounded;
+    property MenuDrawRounded: Boolean read FMenuDrawRounded write SetMenuDrawRounded;
   end;
 
   TPreviewSettings = class(TSettings)
@@ -333,6 +342,9 @@ begin
   FThemeSelection := TThemeSelection(FIniFile.ReadInteger('Global', 'ThemeSelection', 0));
   FPngExportFolder := FIniFile.ReadString('PngExport', 'Folder', '');
   FPngExportFormat := FIniFile.ReadString('PngExport', 'Format', '%FileName%_%size%');
+  FToolbarDrawRounded := FIniFile.ReadBool('Global', 'ToolbarDrawRounded', false);
+  FButtonDrawRounded := FIniFile.ReadBool('Global', 'ButtonDrawRounded', false);
+  FMenuDrawRounded := FIniFile.ReadBool('Global', 'MenuDrawRounded', false);
 
   for LValue in AllPngExportSizes do
   begin
@@ -432,6 +444,10 @@ begin
   FIniFile.WriteInteger('Global', 'SVGEngine', Ord(FSVGEngine));
   FIniFile.WriteInteger('Global', 'ActivePageIndex', FActivePageIndex);
   FIniFile.WriteInteger('Global', 'ThemeSelection', Ord(FThemeSelection));
+  FIniFile.WriteBool('Global', 'ToolbarDrawRounded', ToolbarDrawRounded);
+  FIniFile.WriteBool('Global', 'ButtonDrawRounded', ButtonDrawRounded);
+  FIniFile.WriteBool('Global', 'MenuDrawRounded', MenuDrawRounded);
+
   if (FUseDarkStyle and (LightBackground <> default_darkbackground)) or
     (not FUseDarkStyle and (LightBackground <> default_lightbackground)) then
     FIniFile.WriteInteger('Global', 'LightBackground', LightBackground);
@@ -448,6 +464,22 @@ begin
       FIniFile.WriteInteger(LThemeSection+LAttribute.Name, 'Style', LAttribute.IntegerStyle);
     end;
   end;
+end;
+
+procedure TSettings.SetToolbarDrawRounded(
+  const Value: Boolean);
+begin
+  FToolbarDrawRounded := Value;
+end;
+
+procedure TSettings.SetMenuDrawRounded(const Value: Boolean);
+begin
+  FMenuDrawRounded := Value;
+end;
+
+procedure TSettings.SetButtonDrawRounded(const Value: Boolean);
+begin
+  FButtonDrawRounded := Value;
 end;
 
 { TPreviewSettings }
