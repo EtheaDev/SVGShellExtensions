@@ -33,17 +33,18 @@ interface
 {$INCLUDE StyledComponents.inc}
 
 uses
-  Vcl.ImgList
-  , System.Math
+  System.Math
+  , Vcl.ImgList
   , System.UITypes
+  , System.SysUtils
+  , System.Classes
   , Winapi.Windows
   , Winapi.CommCtrl
   , Winapi.Messages
   , Vcl.Graphics
   , Vcl.buttons
-  , System.SysUtils
-  , System.Classes
   , Vcl.StdCtrls
+  , Vcl.ExtCtrls
   , Vcl.Themes
   , Vcl.Controls
   , Vcl.ActnList
@@ -53,7 +54,7 @@ uses
   ;
 
 const
-  StyledButtonsVersion = '3.5.3';
+  StyledButtonsVersion = '3.5.4';
 
 resourcestring
   ERROR_SETTING_BUTTON_STYLE = 'Error setting Button Style: %s/%s/%s not available';
@@ -179,6 +180,12 @@ type
     FDown: Boolean;
     FShowCaption: Boolean;
 
+    FAutoClick: Boolean;
+    FAutoClickDelay: Integer;
+    FAutoClickTimer: TTimer;
+    FStartAutoClick: TDateTime;
+    FAutoClickPixels: Integer;
+
     procedure SetImageMargins(const AValue: TImageMargins);
     procedure SetStyleRadius(const AValue: Integer);
     procedure SetStyleRoundedCorners(const AValue: TRoundedCorners);
@@ -216,13 +223,9 @@ type
     procedure DrawNotificationBadge(
       const ACanvas: TCanvas; const ASurfaceRect: TRect);
     procedure DrawBackgroundAndBorder(const ACanvas: TCanvas;
-      const AStyleAttribute: TStyledButtonAttributes;
       const AEraseBackground: Boolean);
-    procedure DrawText(const ACanvas: TCanvas;
-      const AText: string; const AAlignment: TAlignment;
-      const ASpacing: Integer;
-      var ARect: TRect; AFlags: Cardinal);
-    function GetDrawingStyle(const ACanvas: TCanvas): TStyledButtonAttributes;
+    function GetDrawingStyle(const ACanvas: TCanvas;
+      const AButtonState: TStyledButtonState): TStyledButtonAttributes;
     procedure SetStyleDrawType(const AValue: TStyledButtonDrawType);
     procedure ImageListChange(Sender: TObject);
 
@@ -283,6 +286,10 @@ type
     procedure SetShowCaption(const AValue: Boolean);
     procedure UpAllButtons;
     function GetCaptionToDraw: string;
+    procedure SetAutoClick(const AValue: Boolean);
+    procedure SetAutoClickDelay(const AValue: Integer);
+    procedure UpdateAutoClickTimer(const AReset: Boolean);
+    procedure AutoClickOnTimer(Sender: TObject);
   protected
     FCustomDrawType: Boolean;
     FUseButtonLayout: Boolean;
@@ -415,6 +422,8 @@ type
     function IsDefaultAppearance: Boolean;
     property AsVCLComponent: Boolean read GetAsVCLComponent write SetAsVCLComponent;
     property Active: Boolean read FActive write FActive;
+    property AutoClick: Boolean read FAutoClick write SetAutoClick default False;
+    property AutoClickDelay: Integer read FAutoClickDelay write SetAutoClickDelay default DEFAULT_AUTOCLICK_DELAY;
     property Focused: Boolean read GetFocused;
     property ButtonState: TStyledButtonState read GetButtonState;
     property StyleApplied: Boolean read FStyleApplied write SetStyleApplied;
@@ -455,7 +464,7 @@ type
     property ModalResult: TModalResult read FModalResult write SetModalResult;
     property RescalingButton: Boolean read GetRescalingButton write SetRescalingButton;
 
-    //Properties used when UseButtonLayout is true
+    //Properties used when UseButtonLayout is True
     property Layout: TButtonLayout read FButtonLayout write SetLayout;
     property Margin: Integer read FMargin write SetMargin default -1;
     property Spacing: Integer read FSpacing write SetSpacing default 4;
@@ -672,6 +681,10 @@ type
     procedure SetNotificationBadge(const AValue: TNotificationBadgeAttributes);
     function GetShowCaption: Boolean;
     procedure SetShowCaption(const AValue: Boolean);
+    function GetAutoClick: Boolean;
+    function GetAutoClickDelay: Integer;
+    procedure SetAutoClick(const AValue: Boolean);
+    procedure SetAutoClickDelay(const AValue: Integer);
   protected
     procedure SetCursor(const AValue: TCursor); virtual;
     function GetCaption: TCaption;
@@ -750,6 +763,8 @@ type
     destructor Destroy; override;
     property ActiveStyleName: string read GetActiveStyleName;
     property AsVCLComponent: Boolean read GetAsVCLComponent write SetAsVCLComponent;
+    property AutoClick: Boolean read GetAutoClick write SetAutoClick default False;
+    property AutoClickDelay: Integer read GetAutoClickDelay write SetAutoClickDelay default DEFAULT_AUTOCLICK_DELAY;
     property Focused: Boolean read GetFocused;
     property ButtonState: TStyledButtonState read GetButtonState;
     property MouseInControl: Boolean read GetMouseInControl;
@@ -757,7 +772,7 @@ type
     property StyleApplied: Boolean read GetStyleApplied write SetStyleApplied;
     property RescalingButton: Boolean read GetRescalingButton write SetRescalingButton;
     property Enabled stored IsEnabledStored;
-    property ParentFont default true;
+    property ParentFont default True;
     property Layout: TButtonLayout read GetLayout write SetLayout default blGlyphLeft;
     property Margin: Integer read GetMargin write SetMargin default -1;
     property Spacing: Integer read GetSpacing write SetSpacing default 4;
@@ -824,6 +839,8 @@ type
     property AllowAllUp;
     property Anchors;
     property AsVCLComponent stored False;
+    property AutoClick;
+    property AutoClickDelay;
     property Constraints;
     property Cursor default DEFAULT_CURSOR;
     property GroupIndex;
@@ -914,6 +931,8 @@ type
     property AllowAllUp;
     property Anchors;
     property AsVCLComponent stored False;
+    property AutoClick;
+    property AutoClickDelay;
     property BiDiMode;
     property Constraints;
     property Cursor default DEFAULT_CURSOR;
@@ -960,6 +979,7 @@ type
     {$IFDEF D10_4+}
     property StyleName;
     {$ENDIF}
+    property Tag;
     property OnClick;
     property OnDblClick;
     property OnMouseActivate;
@@ -1156,6 +1176,10 @@ type
     procedure SetAllowAllUp(const AValue: Boolean);
     procedure SetDown(const AValue: Boolean);
     procedure SetGroupIndex(const AValue: Integer);
+    function GetAutoClick: Boolean;
+    function GetAutoClickDelay: Integer;
+    procedure SetAutoClick(const AValue: Boolean);
+    procedure SetAutoClickDelay(const AValue: Integer);
   protected
     procedure SetCursor(const AValue: TCursor); virtual;
     function CalcImageRect(var ATextRect: TRect;
@@ -1237,6 +1261,8 @@ type
 
     property ActiveStyleName: string read GetActiveStyleName;
     property AsVCLComponent: Boolean read GetAsVCLComponent write SetAsVCLComponent;
+    property AutoClick: Boolean read GetAutoClick write SetAutoClick default False;
+    property AutoClickDelay: Integer read GetAutoClickDelay write SetAutoClickDelay default DEFAULT_AUTOCLICK_DELAY;
     property ButtonState: TStyledButtonState read GetButtonState;
     property MouseInControl: Boolean read GetMouseInControl;
     property StyleApplied: Boolean read GetStyleApplied write SetStyleApplied;
@@ -1247,7 +1273,7 @@ type
     property RescalingButton: Boolean read GetRescalingButton write SetRescalingButton;
     property DoubleBuffered default True;
     property Enabled stored IsEnabledStored;
-    property ParentFont default true;
+    property ParentFont default True;
     property Layout: TButtonLayout read GetLayout write SetLayout default blGlyphLeft;
     property Margin: Integer read GetMargin write SetMargin default -1;
     property Spacing: Integer read GetSpacing write SetSpacing default 4;
@@ -1326,6 +1352,8 @@ type
     property Down;
     property Anchors;
     property AsVCLComponent stored False;
+    property AutoClick;
+    property AutoClickDelay;
     property BiDiMode;
     property Cancel;
     property Caption;
@@ -1442,6 +1470,8 @@ type
     property Align;
     property Anchors;
     property AsVCLComponent stored False;
+    property AutoClick;
+    property AutoClickDelay;
     property BiDiMode;
     property Cancel;
     property Caption;
@@ -1477,6 +1507,7 @@ type
     property Spacing;
     property TabOrder;
     property TabStop;
+    property Tag;
     property Visible;
     property WordWrap;
     property StyleElements;
@@ -1530,6 +1561,7 @@ uses
   System.Types
   , System.RTLConsts
   , System.StrUtils
+  , System.DateUtils
   , Vcl.Forms
   {$IFDEF INCLUDE_BootstrapButtonStyles}
   , Vcl.BootstrapButtonStyles
@@ -1755,14 +1787,14 @@ procedure TStyledButtonRender.CMEnter(var Message: TCMEnter);
 begin
   if not(Enabled) or (csDesigning in ComponentState) then
     Exit;
-  FMouseInControl := false;
+  FMouseInControl := False;
 end;
 
 procedure TStyledButtonRender.CMMouseEnter(var Message: TNotifyEvent);
 begin
   if not(Enabled) or (csDesigning in ComponentState) then
     Exit;
-  FMouseInControl := true;
+  FMouseInControl := True;
   Invalidate;
 end;
 
@@ -1771,7 +1803,7 @@ begin
   if not(Enabled) or (csDesigning in ComponentState) then
     Exit;
   State := bsUp;
-  FMouseInControl := false;
+  FMouseInControl := False;
   Invalidate;
 end;
 
@@ -1803,7 +1835,8 @@ begin
       Form.ModalResult := ModalResult;
     FMouseInControl := True;
     OwnerControl.Repaint;
-    //State := bsUp; do not "force" state changing
+    //Reset AutoClick for Button (if enabled)
+    AutoClick := False;
     OnClick(FOwnerControl);
   end;
 end;
@@ -1891,10 +1924,17 @@ begin
   FImageAlignment := iaLeft;
   FCustomDrawType := False;
   FOwnerControl.Cursor := ACursor;
-  ParentFont := true;
+  ParentFont := True;
   FOwnerControl.Width := DEFAULT_BTN_WIDTH;
   FOwnerControl.Height := DEFAULT_BTN_HEIGHT;
-  FMouseInControl := false;
+  FMouseInControl := False;
+
+  //AutoClick initialization
+  FAutoClick := False;
+  FAutoClickDelay := DEFAULT_AUTOCLICK_DELAY;
+  FAutoClickTimer := nil;
+
+  //Style initialization
   FStyleDrawType := ADrawType;
   FCustomDrawType := AUseCustomDrawType;
   FStyleRadius := DEFAULT_RADIUS;
@@ -1996,7 +2036,9 @@ end;
 
 destructor TStyledButtonRender.Destroy;
 begin
+  AutoClick := False;
   Images := nil;
+  FreeAndNil(FAutoClickTimer);
   FreeAndNil(FImageChangeLink);
   FreeAndNil(FImageMargins);
   FreeAndNil(FButtonStyleNormal);
@@ -2223,6 +2265,83 @@ begin
   end;
 end;
 
+procedure TStyledButtonRender.AutoClickOnTimer(Sender: TObject);
+var
+  FInterval: TDateTime;
+  LOffSetWidth: Integer;
+begin
+  if not (csDesigning in FOwnerControl.ComponentState) then
+  begin
+    //If the AutoClickTimer is less then FAutoClickDelay
+    //then Paint a portion of Button of another hot color
+    FInterval := System.DateUtils.MilliSecondsBetween(Now, FStartAutoClick);
+    if FInterval < FAutoClickDelay then
+    begin
+      //Time for AutoClick in progress: repaint Button
+      if (FStyleDrawType = btRounded) then
+        LOffSetWidth := FOwnerControl.Height
+      else if (FStyleDrawType = btRoundRect) then
+        LOffSetWidth := FStyleRadius
+      else
+        LOffSetWidth := 0;
+
+      FAutoClickPixels := LOffSetWidth +
+        Round((FOwnerControl.Width - LOffSetWidth) / (FAutoClickDelay / FInterval));
+      Invalidate;
+    end
+    else
+    begin
+      //Auto click execution
+      if not (csDesigning in FOwnerControl.ComponentState) and
+        (FOwnerControl.Enabled) and (State <> bsDown) then
+      begin
+        //Disable AutoClick before click
+        AutoClick := False;
+        SetFocus;
+        Invalidate;
+        OnClick(FOwnerControl);
+      end;
+    end;
+  end;
+end;
+
+procedure TStyledButtonRender.UpdateAutoClickTimer(const AReset: Boolean);
+begin
+  if not Assigned(FAutoClickTimer) then
+  begin
+    FAutoClickTimer := TTimer.Create(nil);
+    FAutoClickTimer.OnTimer := AutoClickOnTimer;
+  end;
+  //Reset Start Time
+  if AReset then
+  begin
+    FStartAutoClick := Now;
+    FAutoClickPixels := 0;
+  end;
+  //Calculate Interval based on width of Control for pixel painting
+  FAutoClickTimer.Interval := FAutoClickDelay div FOwnerControl.Width;
+  //Enable Timer
+  FAutoClickTimer.Enabled := FAutoClick;
+end;
+
+procedure TStyledButtonRender.SetAutoClick(const AValue: Boolean);
+begin
+  if FAutoClick <> AValue then
+  begin
+    FAutoClick := AValue;
+    UpdateAutoClickTimer(AValue);
+  end;
+end;
+
+procedure TStyledButtonRender.SetAutoClickDelay(const AValue: Integer);
+begin
+  if FAutoClickDelay <> AValue then
+  begin
+    FAutoClickDelay := AValue;
+    UpdateAutoClickTimer(AValue <> 0);
+  end;
+end;
+
 function TStyledButtonRender.IsStoredStyleClass: Boolean;
 var
   LClass: TStyledButtonClass;
@@ -2303,117 +2422,37 @@ begin
   end;
 end;
 
-procedure TStyledButtonRender.DrawText(const ACanvas: TCanvas;
-  const AText: string; const AAlignment: TAlignment;
-  const ASpacing: Integer;
-  var ARect: TRect; AFlags: Cardinal);
-var
-  R: TRect;
-  OldBKMode: Integer;
-begin
-  //Drawing Caption
-  R := ARect;
-  Winapi.Windows.DrawText(ACanvas.Handle, PChar(AText), Length(AText),
-    R, AFlags or DT_CALCRECT);
-  case AAlignment of
-    taLeftJustify: OffsetRect(R, ASpacing, (ARect.Height - R.Height) div 2);
-    taRightJustify: OffsetRect(R, ARect.Width - R.Width - ASpacing, (ARect.Height - R.Height) div 2);
-  else
-    OffsetRect(R, (ARect.Width - R.Width) div 2, (ARect.Height - R.Height) div 2);
-  end;
-  OldBKMode := SetBkMode(ACanvas.Handle, Winapi.Windows.TRANSPARENT);
-  CanvasDrawText(ACanvas, R, AText, AFlags);
-  SetBkMode(ACanvas.Handle, OldBKMode);
-end;
-
 procedure TStyledButtonRender.DrawNotificationBadge(
   const ACanvas: TCanvas; const ASurfaceRect: TRect);
 var
-  LRect: TRect;
-  W, H, LBadgeChars, LBadgeBorderSize: Integer;
-  LBadgeValue: string;
   LScaleFactor: Single;
-  LFlags: Cardinal;
 begin
   if not FNotificationBadge.IsVisible then
     Exit;
 
   LScaleFactor := GetOwnerScaleFactor;
-  ACanvas.Pen.Style := psClear;
-  ACanvas.Brush.Color := FNotificationBadge.Color;
-  ACanvas.Font.Color := FNotificationBadge.FontColor;
-  ACanvas.Font.Style := [TFontStyle.fsBold];
-
-  //Calculate Badge Size
-  LFlags := DT_NOCLIP or DT_CENTER or DT_VCENTER or DT_CALCRECT;
-  LRect := ASurfaceRect;
-  LBadgeChars := Length(FNotificationBadge.BadgeContent);
-  if FNotificationBadge.CustomText = '' then
-    LBadgeValue := StringOfChar('9', LBadgeChars)
-  else
-    LBadgeValue := FNotificationBadge.CustomText;
-  Winapi.Windows.DrawText(ACanvas.Handle,
-    PChar(LBadgeValue), LBadgeChars, LRect, LFlags);
-  LBadgeValue := FNotificationBadge.BadgeContent;
-
-  //Add Border
-  LBadgeBorderSize := Round(3 * LScaleFactor);
-  InflateRect(LRect, Round(LBadgeBorderSize*2.2), LBadgeBorderSize);
-  if FNotificationBadge.Size = nbsSmallDot then
-  begin
-    //Reduce size of dot based on Font Size
-    H := Round(LRect.Height / 2);
-    W := H;
-  end
-  else
-  begin
-    H := LRect.Height;
-    W := Max(LRect.Width, H);
-  end;
-
-  //Calculate Badge Position
-  if FNotificationBadge.Position in [nbpTopLeft, nbpTopRight] then
-  begin
-    LRect.Top := ASurfaceRect.Top;
-    LRect.Bottom := LRect.Top + H;
-  end
-  else
-  begin
-    LRect.Bottom := ASurfaceRect.Bottom;
-    LRect.Top := LRect.Bottom - H;
-  end;
-  if FNotificationBadge.Position in [nbpTopRight, nbpBottomRight] then
-  begin
-    LRect.Right := ASurfaceRect.Right;
-    LRect.Left := ASurfaceRect.Right - W;
-  end
-  else
-  begin
-    LRect.Left := ASurfaceRect.Left;
-    LRect.Right := ASurfaceRect.Left + W;
-  end;
-  //Draw Badge
-  CanvasDrawshape(ACanvas, LRect, btRounded, 0, ALL_ROUNDED_CORNERS, False);
-
-  //Draw Badge Content
-  if FNotificationBadge.Size <> nbsSmallDot then
-    DrawText(ACanvas, LBadgeValue, taCenter, 0, LRect,
-      DT_NOCLIP or DT_CENTER or DT_VCENTER);
+  DrawButtonNotificationBadge(ACanvas, ASurfaceRect, LScaleFactor,
+    FNotificationBadge.BadgeContent,
+    FNotificationBadge.Size, FNotificationBadge.Position,
+    FNotificationBadge.Color,
+    FNotificationBadge.FontColor, FNotificationBadge.FontStyle);
 end;
 
 procedure TStyledButtonRender.DrawBackgroundAndBorder(
   const ACanvas: TCanvas;
-  const AStyleAttribute: TStyledButtonAttributes;
   const AEraseBackground: Boolean);
 var
   LDrawRect: TRect;
   LButtonOffset: Integer;
+  LStyleAttribute, LDrawAttribute: TStyledButtonAttributes;
+  LCorners: TRoundedCorners;
+  LDrawingAutoClick: Boolean;
 begin
+  LStyleAttribute := GetDrawingStyle(ACanvas, ButtonState);
+
   //Erase Background
   if AEraseBackground then
     EraseBackground(ACanvas);
-
-  LDrawRect := FOwnerControl.ClientRect;
 
   //Don't draw button border for Flat Buttons
   if FFlat and not FMouseInControl and not Focused then
@@ -2424,8 +2463,31 @@ begin
     ACanvas.Brush.Style := bsClear;
 
   //Draw Button Shape
+  LDrawRect := FOwnerControl.ClientRect;
   CanvasDrawshape(ACanvas, LDrawRect, FStyleDrawType,
     FStyleRadius*GetOwnerScaleFactor, FStyleRoundedCorners);
+
+  //Draw Progress Background in AutoClick mode
+  LDrawingAutoClick := (FAutoClick) and (FAutoClickPixels > 0);
+  if LDrawingAutoClick then
+  begin
+    LDrawRect := FOwnerControl.ClientRect;
+    LDrawRect.Width := FAutoClickPixels;
+    LCorners := FStyleRoundedCorners;
+    //Change Canvas State
+    //Use Different Color to Draw the progress BackGround, different from "hot" state
+    if FMouseInControl or Focused then
+      LDrawAttribute := GetDrawingStyle(ACanvas, bsmNormal)
+    else
+      LDrawAttribute := GetDrawingStyle(ACanvas, bsmHot);
+    ACanvas.Brush.Style := bsSolid;
+    ACanvas.Brush.Color := LDrawAttribute.ButtonColor;
+    //Draw progress Background
+    CanvasDrawshape(ACanvas, LDrawRect, FStyleDrawType,
+      FStyleRadius*GetOwnerScaleFactor, LCorners);
+    //Restore Canvas State
+    LStyleAttribute := GetDrawingStyle(ACanvas, ButtonState);
+  end;
 
   //Draw Bar and Triangle
   if FDropDownRect.Width > 0 then
@@ -2439,7 +2501,7 @@ begin
         ACanvas.Pen.Color);
       CanvasDrawTriangle(ACanvas, FDropDownRect,
         GetOwnerScaleFactor,
-        AStyleAttribute.FontColor);
+        LStyleAttribute.FontColor);
     end
     else
     begin
@@ -2448,7 +2510,7 @@ begin
       FDropDownRect.Right := FDropDownRect.Right - LButtonOffset;
       CanvasDrawTriangle(ACanvas, FDropDownRect,
         GetOwnerScaleFactor,
-        AStyleAttribute.FontColor);
+        LStyleAttribute.FontColor);
     end;
   end;
 end;
@@ -2680,7 +2742,7 @@ begin
     //WordWrap but not vertical centerer: fixed top
     LTextFlags := DT_NOCLIP or DT_WORDBREAK;
     LTextRect.Top := Round(28*GetOwnerScaleFactor);
-    DrawText(ACanvas, LCaption, taLeftJustify, 0, LTextRect, LTextFlags);
+    DrawButtonText(ACanvas, LCaption, taLeftJustify, 0, LTextRect, LTextFlags);
     if FCommandLinkHint <> '' then
     begin
       ACanvas.Font.Height := Round(-11*GetOwnerScaleFactor);
@@ -2695,11 +2757,11 @@ begin
       //WordWrap but not vertical centerer: fixed top
       LTextFlags := DT_NOCLIP or DT_WORDBREAK;
       OffsetRect(LTextRect, 0, Round(15*GetOwnerScaleFactor));
-      DrawText(ACanvas, FCommandLinkHint, taLeftJustify, 0, LTextRect, LTextFlags);
+      DrawButtonText(ACanvas, FCommandLinkHint, taLeftJustify, 0, LTextRect, LTextFlags);
     end;
   end
   else
-    DrawText(ACanvas, LCaption, FCaptionAlignment, FSpacing, LTextRect, LTextFlags);
+    DrawButtonText(ACanvas, LCaption, FCaptionAlignment, FSpacing, LTextRect, LTextFlags);
 end;
 
 procedure TStyledButtonRender.DrawButton(const ACanvas: TCanvas;
@@ -2710,7 +2772,6 @@ var
   LOldFontColor: TColor;
   LOldFontStyle: TFontStyles;
   LOldParentFont: boolean;
-  LStyleAttribute: TStyledButtonAttributes;
 begin
   if not (csDesigning in ComponentState) and
    (not FOwnerControl.Visible or (FUpdateCount > 0)) then
@@ -2722,9 +2783,7 @@ begin
   LOldFontStyle := Font.Style;
 
   try
-    LStyleAttribute := GetDrawingStyle(ACanvas);
-
-    DrawBackgroundAndBorder(ACanvas, LStyleAttribute, AEraseBackground);
+    DrawBackgroundAndBorder(ACanvas, AEraseBackground);
 
     LSurfaceRect := FOwnerControl.ClientRect;
     if FDropDownRect.Width <> 0 then
@@ -2761,10 +2820,11 @@ begin
     Result := bsmNormal;
 end;
 
-function TStyledButtonRender.GetDrawingStyle(const ACanvas: TCanvas): TStyledButtonAttributes;
+function TStyledButtonRender.GetDrawingStyle(const ACanvas: TCanvas;
+  const AButtonState: TStyledButtonState): TStyledButtonAttributes;
 begin
   //Getting drawing styles
-  Result := GetAttributes(ButtonState);
+  Result := GetAttributes(AButtonState);
   ACanvas.Pen.Style := Result.PenStyle;
   ACanvas.Pen.Width := Round(Result.BorderWidth{$IFDEF D10_3+}*FOwnerControl.ScaleFactor{$ENDIF});
   ACanvas.Pen.Color := Result.BorderColor;
@@ -2809,13 +2869,6 @@ begin
   begin
     FStyleDrawType := AValue;
     FCustomDrawType := True;
-    (* do not assign DrawType to any Style
-        FButtonStyleNormal.DrawType := FDrawType;
-        FButtonStylePressed.DrawType := FDrawType;
-        FButtonStyleSelected.DrawType := FDrawType;
-        FButtonStyleHot.DrawType := FDrawType;
-        FButtonStyleDisabled.DrawType := FDrawType;
-    *)
     Invalidate;
   end;
 end;
@@ -4315,6 +4368,16 @@ begin
   Result := FRender.AsVCLComponent;
 end;
 
+function TCustomStyledGraphicButton.GetAutoClick: Boolean;
+begin
+  Result := FRender.AutoClick;
+end;
+
+function TCustomStyledGraphicButton.GetAutoClickDelay: Integer;
+begin
+  Result := FRender.AutoClickDelay;
+end;
+
 function TCustomStyledGraphicButton.GetDisabledImages: TCustomImageList;
 begin
   Result := FRender.DisabledImages;
@@ -4477,6 +4540,16 @@ end;
 procedure TCustomStyledGraphicButton.SetAsVCLComponent(const AValue: Boolean);
 begin
   FRender.AsVCLComponent := AValue;
+end;
+
+procedure TCustomStyledGraphicButton.SetAutoClick(const AValue: Boolean);
+begin
+  FRender.AutoClick := AValue;
+end;
+
+procedure TCustomStyledGraphicButton.SetAutoClickDelay(const AValue: Integer);
+begin
+  FRender.AutoClickDelay := AValue;
 end;
 
 procedure TCustomStyledGraphicButton.SetButtonStyle(const AStyleFamily: TStyledButtonFamily;
@@ -4809,6 +4882,7 @@ end;
 
 procedure TCustomStyledGraphicButton.SetTag(const AValue: Integer);
 begin
+  inherited Tag := AValue;
   FRender.Tag := AValue;
 end;
 
@@ -5336,15 +5410,18 @@ procedure TCustomStyledButton.SetDefault(const AValue: Boolean);
 var
   Form: TCustomForm;
 begin
-  FRender.Default := AValue;
-  if HandleAllocated then
+  if FRender.Default <> AValue then
   begin
-    Form := GetParentForm(Self);
-    if Form <> nil then
-      Form.Perform(CM_FOCUSCHANGED, 0, LPARAM(Form.ActiveControl));
+    FRender.Default := AValue;
+    if HandleAllocated then
+    begin
+      Form := GetParentForm(Self);
+      if (Form <> nil) and (Form.ActiveControl <> nil) then
+        Form.Perform(CM_FOCUSCHANGED, 0, LPARAM(Form.ActiveControl));
+    end;
+    if (csLoading in ComponentState) then
+      FRender.Active := FRender.Default;
   end;
-  if (csLoading in ComponentState) then
-    FRender.Active := FRender.Default;
 end;
 
 function TCustomStyledButton.GetCancel: Boolean;
@@ -5354,7 +5431,8 @@ end;
 
 procedure TCustomStyledButton.SetCancel(const AValue: Boolean);
 begin
-  FRender.Cancel := AValue;
+  if FRender.Cancel <> AValue then
+    FRender.Cancel := AValue;
 end;
 
 function TCustomStyledButton.GetDisabledImageIndex: TImageIndex;
@@ -5466,6 +5544,16 @@ end;
 function TCustomStyledButton.GetAsVCLComponent: Boolean;
 begin
   Result := FRender.AsVCLComponent;
+end;
+
+function TCustomStyledButton.GetAutoClick: Boolean;
+begin
+  Result := FRender.AutoClick;
+end;
+
+function TCustomStyledButton.GetAutoClickDelay: Integer;
+begin
+  Result := FRender.AutoClickDelay;
 end;
 
 function TCustomStyledButton.GetDisabledImages: TCustomImageList;
@@ -5680,6 +5768,16 @@ end;
 procedure TCustomStyledButton.SetAsVCLComponent(const AValue: Boolean);
 begin
   FRender.AsVCLComponent := AValue;
+end;
+
+procedure TCustomStyledButton.SetAutoClick(const AValue: Boolean);
+begin
+  FRender.AutoClick := AValue;
+end;
+
+procedure TCustomStyledButton.SetAutoClickDelay(const AValue: Integer);
+begin
+  FRender.AutoClickDelay := AValue;
 end;
 
 procedure TCustomStyledButton.SetButtonStyle(const AStyleFamily: TStyledButtonFamily;
@@ -6026,6 +6124,7 @@ end;
 
 procedure TCustomStyledButton.SetTag(const AValue: Integer);
 begin
+  inherited Tag := AValue;
   FRender.Tag := AValue;
 end;
 

@@ -51,7 +51,7 @@ uses
   , Vcl.StandardButtonStyles
   , Vcl.BootstrapButtonStyles
   , Vcl.AngularButtonStyles
-  , Vcl.ColorButtonStyles, System.ImageList
+  , Vcl.ColorButtonStyles
   ;
 
 type

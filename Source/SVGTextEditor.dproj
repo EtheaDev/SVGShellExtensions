@@ -4,12 +4,11 @@
         <MainSource>SVGTextEditor.dpr</MainSource>
         <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-        <DCC_DependencyCheckOutputName>..\..\exe\InstantXMLEditor.exe</DCC_DependencyCheckOutputName>
         <ProjectVersion>20.1</ProjectVersion>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <ProjectName Condition="'$(ProjectName)'==''">SVGTextEditor</ProjectName>
@@ -30,12 +29,6 @@
     <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
         <Cfg_1>true</Cfg_1>
         <CfgParent>Base</CfgParent>
-        <Base>true</Base>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
-        <Cfg_1_Win32>true</Cfg_1_Win32>
-        <CfgParent>Cfg_1</CfgParent>
-        <Cfg_1>true</Cfg_1>
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
@@ -68,34 +61,30 @@
         <Icon_MainIcon>..\Icons\logo.ico</Icon_MainIcon>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Text Editor;FileVersion=3.2.1.0;InternalName=;LegalCopyright=Copyright © 2021-2024 - Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Text Editor;ProductVersion=3.2;Comments=</VerInfo_Keys>
-        <Custom_Styles>Glow|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glow.vsf;Sky|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Sky.vsf;Windows10|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10.vsf;&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf&quot;;&quot;Windows11 Modern Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Modern_Dark.vsf&quot;;&quot;Windows11 Modern Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Modern_Light.vsf&quot;;&quot;Flat UI Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\FlatUILight.vsf&quot;;&quot;Windows10 BlackPearl|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlackPearl.vsf&quot;;&quot;Windows10 Blue Whale|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlueWhale.vsf&quot;;&quot;Windows10 Blue Whale LE|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlueWhaleLE.vsf&quot;;&quot;Windows10 Clear Day|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10ClearDay.vsf&quot;;&quot;Windows10 Malibu|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Malibu.vsf&quot;</Custom_Styles>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Text Editor;FileVersion=3.2.2.0;InternalName=;LegalCopyright=Copyright © 2021-2024 - Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Text Editor;ProductVersion=3.2;Comments=</VerInfo_Keys>
+        <Custom_Styles>Glow|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glow.vsf;Sky|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Sky.vsf;Windows10|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10.vsf;&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf&quot;;&quot;Windows11 Impressive Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Impressive_Dark.vsf&quot;;&quot;Windows11 Impressive Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Impressive_Light.vsf&quot;;&quot;Windows11 Modern Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Modern_Dark.vsf&quot;;&quot;Windows11 Modern Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Modern_Light.vsf&quot;;&quot;Windows11 Polar Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Polar_Dark.vsf&quot;;&quot;Windows11 Polar Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Polar_Light.vsf&quot;;&quot;Flat UI Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\FlatUILight.vsf&quot;;&quot;Windows10 BlackPearl|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlackPearl.vsf&quot;;&quot;Windows10 Blue Whale|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlueWhale.vsf&quot;;&quot;Windows10 Clear Day|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10ClearDay.vsf&quot;;&quot;Windows10 Malibu|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Malibu.vsf&quot;</Custom_Styles>
         <DCC_DebugInformation>0</DCC_DebugInformation>
         <DCC_ImportedDataReferences>false</DCC_ImportedDataReferences>
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;..\Ext\StyledComponents\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <DCC_DcuOutput>..\Dcu\D10_4</DCC_DcuOutput>
+        <DCC_DcuOutput>..\Dcu\$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_DependencyCheckOutputName>..\..\exe\InstantXMLEditor.exe</DCC_DependencyCheckOutputName>
-        <DCC_Define>VCLSTYLEUTILS;$(DCC_Define)</DCC_Define>
         <VerInfo_MajorVer>3</VerInfo_MajorVer>
+        <DCC_Define>SKIA;$(DCC_Define)</DCC_Define>
         <VerInfo_MinorVer>2</VerInfo_MinorVer>
-        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_Release>2</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
-        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
-        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <BT_BuildType>Debug</BT_BuildType>
         <DCC_ExeOutput>..\Bin32</DCC_ExeOutput>
-        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+        <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
-        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <DCC_ExeOutput>..\Bin64</DCC_ExeOutput>
-        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+        <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
@@ -106,75 +95,45 @@
         <DCC_ObjPath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ObjPath)</DCC_ObjPath>
         <DCC_IncludePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_IncludePath)</DCC_IncludePath>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
-        <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <Debugger_RunParams>D:\ETHEA\CBLib7\images\svg\system-help.svg</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DebugInformation>true</DCC_DebugInformation>
-        <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
         <DCC_DebugDCUs>true</DCC_DebugDCUs>
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <Version>7.0</Version>
         <DCC_ResourcePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ResourcePath)</DCC_ResourcePath>
         <DCC_ObjPath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ObjPath)</DCC_ObjPath>
         <DCC_IncludePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_IncludePath)</DCC_IncludePath>
-        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+        <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
+        <DCC_Optimize>false</DCC_Optimize>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
-        <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_DebugInformation>2</DCC_DebugInformation>
-        <Debugger_RunParams>D:\ETHEA\CBLib7\images\svg\system-help.svg</Debugger_RunParams>
+        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
-        <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_DebugInformation>2</DCC_DebugInformation>
-        <DCC_IntegerOverflowCheck>false</DCC_IntegerOverflowCheck>
         <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
     </PropertyGroup>
     <ProjectExtensions>
         <Borland.Personality>Delphi.Personality.12</Borland.Personality>
         <Borland.ProjectType>VCLApplication</Borland.ProjectType>
         <BorlandProject>
             <Delphi.Personality>
-                <Parameters>
-                    <Parameters Name="UseLauncher">False</Parameters>
-                    <Parameters Name="LoadAllSymbols">True</Parameters>
-                    <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-                </Parameters>
-                <VersionInfo>
-                    <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-                    <VersionInfo Name="AutoIncBuild">False</VersionInfo>
-                    <VersionInfo Name="MajorVer">2</VersionInfo>
-                    <VersionInfo Name="MinorVer">11</VersionInfo>
-                    <VersionInfo Name="Release">0</VersionInfo>
-                    <VersionInfo Name="Build">0</VersionInfo>
-                    <VersionInfo Name="Debug">False</VersionInfo>
-                    <VersionInfo Name="PreRelease">False</VersionInfo>
-                    <VersionInfo Name="Special">False</VersionInfo>
-                    <VersionInfo Name="Private">False</VersionInfo>
-                    <VersionInfo Name="DLL">False</VersionInfo>
-                    <VersionInfo Name="Locale">1033</VersionInfo>
-                    <VersionInfo Name="CodePage">1252</VersionInfo>
-                </VersionInfo>
                 <Source>
                     <Source Name="MainSource">SVGTextEditor.dpr</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISFLib8_5290.bpl">Ethea InstantSolutions 8.5 Framework Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISRtl8_6290.bpl">Ethea InstantSolutions 8.6 Rtl Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISOpenOffice8_6290.bpl">Ethea InstantSolutions 8.6 LibreOffice/OpenOffice Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISVcl8_6290.bpl">Ethea InstantSolutions 8.6 Vcl Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISFLib8_6290.bpl">Ethea InstantSolutions 8.6 Framework Library</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
+                <WelcomePageFile Path="..\README.htm"/>
+                <WelcomePageFolder/>
             </Delphi.Personality>
             <Platforms>
                 <Platform value="Win32">True</Platform>
@@ -192,6 +151,9 @@
         </DCCReference>
         <DCCReference Include="dlgReplaceText.pas">
             <Form>TextReplaceDialog</Form>
+        </DCCReference>
+        <DCCReference Include="ChildForm.pas">
+            <Form>MDIChildForm</Form>
         </DCCReference>
         <DCCReference Include="EditorMainForm.pas">
             <Form>frmMain</Form>
@@ -224,6 +186,12 @@
             <Form>UserSettingsForm</Form>
         </DCCReference>
         <DCCReference Include="uRegistry.pas"/>
+        <DCCReference Include="..\Ext\StyledComponents\source\Vcl.StyledTaskDialogFormUnit.pas">
+            <Form>StyledTaskDialogForm</Form>
+        </DCCReference>
+        <DCCReference Include="..\Ext\StyledComponents\source\Skia.Vcl.StyledTaskDialogAnimatedUnit.pas">
+            <Form>StyledTaskDialogAnimated</Form>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

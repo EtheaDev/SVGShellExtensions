@@ -1,6 +1,6 @@
 ﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.2.1 - 28 May 2024**
+**Latest Version 3.2.2 - 27 Aug 2024**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
 
@@ -50,7 +50,7 @@ As requested by many users of popular shell alternative, the new version support
 
 ### Manual Build and Installation (for Delphi developers) ###
 
-If you have Delphi 11 or Delphi 12, you can manually build the project:
+If you have Delphi 12, you can manually build the project:
 
 ***Warning: To build the DLL you need also other open-source projects***
 
@@ -73,6 +73,11 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+27 Aug 2024: ver. 3.2.2
+- Use of TFormTabsBar component (Delphi 12) for paging
+- Use of Styledmessage dialogs
+- Updated Setup to show errors registering dlls
 
 28 May 2024: ver. 3.2.1
 - Aligned to latest Image32 Library
@@ -233,4 +238,3 @@ Related links: [embarcadero.com][10] - [learndelphi.org][11]
 [11]: https://learndelphi.org/
 
 [12]: https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor
-

@@ -37,7 +37,8 @@ implementation
 
 uses
   uSVGThumbnailHandler,
-  uSVGPreviewHandler;
+  uSVGPreviewHandler,
+  Winapi.ShlObj;
 
 initialization
   {$IFDEF WIN64}
@@ -55,6 +56,9 @@ initialization
   TSVGThumbnailProvider.RegisterThumbnailProvider(MySVG_ThumbnailProviderGUID,
     'SVG.ThumbnailProvider', 'Delphi SVG Thumbnail Provider 32bit');
   {$ENDIF}
+
+  //Invalidate the shell's cache for Preview Thumbnails
+  SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nil, nil);
 
 end.
 

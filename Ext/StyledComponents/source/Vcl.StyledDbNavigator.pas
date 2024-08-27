@@ -1812,6 +1812,7 @@ begin
       FDbNavigator._DefaultCursor,
       FDbNavigator._UseCustomDrawType);
     StyleRadius := FDbNavigator.StyleRadius;
+    StyleDrawType := FDbNavigator.StyleDrawType;
     ControlStyle := [csCaptureMouse, csDoubleClicks, csSetCaption, csOpaque];
   end
   else

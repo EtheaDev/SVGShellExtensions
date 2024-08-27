@@ -4,10 +4,13 @@
 // use storage (eg to compile the experimental 'CtrlDemo' in Examples).
 {$DEFINE NO_STORAGE}   
 
-// Image downsampling occurs when images are reduced in size, and the default downsampling  
+// default rotation direction is clockwise with positive angles
+{.$DEFINE CLOCKWISE_ROTATION_WITH_NEGATIVE_ANGLES}
+
+// Image downsampling occurs when images are reduced in size, and the default downsampling
 // function is 'BoxDownSampling'. When downsampling, this function generally produces much
 // clearer images than general purpose resamplers (which are much better at upsampling,
-// and doing other affine transformations). However, if for some reason you do wish to use 
+// and doing other affine transformations). However, if for some reason you do wish to use
 // a general purpose resampler while downsampling, then disable this define.
 {$DEFINE USE_DOWNSAMPLER_AUTOMATICALLY}
 
@@ -38,6 +41,7 @@
   {$DEFINE RECORD_METHODS}
   {$DEFINE PBYTE}
   {$DEFINE NEWPOSFUNC}
+  {$DEFINE SUPPORTS_POINTERMATH}
   {.$DEFINE UITYPES}
   {$DEFINE NESTED_TYPES}
   {$IFNDEF DEBUG}
@@ -50,10 +54,10 @@
 {$ELSE}
   {$IF COMPILERVERSION < 15}
     Your version of Delphi is not supported (Image32 requires Delphi version 7 or above)
-  {$IFEND}  
-  {$IFDEF CPUX86}
-      {$DEFINE ASM_X86}                         //caution: do not define in FPC
-  {$ENDIF}  
+  {$IFEND}
+  {$IF COMPILERVERSION < 23}
+    {$DEFINE CPUX86}                            // CPUX86 was added in Delphi XE2 (added Win64 compiler)
+  {$IFEND}
   {$IF COMPILERVERSION >= 17}                   //Delphi 2005
     {$IFNDEF DEBUG}
       {$DEFINE INLINE}                            //added inlining
@@ -74,6 +78,7 @@
           {$DEFINE CHARINSET}                     //added CharInSet function
           {$DEFINE EXIT_PARAM}                    //added Exit(value)
           {$DEFINE ALPHAFORMAT}                   //added TBitmap.AlphaFormat property
+          {$DEFINE SUPPORTS_POINTERMATH}          //added {$POINTERMATH ON/OFF}
           {$IF COMPILERVERSION >= 21}           //Delphi 2010
             {$DEFINE GESTURES}                    //added screen gesture support
             {$IF COMPILERVERSION >= 23}         //DelphiXE2
@@ -98,3 +103,11 @@
     {$IFEND}
   {$IFEND}
 {$ENDIF}
+
+{$IFOPT Q+}
+  {$DEFINE OVERFLOWCHECKS_ENABLED}
+{$ENDIF}
+{$IFOPT R+}
+  {$DEFINE RANGECHECKS_ENABLED}
+{$ENDIF}
+

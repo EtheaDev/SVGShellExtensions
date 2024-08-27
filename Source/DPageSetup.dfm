@@ -11,12 +11,10 @@ object PageSetupDlg: TPageSetupDlg
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = True
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 13
   object PageControl: TPageControl
     Left = 0
@@ -310,7 +308,6 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 0
           WordWrap = False
-          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -329,7 +326,6 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 1
           WordWrap = False
-          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -348,7 +344,6 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 2
           WordWrap = False
-          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -470,7 +465,6 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 0
           WordWrap = False
-          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -489,7 +483,6 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 1
           WordWrap = False
-          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -508,7 +501,6 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 2
           WordWrap = False
-          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end

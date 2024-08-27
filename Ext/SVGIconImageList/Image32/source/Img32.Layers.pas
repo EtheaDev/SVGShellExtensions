@@ -2,8 +2,8 @@ unit Img32.Layers;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.4                                                             *
-* Date      :  16 April 2024                                                   *
+* Version   :  4.5                                                             *
+* Date      :  26 July 2024                                                    *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2019-2024                                         *
 * Purpose   :  Layered images support                                          *
@@ -443,7 +443,7 @@ function UpdateRotatingButtonGroup(rotateButton: TLayer32): double;
 
 var
   DefaultButtonSize: integer;
-  dashes: TArrayOfInteger;
+  dashes: TArrayOfDouble;
 
 const
   crDefault   =   0;
@@ -1189,6 +1189,11 @@ begin
     img := fMergeImage;
   end;
 
+  {$IF not defined(FPC) and (CompilerVersion <= 26.0)}
+  // Delphi 7-XE5 have a problem with "continue" and the
+  // code analysis, marking "childImg" as "not initialized"
+  childImg := nil;
+  {$IFEND}
   //merge redraw all children
   for i := 0 to ChildCount -1 do
   begin
@@ -1254,7 +1259,7 @@ begin
           TranslateRect(rec2,
             Floor(childLayer.fOuterMargin -childLayer.Left -fOuterMargin),
             Floor(childLayer.fOuterMargin -childLayer.Top -fOuterMargin));
-          childImg2.CopyBlend(fClipImage, rec, rec2, BlendMask);
+          childImg2.CopyBlend(fClipImage, rec, rec2, BlendMaskLine);
         end;
       end else
         childImg2 := childImg;
@@ -1813,10 +1818,10 @@ begin
   begin
     Image.BeginUpdate;
     try
-      Image.Assign(MasterImage);
+      Image.AssignSettings(MasterImage);
       //apply any prior transformations
       Image.Resampler := rWeightedBilinear;
-      AffineTransformImage(Image, fMatrix, true); // assumes no skew
+      AffineTransformImage(MasterImage, Image, fMatrix, true); // assumes no skew
       //cropping is very important with rotation
       SymmetricCropTransparent(Image);
       w := Ceil(newBounds.Right) - Floor(newBounds.Left);
@@ -1861,12 +1866,12 @@ begin
 
   Image.BlockNotify;
   try
-    Image.Assign(MasterImage);
+    Image.AssignSettings(MasterImage);
     mat := fMatrix;
     pt := PointD(PivotPt.X - fLeft, PivotPt.Y - fTop);
     MatrixRotate(mat, pt, Angle);
     Image.Resampler := rWeightedBilinear;
-    AffineTransformImage(Image, mat, true); // assumes no skew
+    AffineTransformImage(MasterImage, Image, mat, true); // assumes no skew
   finally
     Image.UnblockNotify;
   end;
@@ -1900,8 +1905,9 @@ var
   rec2: TRectD;
 begin
   //startingZeroOffset: default = 0 (ie 3 o'clock)
-  if not ClockwiseRotationIsAnglePositive then
+{$IFDEF CLOCKWISE_ROTATION_WITH_NEGATIVE_ANGLES}
     startingZeroOffset := -startingZeroOffset;
+{$ENDIF}
   fZeroOffset := startingZeroOffset;
 
   if buttonSize <= 0 then buttonSize := DefaultButtonSize;
@@ -2371,7 +2377,7 @@ var
   mp: TPointD;
 begin
   mp := MidPoint(rec);
-  SetLength(Result, 4);
+  NewPointDArray(Result, 4, True);
   Result[0] := PointD(mp.X, rec.Top);
   Result[1] := PointD(rec.Right, mp.Y);
   Result[2] := PointD(mp.X, rec.Bottom);
@@ -2456,7 +2462,7 @@ begin
   group := TSizingGroupLayer32(movedButton.Parent);
   with group do
   begin
-    SetLength(path, ChildCount);
+    NewPointDArray(path, ChildCount, True);
     for i := 0 to ChildCount -1 do
       path[i] := Child[i].MidPoint;
   end;

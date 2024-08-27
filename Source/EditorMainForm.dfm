@@ -4,7 +4,7 @@ object frmMain: TfrmMain
   Caption = 'SVG Text Editor'
   ClientHeight = 588
   ClientWidth = 899
-  Color = clWindow
+  Color = clAppWorkSpace
   Constraints.MinHeight = 600
   Constraints.MinWidth = 800
   Ctl3D = False
@@ -13,6 +13,7 @@ object frmMain: TfrmMain
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  FormStyle = fsMDIForm
   KeyPreview = True
   Position = poScreenCenter
   ShowHint = True
@@ -32,61 +33,28 @@ object frmMain: TfrmMain
   TextHeight = 15
   object RightSplitter: TSplitter
     Left = 643
-    Top = 38
+    Top = 69
     Width = 6
-    Height = 531
+    Height = 500
     Align = alRight
     AutoSnap = False
     MinSize = 240
-    ExplicitTop = 36
-    ExplicitHeight = 533
+    ExplicitTop = 38
+    ExplicitHeight = 531
   end
   object ClientPanel: TPanel
-    Left = 44
+    AlignWithMargins = True
+    Left = 42
     Top = 38
-    Width = 599
-    Height = 531
-    Align = alClient
+    Width = 857
+    Height = 31
+    Margins.Left = 42
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
+    Align = alTop
+    ParentColor = True
     TabOrder = 4
-    object PageControl: TPageControl
-      Left = 1
-      Top = 1
-      Width = 597
-      Height = 529
-      Align = alClient
-      Images = VirtualImageList
-      TabOrder = 0
-      OnChange = PageControlChange
-      OnMouseEnter = PageControlMouseEnter
-      OnMouseLeave = PageControlMouseLeave
-      OnMouseMove = PageControlMouseMove
-      ExplicitLeft = 2
-      ExplicitTop = 3
-    end
-    object PanelCloseButton: TPanel
-      Left = 122
-      Top = 16
-      Width = 22
-      Height = 22
-      Cursor = crHandPoint
-      BevelOuter = bvNone
-      ParentColor = True
-      TabOrder = 1
-      Visible = False
-      StyleElements = [seFont, seBorder]
-      object SVGIconImageCloseButton: TSVGIconImage
-        Left = 0
-        Top = 0
-        Width = 22
-        Height = 22
-        AutoSize = False
-        ImageList = VirtualImageList20
-        ImageIndex = 0
-        ImageName = 'close-circle-outline'
-        Align = alClient
-        OnClick = SVGIconImageCloseButtonClick
-      end
-    end
   end
   object StatusBar: TStatusBar
     Left = 0
@@ -118,30 +86,32 @@ object frmMain: TfrmMain
   end
   object ImagePanel: TPanel
     Left = 649
-    Top = 38
+    Top = 69
     Width = 250
-    Height = 531
+    Height = 500
     Align = alRight
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
     StyleElements = []
+    ExplicitTop = 105
+    ExplicitHeight = 464
     object StatusSplitter: TSplitter
       Left = 0
-      Top = 493
+      Top = 462
       Width = 250
       Height = 4
       Cursor = crVSplit
       Align = alBottom
       AutoSnap = False
-      ExplicitTop = 495
+      ExplicitTop = 493
     end
     object SVGIconImage: TSVGIconImage
       Left = 0
       Top = 172
       Width = 250
-      Height = 321
+      Height = 290
       AutoSize = False
       Align = alClient
       OnMouseMove = SVGIconImageMouseMove
@@ -241,12 +211,13 @@ object frmMain: TfrmMain
     end
     object StatusPanel: TPanel
       Left = 0
-      Top = 497
+      Top = 466
       Width = 250
       Height = 34
       Align = alBottom
       ParentBackground = False
       TabOrder = 2
+      ExplicitTop = 430
       object StatusImage: TSVGIconImage
         Left = 1
         Top = 1
@@ -273,12 +244,13 @@ object frmMain: TfrmMain
   object SV: TSplitView
     Left = 0
     Top = 36
-    Width = 160
+    Width = 44
     Height = 533
     CloseStyle = svcCompact
     Color = clHighlight
     CompactWidth = 44
     DisplayMode = svmOverlay
+    Opened = False
     OpenedWidth = 160
     ParentDoubleBuffered = True
     Placement = svpLeft
@@ -290,7 +262,7 @@ object frmMain: TfrmMain
     object catMenuItems: TStyledCategoryButtons
       Left = 0
       Top = 0
-      Width = 160
+      Width = 44
       Height = 533
       Align = alClient
       BackgroundGradientDirection = gdVertical
@@ -449,17 +421,17 @@ object frmMain: TfrmMain
         Top = 0
         Action = actnPrinterSetup
       end
-      object ToolButton9: TStyledToolButton
+      object SepToolButton: TStyledToolButton
         Left = 128
         Top = 0
         Style = tbsSeparator
       end
-      object AbouTStyledToolButton: TStyledToolButton
+      object AboutToolButton: TStyledToolButton
         Left = 134
         Top = 0
         Action = acAbout
       end
-      object QuiTStyledToolButton: TStyledToolButton
+      object QuitToolButton: TStyledToolButton
         Left = 166
         Top = 0
         Action = acQuit
@@ -522,6 +494,7 @@ object frmMain: TfrmMain
       ImageName = 'Cut'
       ShortCut = 16472
       OnExecute = acEditCutExecute
+      OnUpdate = actionForFileUpdate
     end
     object acSearch: TAction
       Category = 'Edit'
@@ -778,7 +751,7 @@ object frmMain: TfrmMain
     object SaveMenuItem: TMenuItem
       Action = acSave
     end
-    object CloseAll1: TMenuItem
+    object CloseAllMenuItem: TMenuItem
       Action = acCloseAll
     end
     object Sep1MenuItem: TMenuItem
@@ -1093,6 +1066,16 @@ object frmMain: TfrmMain
         CollectionIndex = 48
         CollectionName = 'close-circle-outline'
         Name = 'close-circle-outline'
+      end
+      item
+        CollectionIndex = 36
+        CollectionName = 'svg-logo'
+        Name = 'svg-logo'
+      end
+      item
+        CollectionIndex = 37
+        CollectionName = 'svg-logo-gray'
+        Name = 'svg-logo-gray'
       end>
     ImageCollection = dmResources.SVGIconImageCollection
     Width = 20

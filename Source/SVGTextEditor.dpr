@@ -3,7 +3,7 @@
 {       SVG Text Editor: Shell extensions for SVG files                        }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2022 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -33,9 +33,12 @@ program SVGTextEditor;
 
 uses
   Vcl.Forms,
+  Vcl.Themes,
+  Vcl.Styles,
   System.SysUtils,
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
   dlgReplaceText in 'dlgReplaceText.pas' {TextReplaceDialog},
+  ChildForm in 'ChildForm.pas' {MDIChildForm},
   EditorMainForm in 'EditorMainForm.pas' {frmMain},
   DResources in 'DResources.pas' {dmResources: TDataModule},
   DPageSetup in 'DPageSetup.pas' {PageSetupDlg},
@@ -44,8 +47,6 @@ uses
   dlgConfirmReplace in 'dlgConfirmReplace.pas' {ConfirmReplaceDialog},
   uAbout in 'uAbout.pas' {FrmAbout},
   uMisc in 'uMisc.pas',
-  Vcl.Themes,
-  Vcl.Styles,
   SynEditOptionsDialog in 'SynEditOptionsDialog.pas' {fmEditorOptionsDialog},
   uSettings in 'uSettings.pas',
   SettingsForm in 'SettingsForm.pas' {UserSettingsForm},
