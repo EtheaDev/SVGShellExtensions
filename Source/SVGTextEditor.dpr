@@ -1,6 +1,6 @@
 {******************************************************************************}
 {                                                                              }
-{       SVG Text Editor: Shell extensions for SVG files                        }
+{       SVG Text Editor: Advanced Editor for SVG files                         }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
 {       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
@@ -22,12 +22,6 @@
 {  See the License for the specific language governing permissions and         }
 {  limitations under the License.                                              }
 {                                                                              }
-{  The Original Code is:                                                       }
-{  Delphi Preview Handler  https://github.com/RRUZ/delphi-preview-handler      }
-{                                                                              }
-{  The Initial Developer of the Original Code is Rodrigo Ruz V.                }
-{  Portions created by Rodrigo Ruz V. are Copyright 2011-2021 Rodrigo Ruz V.   }
-{  All Rights Reserved.                                                        }
 {******************************************************************************}
 program SVGTextEditor;
 

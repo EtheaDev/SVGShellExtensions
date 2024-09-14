@@ -724,7 +724,7 @@ procedure TStyledTaskDialogForm.UpdateButtonsSize;
 
   procedure UpdateButtonSize(const AButton: TStyledButton);
   begin
-    AButton.Width := FButtonsWidth;
+    AButton.Width := Round(FButtonsWidth * ScaleFactor);
   end;
 
 begin

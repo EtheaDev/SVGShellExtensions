@@ -1175,6 +1175,7 @@ begin
   RemoveEditingFile(LEditingFile);
   //Reset CurrentChildForm pointer
   CurrentChildForm := nil;
+  AssignSVGToImage;
   Action := caFree;
 end;
 
@@ -1826,9 +1827,9 @@ procedure TfrmMain.AdjustCompactWidth;
 begin
   //Change size of compact because Scrollbars appears
   if (Height / ScaleFactor) > 900 then
-    SV.CompactWidth := Round(44 * ScaleFactor)
+    SV.CompactWidth := Round(38 * ScaleFactor)
   else
-    SV.CompactWidth := Round(66 * ScaleFactor);
+    SV.CompactWidth := Round(58 * ScaleFactor);
   if (CurrentEditFile <> nil) and (ImagePanel.Width > CurrentEditFile.ChildForm.Width) then
     ImagePanel.Width := width div 3;
 end;

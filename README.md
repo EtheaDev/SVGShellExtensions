@@ -1,6 +1,6 @@
 ﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.2.2 - 27 Aug 2024**
+**Latest Version 3.2.3 - 14 Sep 2024**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
 
@@ -73,6 +73,10 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+14 Sep 2024: ver. 3.2.3
+- Built with Delphi 12.2
+- Update Image32 Engine to fix rendering of some SVG Icons
 
 27 Aug 2024: ver. 3.2.2
 - Use of TFormTabsBar component (Delphi 12) for paging

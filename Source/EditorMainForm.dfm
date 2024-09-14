@@ -95,8 +95,6 @@ object frmMain: TfrmMain
     ParentBackground = False
     TabOrder = 0
     StyleElements = []
-    ExplicitTop = 105
-    ExplicitHeight = 464
     object StatusSplitter: TSplitter
       Left = 0
       Top = 462
@@ -217,7 +215,6 @@ object frmMain: TfrmMain
       Align = alBottom
       ParentBackground = False
       TabOrder = 2
-      ExplicitTop = 430
       object StatusImage: TSVGIconImage
         Left = 1
         Top = 1
