@@ -3,7 +3,7 @@
 {  StyledTaskDialogStd: an example of Task Dialog Form                         }
 {  using an ImageList and a Image component                                    }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -123,8 +123,5 @@ begin
   AImage.Picture.Bitmap.Transparent := True;
   ImageList.GetBitmap(AImageIndex, AImage.Picture.Bitmap);
 end;
-
-initialization
-  RegisterTaskDialogFormClass(TStyledTaskDialogStd);
 
 end.

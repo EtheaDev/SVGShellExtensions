@@ -2,7 +2,7 @@
 {                                                                              }
 {  StyledButton Editor: Component editor for Styled Button                     }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -205,6 +205,8 @@ begin
 
       Result := ShowModal = mrOk;
       SavedBounds := BoundsRect;
+      if Result then
+        AButtonRender.OwnerControl.Invalidate;
     finally
       Free;
     end;
@@ -393,7 +395,7 @@ var
 begin
   TabControl.OnChange := nil;
   try
-    Caption := Format(Caption, [StyledButtonsVersion]);
+    Caption := Format(Caption, [StyledComponentsVersion]);
     for I := Low(TStyledButtonDrawType) to High(TStyledButtonDrawType) do
     begin
       LDrawName := GetEnumName(TypeInfo(TStyledButtonDrawType), Ord(I));

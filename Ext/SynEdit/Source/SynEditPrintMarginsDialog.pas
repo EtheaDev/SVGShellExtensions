@@ -25,13 +25,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditPrintMarginsDialog.pas,v 1.5.2.1 2004/08/31 12:55:18 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
 
@@ -41,18 +34,13 @@ CONTENTS:
   a picture that can help with understanding the different values.
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITPRINTMARGINSDIALOG}
 unit SynEditPrintMarginsDialog;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  {$IFDEF SYN_COMPILER_17_UP}
-  UITypes,
-  {$ENDIF}
   Windows,
   Graphics,
   Forms,
@@ -72,18 +60,18 @@ type
     OKBtn: TButton;
     CancelBtn: TButton;
     Image1: TImage;
-    LabelLeft: TLabel;
-    LabelRight: TLabel;
-    LabelTop: TLabel;
-    LabelBottom: TLabel;
-    LabelUnits: TLabel;
-    LabelHeader: TLabel;
-    LabelFooter: TLabel;
-    LabelInternalMargin: TLabel;
-    LabelLeftIndent: TLabel;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
     CBMirrorMargins: TCheckBox;
-    LabelRightIndent: TLabel;
-    LabelGutter: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
     EditLeft: TEdit;
     EditRight: TEdit;
     EditTop: TEdit;
@@ -111,6 +99,9 @@ type
 implementation
 
 {$R *.dfm}
+
+uses
+  UITypes;
 
 { TSynEditPrintMarginsDlg }
 
@@ -186,3 +177,4 @@ begin
 end;
 
 end.
+

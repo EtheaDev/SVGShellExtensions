@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
 The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
@@ -30,19 +30,12 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynHighlighterSQL.pas,v 1.39.2.14 2008/09/14 16:25:03 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 {
 @abstract(SQL highlighter for SynEdit with support for different dialects.)
 @author(Michael Hieke)
 @created(2000-04-21)
-@lastmod(2000-11-16)
+@lastmod(2022-02-11)
 The SynHighlighterSQL implements a highlighter for SQL for the SynEdit projects.
 Different SQL dialects can be selected via the Dialect property.
 }
@@ -53,22 +46,14 @@ unit SynHighlighterSQL;
 
 interface
 
-{$IFDEF SYN_COMPILER_12_UP}
-  {$DEFINE USE_TABLE_DICTIONARY}
-{$ENDIF}
-
 uses
-  Graphics,
-  Registry,
+  System.SysUtils,
+  System.Classes,
+  System.Generics.Defaults,
+  System.Generics.Collections,
+  Vcl.Graphics,
   SynEditTypes,
-  SynEditHighlighter,
-  SynHighlighterHashEntries,
-  SynUnicode,
-  {$IFDEF USE_TABLE_DICTIONARY}
-  Generics.Collections,
-  {$ENDIF}
-  SysUtils,
-  Classes;
+  SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkDatatype, tkDefaultPackage, tkException,
@@ -84,41 +69,38 @@ type
 type
   TSynSQLSyn = class(TSynCustomHighlighter)
   private
-    FRange: TRangeState;
-    FTokenID: TtkTokenKind;
-    FKeywords: TSynHashEntryList;
-    FProcNames: TUnicodeStrings;
-    FTableNames: TUnicodeStrings;
-    {$IFDEF USE_TABLE_DICTIONARY}
-    FTableDict: TDictionary<string, Boolean>;
-    {$ENDIF}
-    FFunctionNames: TUniCodeStrings;
-    FDialect: TSQLDialect;
-    FCommentAttri: TSynHighlighterAttributes;
-    FConditionalCommentAttri: TSynHighlighterAttributes;
-    FConsoleOutputAttri: TSynHighlighterAttributes;
-    FDataTypeAttri: TSynHighlighterAttributes;
-    FDefaultPackageAttri: TSynHighlighterAttributes;
-    FDelimitedIdentifierAttri: TSynHighlighterAttributes;
-    FExceptionAttri: TSynHighlighterAttributes;
-    FFunctionAttri: TSynHighlighterAttributes;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FKeyAttri: TSynHighlighterAttributes;
-    FNumberAttri: TSynHighlighterAttributes;
-    FPLSQLAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FSQLPlusAttri: TSynHighlighterAttributes;
-    FStringAttri: TSynHighlighterAttributes;
-    FSymbolAttri: TSynHighlighterAttributes;
-    FTableNameAttri: TSynHighlighterAttributes;
-    FProcNameAttri: TSynHighlighterAttributes;
-    FVariableAttri: TSynHighlighterAttributes;
-    function HashKey(Str: PWideChar): Integer;
-    function IdentKind(MayBe: PWideChar): TtkTokenKind;
-    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
+    fRange: TRangeState;
+    fTokenID: TtkTokenKind;
+    FKeywords: TDictionary<string, TtkTokenKind>;
+    FProcNames: TStrings;
+    fTableNames: TStrings;
+    fFunctionNames: TStrings;
+    fDialect: TSQLDialect;
+    fCommentAttri: TSynHighlighterAttributes;
+    fConditionalCommentAttri: TSynHighlighterAttributes;
+    fConsoleOutputAttri: TSynHighlighterAttributes;
+    fDataTypeAttri: TSynHighlighterAttributes;
+    fDefaultPackageAttri: TSynHighlighterAttributes;
+    fDelimitedIdentifierAttri: TSynHighlighterAttributes;
+    fExceptionAttri: TSynHighlighterAttributes;
+    fFunctionAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fPLSQLAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fSQLPlusAttri: TSynHighlighterAttributes;
+    fStringAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
+    fTableNameAttri: TSynHighlighterAttributes;
+    fProcNameAttri: TSynHighlighterAttributes;
+    fVariableAttri: TSynHighlighterAttributes;
+
+    function IdentKind: TtkTokenKind;
+    procedure DoAddKeyword(AKeyword: string; AKind: Integer);
     procedure SetDialect(Value: TSQLDialect);
-    procedure SetTableNames(const Value: TUnicodeStrings);
-    procedure SetFunctionNames(const Value: TUnicodeStrings);
+    procedure SetTableNames(const Value: TStrings);
+    procedure SetFunctionNames(const Value: TStrings);
     procedure PutFunctionNamesInKeywordList;
     procedure FunctionNamesChanged(Sender: TObject);
     procedure ProcNamesChanged(Sender: TObject);
@@ -150,13 +132,13 @@ type
     procedure VariableProc;
     procedure UnknownProc;
     procedure AnsiCProc;
-    procedure SetProcNames(const Value: TUnicodeStrings);
+    procedure SetProcNames(const Value: TStrings);
   protected
-    function GetSampleSource: UnicodeString; override;
+    function GetSampleSource: string; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -164,69 +146,72 @@ type
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
-    function GetKeyWords(TokenKind: Integer): UnicodeString; override;
+    function GetKeyWords(TokenKind: Integer): string; override;
     function GetRange: Pointer; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
-    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
+    function IsKeyword(const AKeyword: string): Boolean; override;
     procedure Next; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
   published
-    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
-      write FCommentAttri;
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
+      write fCommentAttri;
     property ConditionalCommentAttri: TSynHighlighterAttributes
-      read FConditionalCommentAttri write FConditionalCommentAttri;
+      read fConditionalCommentAttri write fConditionalCommentAttri;
     property ConsoleOutputAttri: TSynHighlighterAttributes
       read FConsoleOutputAttri write FConsoleOutputAttri;
-    property DataTypeAttri: TSynHighlighterAttributes read FDataTypeAttri
-      write FDataTypeAttri;
+    property DataTypeAttri: TSynHighlighterAttributes read fDataTypeAttri
+      write fDataTypeAttri;
     property DefaultPackageAttri: TSynHighlighterAttributes
-      read FDefaultPackageAttri write FDefaultPackageAttri;
+      read fDefaultPackageAttri write fDefaultPackageAttri;
     property DelimitedIdentifierAttri: TSynHighlighterAttributes
-      read FDelimitedIdentifierAttri write FDelimitedIdentifierAttri;
-    property ExceptionAttri: TSynHighlighterAttributes read FExceptionAttri
-      write FExceptionAttri;
-    property FunctionAttri: TSynHighlighterAttributes read FFunctionAttri
-      write FFunctionAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
-      write FIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
-      write FNumberAttri;
-    property PLSQLAttri: TSynHighlighterAttributes read FPLSQLAttri
-      write FPLSQLAttri;
-    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
-      write FSpaceAttri;
-    property SQLPlusAttri: TSynHighlighterAttributes read FSQLPlusAttri
-      write FSQLPlusAttri;
-    property StringAttri: TSynHighlighterAttributes read FStringAttri
-      write FStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
-      write FSymbolAttri;
+      read fDelimitedIdentifierAttri write fDelimitedIdentifierAttri;
+    property ExceptionAttri: TSynHighlighterAttributes read fExceptionAttri
+      write fExceptionAttri;
+    property FunctionAttri: TSynHighlighterAttributes read fFunctionAttri
+      write fFunctionAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
+      write fIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
+      write fNumberAttri;
+    property PLSQLAttri: TSynHighlighterAttributes read fPLSQLAttri
+      write fPLSQLAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
+      write fSpaceAttri;
+    property SQLPlusAttri: TSynHighlighterAttributes read fSQLPlusAttri
+      write fSQLPlusAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri
+      write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
+      write fSymbolAttri;
     property ProcNameAttri: TSynHighlighterAttributes read FProcNameAttri
       write FProcNameAttri;
-    property TableNameAttri: TSynHighlighterAttributes read FTableNameAttri
-      write FTableNameAttri;
-    property ProcNames: TUnicodeStrings read FProcNames write SetProcNames;
-    property TableNames: TUnicodeStrings read FTableNames write SetTableNames;
-    property FunctionNames: TUnicodeStrings read FFunctionNames write SetFunctionNames;
-    property VariableAttri: TSynHighlighterAttributes read FVariableAttri
-      write FVariableAttri;
-    property SQLDialect: TSQLDialect read FDialect write SetDialect
+    property TableNameAttri: TSynHighlighterAttributes read fTableNameAttri
+      write fTableNameAttri;
+    property ProcNames: TStrings read FProcNames write SetProcNames;
+    property TableNames: TStrings read fTableNames write SetTableNames;
+    property FunctionNames: TStrings read fFunctionNames write SetFunctionNames;
+    property VariableAttri: TSynHighlighterAttributes read fVariableAttri
+      write fVariableAttri;
+    property SQLDialect: TSQLDialect read fDialect write SetDialect
       default sqlStandard;
   end;
 
 implementation
 
 uses
+  Winapi.Windows,
+  System.Character,
+  SynEditMiscProcs,
   SynEditStrConst;
 
 const
 //---"Standard" (ANSI SQL keywords (Version 1, 2 and 3) (www.sql.org)-----------
-  StandardKW: UnicodeString =
+  StandardKW: string =
     'absolute,action,active,actor,add,after,alias,all,allocate,alter,' +
     'and,any,are,as,asc,ascending,assertion,async,at,attributes,auto,' +
     'base_name,before,begin,between,bit,bit_length,boolean,both,breadth,by,' +
@@ -263,7 +248,7 @@ const
     'while,with,without,work,write,year,zone';
 
 //---Sybase keywords------------------------------------------------------------
-  SybaseKW: UnicodeString =
+  SybaseKW: string =
     'absolute,action,add,after,alias,all,allocate,alter,and,any,are,' +
     'arith_overflow,as,asc,assertion,async,at,authorization,avg,before,begin,' +
     'between,bit,bit_length,boolean,both,breadth,break,browse,bulk,by,call,' +
@@ -309,7 +294,7 @@ const
 
 //---Oracle---------------------------------------------------------------------
   // Oracle SQL keywords
-  OracleKW: UnicodeString =
+  OracleKW: string =
     'ACCESS,ACCESSED,ACCOUNT,ACTIVATE,ACTIVE_INSTANCE_COUNT,ADD,ADMIN,ADVISE,' +
     'AGENT,ALL,ALLOCATE,ALTER,ANALYZE,ANCILLARY,AND,ANY,AQ_TM_PROCESSES,' +
     'ARCHIVE_LAG_TARGET,ARCHIVELOG,AS,ASC,ASSOCIATE,ATTRIBUTES,AUDIT,' +
@@ -430,7 +415,7 @@ const
 
 //---Postgresql-----------------------------------------------------------------
   //Postgresql Keywords
-  PostgresKW: UnicodeString =
+  PostgresKW: string =
     'IF,LOOP,ABORT,ABSOLUTE,ACCESS,ACTION,ADA,ADD,ADMIN,AFTER,AGGREGATE,ALIAS' +
     ',ALLOCATE,ALTER,ANALYSE,ANALYZE,AND,ARE,AS,ASC,ASENSITIVE' +
     ',ASSERTION,ASSIGNMENT,ASYMMETRIC,AT,ATOMIC,AUTHORIZATION,BACKWARD' +
@@ -487,7 +472,7 @@ const
     ',VARIABLE,VARYING,VERBOSE,VIEW,VOLATILE,WHEN,WHENEVER,WHERE,WITH,WITHOUT,WORK,WRITE,YEAR,ZONE';
 
   //Postgresql Functions
-  PostgresFunctions: UnicodeString =
+  PostgresFunctions: string =
     'abs,cbrt,ceil,ceiling,degrees,exp,floor,ln,log,mod,pi,power,radians,random,'+
     'round,setseed,sign,sqrt,trunc,width_bucket,acos,asin,atan,atan2,cos,cot,'+
     'sin,tan,bit_length,char_length,character_length,convert,lower,octet_length,'+
@@ -517,7 +502,7 @@ const
     'current_user,current_date,current_time,current_timestamp,localtime,localtimestamp,session_user,user';
 
   //Postgresql Types
-  PostgresTypes: UnicodeString =
+  PostgresTypes: string =
     'smallint,integer,bigint,decimal,numeric,real,double,serial,bigserial,'+
     'character,varchar,char,text,bytea,timestamp, interval,date,'+
     'time,boolean,point,line,lseg,box,path,polygon,circle,cidr,inet,'+
@@ -526,7 +511,7 @@ const
     'trigger,void,opaque,refcursor,binary,blob,int4,int2,int8,float,float4,float8';
 
   //Postgresql Exceptions
-  PostgresExceptions: UnicodeString =
+  PostgresExceptions: string =
     '$BODY$,SUCCESSFUL_COMPLETION,WARNING,DYNAMIC_RESULT_SETS_RETURNED,IMPLICIT_ZERO_BIT_PADDING,NULL_VALUE_ELIMINATED_IN_SET_FUNCTION,'+
     'PRIVILEGE_NOT_GRANTED,PRIVILEGE_NOT_REVOKED,STRING_DATA_RIGHT_TRUNCATION,DEPRECATED_FEATURE,NO_DATA,NO_ADDITIONAL_DYNAMIC_RESULT_SETS_RETURNED,'+
     'SQL_STATEMENT_NOT_YET_COMPLETE,CONNECTION_EXCEPTION,CONNECTION_DOES_NOT_EXIST,CONNECTION_FAILURE,SQLCLIENT_UNABLE_TO_ESTABLISH_SQLCONNECTION,'+
@@ -562,7 +547,7 @@ const
     'PLPGSQL_ERROR,RAISE_EXCEPTION,INTERNAL_ERROR,DATA_CORRUPTED,INDEX_CORRUPTED';
 
   // PLSQL keywords
-  OraclePLSQLKW: UnicodeString =
+  OraclePLSQLKW: string =
     'ABORT,ACCEPT,AFTER,ARRAY,ARRAYLEN,ASSERT,ASSIGN,AT,AUTHORIZATION,' +
     'AUTONOMOUS_TRANSACTION,BASE_TABLE,BEGIN,BODY,BULK,BULK_ROWCOUNT,CALL,' +
     'CALLING,CASE,CHAR_BASE,CHARSETFORM,CHARSETID,CLOSE,CLUSTERS,COLAUTH,' +
@@ -590,7 +575,7 @@ const
     'WHEN,WHILE,WORK,WRITE,XOR';
 
   // Oracle data types
-  OracleTypes: UnicodeString =
+  OracleTypes: string =
     'ANYDATA,ANYDATASET,ANYTYPE,BFILE,BINARY_DOUBLE,BINARY_FLOAT,BINARY_INTEGER,' +
     'BLOB,BOOLEAN,CHAR,CLOB,DATE,DAY,DBURITYPE,DEC,DECIMAL,DOUBLE,FLOAT,' +
     'HTTPURITYPE,IDENTITY,INTEGER,INTERVAL,LONG,MLSLABEL,MONTH,NATURAL,NATURALN,NCHAR,' +
@@ -599,7 +584,7 @@ const
     'XMLDATA,XMLTYPE,YEAR,ZONE';
 
   // Oracle built in exceptions
-  OracleExceptions: UnicodeString =
+  OracleExceptions: string =
     'ACCESS_INTO_NULL,CASE_NOT_FOUND,COLLECTION_IS_NULL,CURSOR_ALREADY_OPEN,' +
     'DUP_VAL_ON_INDEX,INVALID_CURSOR,INVALID_NUMBER,LOGIN_DENIED,' +
     'NO_DATA_FOUND,NOT_LOGGED_ON,OTHERS,PROGRAM_ERROR,ROWTYPE_MISMATCH,' +
@@ -608,7 +593,7 @@ const
     'ZERO_DIVIDE';
 
   // Oracle built in functions
-  OracleFunctions: UnicodeString =
+  OracleFunctions: string =
     'ABS,ACOS,ADD_MONTHS,AGGREGATE,ANALYTIC,ASCII,ASCIISTR,ASIN,ATAN,ATAN2,' +
     'AVERAGE,AVG,BASE64_DECODE,BASE64_ENCODE,BEGIN_REQUEST,BFILENAME,' +
     'BIN_TO_NUM,BIT_AND,BIT_COMPLEMENT,BIT_OR,BIT_XOR,BITAND,' +
@@ -678,7 +663,7 @@ const
     'XMLAGG,XMLCOLATTVAL,XMLCONCAT,XMLELEMENT,XMLFOREST,XMLSEQUENCE,' +
     'XMLTRANSFORM,XRANGE';
 
-  OracleDefaultPackages: UnicodeString =
+  OracleDefaultPackages: string =
     'CTX_ADM,CTX_CLS,CTX_DDL,CTX_DOC,CTX_OUTPUT,CTX_QUERY,CTX_REPORT,CTX_THES,CTX_ULEXER,' +
     'DBMS_ADVANCED_REWRITE,DBMS_ADVISOR,DBMS_ALERT,DBMS_APPLICATION_INFO,' +
     'DBMS_APPLY_ADM,DBMS_AQ,DBMS_AQ_EXP_HISTORY_TABLES,DBMS_AQ_EXP_INDEX_TABLES,' +
@@ -736,7 +721,7 @@ const
     'UTL_I18N,UTL_INADDR,UTL_LMS,UTL_MAIL,UTL_NLA,UTL_PG,UTL_RAW,UTL_REF,UTL_SMTP,' +
     'UTL_SPADV,UTL_TCP,UTL_URL,WPG_DOCLOAD';
 
-  OracleSQLPlusCommands: UnicodeString =
+  OracleSQLPlusCommands: string =
     'APP,APPINFO,AQ$_AGENT,AQ$_AGENT_LIST_T,AQ$_DESCRIPTOR,AQ$_POST_INFO,' +
     'AQ$_POST_INFO_LIST,AQ$_RECIPIENT_LIST_T,AQ$_REG_INFO,AQ$_REG_INFO_LIST,' +
     'AQ$_SUBSCRIBER_LIST_T,ARCHIVE,ARRAYSIZE,ATTRIBUTE,AUTOCOMMIT,AUTOP,' +
@@ -759,15 +744,15 @@ const
     'UNDERLINE,UP,VAR,VARIABLE,VER,VERIFY,VERSION,VIS,VISIBLE,WHENEVER,WR,' +
     'WRA,WRAP,WRAPPED';
 
-  OracleCommentKW: UnicodeString =
+  OracleCommentKW: string =
     'REM,REMA,REMAR,REMARK';
 
-  OracleConsoleOutputKW: UnicodeString =
+  OracleConsoleOutputKW: string =
     'PRO,PROM,PROMP,PROMPT';
 
 //---MS-SQL 7-------------------------------------------------------------------
   // keywords
-  MSSQL7KW: UnicodeString =
+  MSSQL7KW: string =
     'ABSOLUTE,ADD,ALL,ALTER,ANY,AS,ASC,AUTHORIZATION,AVG,BACKUP,BEGIN,' +
     'BETWEEN,BREAK,BROWSE,BULK,BY,CASCADE,CHECK,CHECKPOINT,CLOSE,CLUSTERED,' +
     'COLUMN,COMMIT,COMMITTED,COMPUTE,CONFIRM,CONSTRAINT,CONTAINS,' +
@@ -791,7 +776,7 @@ const
     'VALUES,VARYING,VIEW,WAITFOR,WHEN,WHERE,WHILE,WITH,WORK,WRITETEXT';
 
   // functions
-  MSSQL7Functions: UnicodeString =
+  MSSQL7Functions: string =
     '@@CONNECTIONS,@@CPU_BUSY,@@CURSOR_ROWS,@@DATEFIRST,@@DBTS,@@ERROR,' +
     '@@FETCH_STATUS,@@IDENTITY,@@IDLE,@@IO_BUSY,@@LANGID,@@LANGUAGE,' +
     '@@LOCK_TIMEOUT,@@MAX_CONNECTIONS,@@MAX_PRECISION,@@NESTLEVEL,@@OPTIONS,' +
@@ -815,14 +800,14 @@ const
     'UPPER,USER_ID,USER_NAME,YEAR';
 
   // types
-  MSSQL7Types: UnicodeString =
+  MSSQL7Types: string =
     'BINARY,BIT,CHAR,DATETIME,DECIMAL,FLOAT,IMAGE,INT,MONEY,NCHAR,NTEXT,' +
     'NUMERIC,NVARCHAR,REAL,SMALLDATETIME,SMALLINT,SMALLMONEY,SYSNAME,TEXT,' +
     'TIMESTAMP,TINYINT,UNIQUEIDENTIFIER,VARBINARY,VARCHAR';
 
 //---MS-SQL2K-------------------------------------------------------------------
   // keywords
-  MSSQL2000KW: UnicodeString =
+  MSSQL2000KW: string =
     'ADD,ALL,ALTER,AND,ANY,AS,ASC,AUTHORIZATION,BACKUP,' +
     'BEGIN,BETWEEN,BREAK,BROWSE,BULK,BY,CASCADE,CASE,' +
     'CHECK,CHECKPOINT,CLOSE,CLUSTERED,COLLATE,' +
@@ -848,7 +833,7 @@ const
     'WITH,WRITETEXT';
 
   // functions
-  MSSQL2000Functions: UnicodeString =
+  MSSQL2000Functions: string =
     '@@CONNECTIONS,@@CPU_BUSY,@@CURSOR_ROWS,@@DATEFIRST,@@DBTS,@@ERROR,' +
     '@@FETCH_STATUS,@@IDENTITY,@@IDLE,@@IO_BUSY,@@LANGID,@@LANGUAGE,' +
     '@@LOCK_TIMEOUT,@@MAX_CONNECTIONS,@@MAX_PRECISION,@@NESTLEVEL,@@OPTIONS,' +
@@ -879,7 +864,7 @@ const
     'USER_ID,USER_NAME,VAR,VARP,YEAR';
 
   // types
-  MSSQL2000Types: UnicodeString =
+  MSSQL2000Types: string =
     'bigint,binary,bit,char,character,datetime,' +
     'dec,decimal,float,image,int,' +
     'integer,money,nchar,ntext,numeric,nvarchar,real,' +
@@ -889,10 +874,10 @@ const
 
 //---Interbase 6----------------------------------------------------------------
   // functions
-  Interbase6Functions: UnicodeString = 'AVG,CAST,COUNT,GEN_ID,MAX,MIN,SUM,UPPER';
+  Interbase6Functions: string = 'AVG,CAST,COUNT,GEN_ID,MAX,MIN,SUM,UPPER';
 
   // keywords
-  Interbase6KW: UnicodeString = 'ACTIVE,ADD,AFTER,ALL,ALTER,AND,ANY,AS,ASC,' +
+  Interbase6KW: string = 'ACTIVE,ADD,AFTER,ALL,ALTER,AND,ANY,AS,ASC,' +
     'ASCENDING,AT,AUTO,AUTODDL,BASED,BASENAME,BASE_NAME,BEFORE,BEGIN,BETWEEN,' +
     'BLOBEDIT,BUFFER,BY,CACHE,CHARACTER_LENGTH,CHAR_LENGTH,CHECK,' +
     'CHECK_POINT_LEN,CHECK_POINT_LENGTH,COLLATE,COLLATION,COLUMN,COMMIT,' +
@@ -923,13 +908,13 @@ const
     'WAIT,WEEKDAY,WHEN,WHENEVER,WHERE,WHILE,WITH,WORK,WRITE,YEAR,YEARDAY';
 
   // types
-  Interbase6Types: UnicodeString =
+  Interbase6Types: string =
     'BLOB,CHAR,CHARACTER,DATE,DECIMAL,DOUBLE,FLOAT,INTEGER,' +
     'NUMERIC,SMALLINT,TIME,TIMESTAMP,VARCHAR';
 
 //---MySQL----------------------------------------------------------------------
   // keywords
-  MySqlKW: UnicodeString =
+  MySqlKW: string =
     'ACCOUNT,ACTION,ADD,AFTER,AGAINST,ALGORITHM,ALL,ALTER,ANY,ALWAYS,ANALYZE,' +
     'AND,AS,ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BEFORE,BEGIN,BETWEEN,BINLOG,' +
     'BLOCK,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CATALOG_NAME,CHANGE,CHANGED,' +
@@ -993,11 +978,11 @@ const
     'WHERE,WRAPPER,WRITE,WITH,WITHOUT,WORK,XA,XID,XML,XOR,YEAR_MONTH';
 
   // PLSQL keywords
-  MySQLPLSQLKW: UnicodeString =
+  MySQLPLSQLKW: string =
     'CASE,CLOSE,EXIT,FETCH,GOTO,HANDLER,ITERATE,IF,LEAVE,LOOP,REPEAT,THEN,' +
     'UNTIL,WHEN,WHILE';
 
-  MySQLTypes: UnicodeString =
+  MySQLTypes: string =
 
     // Table Engines
     'ARCHIVE,BDB,BERKELEYDB,BLACKHOLE,CSV,EXAMPLE,FEDERATED,HEAP,INNOBASE,' +
@@ -1095,7 +1080,7 @@ const
     'utf8_vietnamese_ci';
 
   // functions
-  MySQLFunctions: UnicodeString =
+  MySQLFunctions: string =
     'ABS,ACOS,ADDDATE,ADDTIME,AES_DECRYPT,AES_ENCRYPT,ANY_VALUE,AREA,' +
     'ASBINARY,ASCII,ASIN,ASTEXT,ASWKBASWKT,ASYMMETRIC_DECRYPT,' +
     'ASYMMETRIC_DERIVE,ASYMMETRIC_ENCRYPT,ASYMMETRIC_SIGN,ASYMMETRIC_VERIFY,' +
@@ -1168,7 +1153,7 @@ const
 
 //---Ingres---------------------------------------------------------------------
   // keywords
-  IngresKW: UnicodeString =
+  IngresKW: string =
     'ABORT,ACTIVATE,ADD,ADDFORM,AFTER,AGGREGATE,ALL,ALTER,AND,APPEND,ARRAY,' +
     'AS,ASC,AT,AUDIT_LOG,AUTHORIZATION,AUTOCOMMIT,AVGU,BEFORE,BEGIN,BETWEEN,' +
     'BREAKDISPLAY,BY,BYREF,CACHE,CALL,CALLFRAME,CALLPROC,CASCADE,CHECK,CLEAR,' +
@@ -1208,13 +1193,13 @@ const
     'VALIDATE,VALIDROW,VALUES,VIEW,WHEN,WHENEVER,WHERE,WHILE,WITH,WORK';
 
   // types
-  IngresTypes: UnicodeString =
+  IngresTypes: string =
     'BYTE,C,CHAR,CHARACTER,DATE,DECIMAL,FLOAT,FLOAT4,FLOAT8,INTEGER,INTEGER1,' +
     'INTEGER2,INTEGER4,LONG,MONEY,OBJECT_KEY,SECURITY_LABEL,SHORT,SMALLINT,' +
     'TABLE_KEY,TEXT,VARCHAR,VARYING';
 
   // functions
-  IngresFunctions: UnicodeString =
+  IngresFunctions: string =
     '_BINTIM,_CPU_MS,_DATE,_DIO_CNT,_ET_SEC,_PFAULT_CNT,_TIME,_VERSION,ABS,' +
     'ANY,ATAN,AUTOCOMMIT_STATE,AVG,BIOCNT,CHAREXTRACT,COLLATION,CONCAT,' +
     'CONNECT_TIME_LIMIT,COS,COUNT,CREATE_PROCEDURE,CREATE_TABLE,DATABASE,' +
@@ -1234,7 +1219,7 @@ const
 
 //---Nexus----------------------------------------------------------------------
   // keywords
-  NexusKW: UnicodeString =
+  NexusKW: string =
     'ABSOLUTE,AFTER,ALTER,ANY,ASC,ASSERT,ATOMIC,' +
     'ADD,ALL,AND,AS,ASSEMBLY,AUTHORIZATION,BEFORE,' +
     'BETWEEN,BINARY,BLOCK,BY,BEGIN,' +
@@ -1268,7 +1253,7 @@ const
     'VIEW,WHEN,WHILE,WITH,WORK,WHERE,WIDTH,YEAR';
 
   // functions
-  NexusFunctions: UnicodeString =
+  NexusFunctions: string =
     'ABS,ATAN,ATAN2,ATN2,AVG,BOTH,BROUND,CEIL,CEILING,CHAR_LENGTH,CHARACTER_LENGTH,'+
     'CHR,COS,COUNT,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,ERROR_MESSAGE,EXP,EXTRACT,'+
     'FLOOR,LASTAUTOINC,LEADING,LIST,LN,LOCALTIME,LOCALTIMESTAMP,LOWER,MAX,MED,MIN,MOD,NEWGUID,OCTECT,'+
@@ -1276,7 +1261,7 @@ const
     'SUBSTRING,SUM,SYSTEM_ROW#,TOSTRING,TOSTRINGLEN,TRAILING,TRIM,UPPER,USER,USING';
 
   // types
-  NexusTypes: UnicodeString =
+  NexusTypes: string =
     'CHARACTER,CHAR,NULLSTRING,SHORTSTRING,SINGLECHAR,VARCHAR,' +
     'CLOB,TEXT,NSINGLECHAR,NCHAR,' +
     'NVARCHAR,NCLOB,BLOB,IMAGE,NUMERIC,DECIMAL,DEC,BYTE,TINYINT,SHORTINT,SMALLINT,INTEGER,INT,' +
@@ -1285,7 +1270,7 @@ const
 
 //---Informix-------------------------------------------------------------------
   // keywords
-  InformixKW: Unicodestring =
+  InformixKW: string =
     'ABSOLUTE,ACCESS,ACCESS_METHOD,ACTIVE,ADD,AFTER,AGGREGATE,ALIGNMENT,ALL,' +
     'ALL_ROWS,ALLOCATE,ALTER,AND,ANSI,ANY,APPEND,AS,ASC,AT,ATTACH,AUDIT,' +
     'AUTHORIZATION,AUTO,AUTOFREE,AVOID_EXECUTE,AVOID_SUBQF,BEFORE,BEGIN,' +
@@ -1337,19 +1322,19 @@ const
     'WORK,WRITE,XADATASOURCE,XID,XLOAD,XUNLOAD';
 
   // types
-  InformixTypes: UnicodeString =
+  InformixTypes: string =
     'BLOB,BOOLEAN,BYTE,CHAR,CHARACTER,VARYING,CLOB,DATE,DATETIME,DEC,DECIMAL,' +
     'DOUBLE,PRECISION,FLOAT,INT,INT8,INTEGER,INTERVAL,LIST,LVARCHAR,MONEY,' +
     'MULTISET,NCHAR,NUMERIC,NVARCHAR,REAL,ROW,SERIAL,SERIAL8,SET,SMALLFLOAT,' +
     'SMALLINT,TEXT,VARCHAR';
 
   // PLSQL keywords
-  InformixPLSQLKW: UnicodeString =
+  InformixPLSQLKW: string =
     'CALL,CONTINUE,DEFINE,ERROR,EXCEPTION,EXIT,FOR,FOREACH,IF,LET,ON,RAISE,' +
     'RETURN,SYSTEM,TRACE,WHENEVER,WHILE';
 
   // functions
-  InformixFunctions: UnicodeString =
+  InformixFunctions: string =
     'ABS,ACOS,ASIN,ATAN,ATAN2,AVG,CARDINALITY,CASE,CAST,CHARACTER_LENGTH,' +
     'CHAR_LENGTH,COS,COUNT,CURRENT,DAY,DBINFO,DBSERVERNAME,DECODE,' +
     'DECRYPT_CHAR,DECRYPT_BINARY,DEFAULT_ROLE,ENCRYPT_AES,ENCRYPT_TDES,EXP,' +
@@ -1359,68 +1344,49 @@ const
     'RPAD,SIN,SITENAME,SQRT,STDEV,SUBSTR,SUBSTRING,SUM,TAN,THEN,TO_CHAR,TO_DATE,' +
     'TODAY,TRIM,TRUNC,UNITS,UPPER,USER,VARIANCE,WEEKDAY,WHEN,YEAR';
 
-function TSynSQLSyn.HashKey(Str: PWideChar): Integer;
+function TSynSQLSyn.IdentKind: TtkTokenKind;
 var
-  FoundDoubleMinus: Boolean;
+  S: string;
+  p: PChar;
 
-  function GetOrd: Integer;
+  function IsIdentCharFromIndex(Index: Integer): Boolean;
   begin
-    case Str^ of
-      '_': Result := 1;
-      'a'..'z': Result := 2 + Ord(Str^) - Ord('a');
-      'A'..'Z': Result := 2 + Ord(Str^) - Ord('A');
+    case FLineStr[Index] of
+      'a'..'z', 'A'..'Z', '0'..'9', '_':
+        Result := True;
+      '-':
+        Result := fDialect = sqlStandard;
+      '#', '$':
+        Result := fDialect in [sqlOracle, sqlNexus];
       '@':
-        if FDialect in [sqlMSSQL7, sqlMSSQL2K] then
-          Result := 24
-        else
-          Result := 0;
-      else Result := 0;
+        Result := fDialect in [sqlMSSQL7, sqlMSSQL2K];
+       '!', '^', '{', '}', '~':
+        Result := fDialect = sqlNexus
+      else
+        Result := False;
     end;
+    if not Result then
+      Result := Char.IsLetterOrDigit(FLineStr, Index - 1) or
+        CharInSet(FLineStr[Index], AdditionalIdentChars) and
+        not IsWordBreakChar(FLineStr[Index]);
   end;
 
 begin
-  Result := 0;
-  while IsIdentChar(Str^) do
+  // This version handles non-ascii letters and surrogate pairs.
+  fToIdent := fLine + Run;
+  p := fToIdent + 1;
+  while (p^ <> #0) and ((p^.IsLowSurrogate) or IsIdentCharFromIndex(p - FLine + 1)) do
   begin
-    FoundDoubleMinus := (Str^ = '-') and ((Str + 1)^ = '-');
-    if FoundDoubleMinus then Break;
-{$IFOPT Q-}
-    Result := 2 * Result + GetOrd;
-{$ELSE}
-    Result := (2 * Result + GetOrd) and $FFFFFF;
-{$ENDIF}
-    Inc(Str);
+    // Special case for sqlStandard which allows hyphen as an identifier.
+    if (p^ = '-') and ((p + 1)^ = '-') then
+      Break;
+    p := CharNext(p);
   end;
-  Result := Result and $FF; // 255
-  if Assigned(FToIdent) then
-    FStringLen := Str - FToIdent
-  else
-    FStringLen := 0;
-end;
-
-function TSynSQLSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
-var
-  Entry: TSynHashEntry;
-begin
-  FToIdent := MayBe;
-  Entry := FKeywords[HashKey(MayBe)];
-  while Assigned(Entry) do
-  begin
-    if Entry.KeywordLen > FStringLen then
-      Break
-    else if Entry.KeywordLen = FStringLen then
-      if IsCurrentToken(Entry.Keyword) then
-      begin
-        Result := TtkTokenKind(Entry.Kind);
-        Exit;
-      end;
-    Entry := Entry.Next;
-  end;
-  {$IFDEF USE_TABLE_DICTIONARY}
-  if FTableDict.ContainsKey(SynWideLowerCase(Copy(StrPas(FToIdent), 1, FStringLen))) then
-    Result := tkTableName
-  else
-  {$ENDIF}
+  fStringLen := p - fToIdent;
+  if FScanningToEOL then
+    Exit(tkIdentifier);
+  SetString(S, fToIdent, fStringLen);
+  if not FKeywords.TryGetValue(S, Result) then
     Result := tkIdentifier;
 end;
 
@@ -1428,87 +1394,81 @@ constructor TSynSQLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FCaseSensitive := False;
+  fCaseSensitive := False;
 
-  FKeywords := TSynHashEntryList.Create;
+  FKeywords := TDictionary<string, TtkTokenKind>.Create;
 
-  FProcNames := TUnicodeStringList.Create;
-  TUnicodeStringList(FProcNames).OnChange := ProcNamesChanged;
+  FProcNames := TStringList.Create;
+  TStringList(FProcNames).OnChange := ProcNamesChanged;
 
-  FTableNames := TUnicodeStringList.Create;
-  TUnicodeStringList(FTableNames).OnChange := TableNamesChanged;
-  {$IFDEF USE_TABLE_DICTIONARY}
-  FTableDict := TDictionary<string, Boolean>.Create;
-  {$ENDIF}
+  fTableNames := TStringList.Create;
+  TStringList(fTableNames).OnChange := TableNamesChanged;
 
-  FFunctionNames := TunicodeStringList.Create;
-  TUnicodeStringList(FFunctionNames).OnChange := FunctionNamesChanged;
+  fFunctionNames := TStringList.Create;
+  TStringList(fFunctionNames).OnChange := FunctionNamesChanged;
 
-  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  FCommentAttri.Style := [fsItalic];
-  AddAttribute(FCommentAttri);
-  FConditionalCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrConditionalComment, SYNS_FriendlyAttrConditionalComment);
-  FConditionalCommentAttri.Style := [fsItalic];
-  AddAttribute(FConditionalCommentAttri);
-  FConsoleOutputAttri := TSynHighlighterAttributes.Create(SYNS_AttrConsoleOutput, SYNS_FriendlyAttrConsoleOutput);
-  FConsoleOutputAttri.Style := [fsBold, fsUnderline];
-  AddAttribute(FConsoleOutputAttri);
-  FDataTypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDataType, SYNS_FriendlyAttrDataType);
-  FDataTypeAttri.Style := [fsBold];
-  AddAttribute(FDataTypeAttri);
-  FDefaultPackageAttri :=
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  fCommentAttri.Style := [fsItalic];
+  AddAttribute(fCommentAttri);
+  fConditionalCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrConditionalComment, SYNS_FriendlyAttrConditionalComment);
+  fConditionalCommentAttri.Style := [fsItalic];
+  AddAttribute(fConditionalCommentAttri);
+  fConsoleOutputAttri := TSynHighlighterAttributes.Create(SYNS_AttrConsoleOutput, SYNS_FriendlyAttrConsoleOutput);
+  fConsoleOutputAttri.Style := [fsBold, fsUnderline];
+  AddAttribute(fConsoleOutputAttri);
+  fDataTypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDataType, SYNS_FriendlyAttrDataType);
+  fDataTypeAttri.Style := [fsBold];
+  AddAttribute(fDataTypeAttri);
+  fDefaultPackageAttri :=
     TSynHighlighterAttributes.Create(SYNS_AttrDefaultPackage, SYNS_FriendlyAttrDefaultPackage);
-  FDefaultPackageAttri.Style := [fsBold];
-  AddAttribute(FDefaultPackageAttri);
-  FDelimitedIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrDelimitedIdentifier, SYNS_FriendlyAttrDelimitedIdentifier);
-  AddAttribute(FDelimitedIdentifierAttri);
-  FExceptionAttri := TSynHighlighterAttributes.Create(SYNS_AttrException, SYNS_FriendlyAttrException);
-  FExceptionAttri.Style := [fsItalic];
-  AddAttribute(FExceptionAttri);
-  FFunctionAttri := TSynHighlighterAttributes.Create(SYNS_AttrFunction, SYNS_FriendlyAttrFunction);
-  FFunctionAttri.Style := [fsBold];
-  AddAttribute(FFunctionAttri);
-  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
-  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrKey, SYNS_FriendlyAttrKey);
-  FKeyAttri.Style := [fsBold];
-  AddAttribute(FKeyAttri);
-  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(FNumberAttri);
-  FPLSQLAttri := TSynHighlighterAttributes.Create(SYNS_AttrPLSQL, SYNS_FriendlyAttrPLSQL);
-  FPLSQLAttri.Style := [fsBold];
-  AddAttribute(FPLSQLAttri);
-  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
-  FSQLPlusAttri:=TSynHighlighterAttributes.Create(SYNS_AttrSQLPlus, SYNS_FriendlyAttrSQLPlus);
-  FSQLPlusAttri.Style := [fsBold];
-  AddAttribute(FSQLPlusAttri);
-  FStringAttri := TSynHighlighterAttributes.Create(SYNS_Attrstring, SYNS_FriendlyAttrstring);
-  AddAttribute(FStringAttri);
-  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(FSymbolAttri);
-  FProcNameAttri := TSynHighlighterAttributes.Create(SYNS_AttrProcName, SYNS_FriendlyAttrProcName);
-  AddAttribute(FProcNameAttri);
-  FTableNameAttri := TSynHighlighterAttributes.Create(SYNS_AttrTableName, SYNS_FriendlyAttrTableName);
-  AddAttribute(FTableNameAttri);
-  FVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
-  AddAttribute(FVariableAttri);
+  fDefaultPackageAttri.Style := [fsBold];
+  AddAttribute(fDefaultPackageAttri);
+  fDelimitedIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrDelimitedIdentifier, SYNS_FriendlyAttrDelimitedIdentifier);
+  AddAttribute(fDelimitedIdentifierAttri);
+  fExceptionAttri := TSynHighlighterAttributes.Create(SYNS_AttrException, SYNS_FriendlyAttrException);
+  fExceptionAttri.Style := [fsItalic];
+  AddAttribute(fExceptionAttri);
+  fFunctionAttri := TSynHighlighterAttributes.Create(SYNS_AttrFunction, SYNS_FriendlyAttrFunction);
+  fFunctionAttri.Style := [fsBold];
+  AddAttribute(fFunctionAttri);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(fIdentifierAttri);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  fKeyAttri.Style := [fsBold];
+  AddAttribute(fKeyAttri);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(fNumberAttri);
+  fPLSQLAttri := TSynHighlighterAttributes.Create(SYNS_AttrPLSQL, SYNS_FriendlyAttrPLSQL);
+  fPLSQLAttri.Style := [fsBold];
+  AddAttribute(fPLSQLAttri);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(fSpaceAttri);
+  fSQLPlusAttri:=TSynHighlighterAttributes.Create(SYNS_AttrSQLPlus, SYNS_FriendlyAttrSQLPlus);
+  fSQLPlusAttri.Style := [fsBold];
+  AddAttribute(fSQLPlusAttri);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_Attrstring, SYNS_FriendlyAttrstring);
+  AddAttribute(fStringAttri);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(fSymbolAttri);
+  fProcNameAttri := TSynHighlighterAttributes.Create(SYNS_AttrProcName, SYNS_FriendlyAttrProcName);
+  AddAttribute(fProcNameAttri);
+  fTableNameAttri := TSynHighlighterAttributes.Create(SYNS_AttrTableName, SYNS_FriendlyAttrTableName);
+  AddAttribute(fTableNameAttri);
+  fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
+  AddAttribute(fVariableAttri);
   SetAttributesOnChange(DefHighlightChange);
-  FDefaultFilter := SYNS_FilterSQL;
-  FRange := rsUnknown;
-  FDialect := sqlStandard;
+  fDefaultFilter := SYNS_FilterSQL;
+  fRange := rsUnknown;
+  fDialect := sqlStandard;
   InitializeKeywordLists;
 end;
 
 destructor TSynSQLSyn.Destroy;
 begin
   FKeywords.Free;
-  FProcNames.Free;
-  FTableNames.Free;
-  {$IFDEF USE_TABLE_DICTIONARY}
-  FTableDict.Free;
-  {$ENDIF}
-  FFunctionNames.Free;
+  fProcNames.Free;
+  fTableNames.Free;
+  fFunctionNames.Free;
   inherited Destroy;
 end;
 
@@ -1521,9 +1481,9 @@ end;
 
 procedure TSynSQLSyn.AndSymbolProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  if CharInSet(FLine[Run], ['=', '&']) then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '&']) then Inc(Run);
 end;
 
 procedure TSynSQLSyn.AsciiCharProc;
@@ -1531,33 +1491,33 @@ var
   IsEsc: Boolean;
 begin
   // Oracle SQL allows strings to go over multiple lines
-  if FLine[Run] = #0 then
+  if fLine[Run] = #0 then
     NullProc
   else begin
-    FTokenID := tkString;
+    fTokenID := tkString;
     // else it's end of multiline string
     if SQLDialect <> sqlMySql then
     begin
-      if (Run > 0) or (FRange <> rsString) or (FLine[Run] <> #39) then
+      if (Run > 0) or (fRange <> rsString) or (fLine[Run] <> #39) then
       begin
-        FRange := rsString;
+        fRange := rsString;
         repeat
           Inc(Run);
-        until IsLineEnd(Run) or (FLine[Run] = #39);
+        until IsLineEnd(Run) or (fLine[Run] = #39);
       end;
-      if FLine[Run] = #39 then
+      if fLine[Run] = #39 then
       begin
         Inc(Run);
-        FRange := rsUnknown;
+        fRange := rsUnknown;
       end;
     end
     else
     begin
       IsEsc := False;
-      if (Run > 0) or (FRange <> rsString) or
-        ((FLine[Run] <> #39) and (FLine[Run - 1] <> '\')) then
+      if (Run > 0) or (fRange <> rsString) or
+        ((fLine[Run] <> #39) and (fLine[Run - 1] <> '\')) then
       begin
-        FRange := rsString;
+        fRange := rsString;
         repeat
           if FLine[Run] = '\' then
             IsEsc := not IsEsc
@@ -1574,7 +1534,7 @@ begin
       if (FLine[Run] = #39) and (not IsEsc) then
       begin
         Inc(Run);
-        FRange := rsUnknown;
+        fRange := rsUnknown;
       end;
     end;
   end;
@@ -1582,40 +1542,40 @@ end;
 
 procedure TSynSQLSyn.CRProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
-  if FLine[Run] = #10 then Inc(Run);
+  if fLine[Run] = #10 then Inc(Run);
 end;
 
 procedure TSynSQLSyn.EqualProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  if CharInSet(FLine[Run], ['=', '>']) then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '>']) then Inc(Run);
 end;
 
 procedure TSynSQLSyn.GreaterProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  if CharInSet(FLine[Run], ['=', '>']) then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '>']) then Inc(Run);
 end;
 
 procedure TSynSQLSyn.IdentProc;
 var
   FoundDoubleMinus: Boolean;
 begin
-  FTokenID := IdentKind((FLine + Run));
-  Inc(Run, FStringLen);
+  fTokenID := IdentKind;
+  Inc(Run, fStringLen);
   if FTokenID in [tkComment, tkConsoleOutput] then
   begin
     while not IsLineEnd(Run) do
       Inc(Run);
   end
   else
-    while IsIdentChar(FLine[Run]) do
+    while IsIdentChar(fLine[Run]) do
     begin
-      FoundDoubleMinus := (FLine[Run] = '-') and (FLine[Run + 1] = '-');
+      FoundDoubleMinus := (fLine[Run] = '-') and (fLine[Run + 1] = '-');
       if FoundDoubleMinus then Break;
       Inc(Run);
     end;
@@ -1623,19 +1583,19 @@ end;
 
 procedure TSynSQLSyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end;
 
 procedure TSynSQLSyn.LowerProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  case FLine[Run] of
+  case fLine[Run] of
     '=': Inc(Run);
     '<': begin
            Inc(Run);
-           if FLine[Run] = '=' then Inc(Run);
+           if fLine[Run] = '=' then Inc(Run);
          end;
   end;
 end;
@@ -1643,22 +1603,22 @@ end;
 procedure TSynSQLSyn.MinusProc;
 begin
   Inc(Run);
-  if (FLine[Run] = '-') and ((FDialect <> sqlMySQL) or (FLine[Run+1] = ' ')) then
+  if (fLine[Run] = '-') and ((fDialect <> sqlMySQL) or (fLine[Run+1] = ' ')) then
   begin
-    FTokenID := tkComment;
+    fTokenID := tkComment;
     repeat
       Inc(Run);
     until IsLineEnd(Run);
   end
   else
-    FTokenID := tkSymbol;
+    fTokenID := tkSymbol;
 end;
 
 procedure TSynSQLSyn.HashProc;
 begin
   if SQLDialect = sqlMySql then
   begin
-    FTokenID := tkComment;
+    fTokenID := tkComment;
     repeat
       Inc(Run);
     until IsLineEnd(Run);
@@ -1666,13 +1626,13 @@ begin
   else
   begin
     Inc(Run);
-    FTokenID := tkUnknown;
+    fTokenID := tkUnknown;
   end;
 end;
 
 procedure TSynSQLSyn.NullProc;
 begin
-  FTokenID := tkNull;
+  fTokenID := tkNull;
   Inc(Run);
 end;
 
@@ -1680,7 +1640,7 @@ procedure TSynSQLSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case FLine[Run] of
+    case fLine[Run] of
       '0'..'9', '.', '-':
         Result := True;
       else
@@ -1690,7 +1650,7 @@ procedure TSynSQLSyn.NumberProc;
 
 begin
   Inc(Run);
-  FTokenID := tkNumber;
+  fTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
@@ -1704,16 +1664,16 @@ end;
 
 procedure TSynSQLSyn.OrSymbolProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  if CharInSet(FLine[Run], ['=', '|']) then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '|']) then Inc(Run);
 end;
 
 procedure TSynSQLSyn.PlusProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  if CharInSet(FLine[Run], ['=', '+']) then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '+']) then Inc(Run);
 end;
 
 procedure TSynSQLSyn.FunctionNamesChanged(Sender: TObject);
@@ -1729,23 +1689,23 @@ end;
 procedure TSynSQLSyn.SlashProc;
 begin
   Inc(Run);
-  case FLine[Run] of
+  case fLine[Run] of
     '*':
       begin
-        if (SQLDialect = sqlMySql) and (FLine[Run + 1] = '!') then
+        if (SQLDialect = sqlMySql) and (fLine[Run + 1] = '!') then
         begin
-          FRange := rsConditionalComment;
-          FTokenID := tkConditionalComment;
+          fRange := rsConditionalComment;
+          fTokenID := tkConditionalComment;
         end
         else
         begin
-          FRange := rsComment;
-          FTokenID := tkComment;
+          fRange := rsComment;
+          fTokenID := tkComment;
         end;
         repeat
           Inc(Run);
-          if (FLine[Run] = '*') and (FLine[Run + 1] = '/') then begin
-            FRange := rsUnknown;
+          if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then begin
+            fRange := rsUnknown;
             Inc(Run, 2);
             Break;
           end;
@@ -1754,40 +1714,42 @@ begin
     '=':
       begin
         Inc(Run);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
       end;
     '/':
       begin
         if (SQLDialect = sqlNexus)  then
         begin
-          FTokenID := tkComment;
+          fTokenID := tkComment;
           repeat
             Inc(Run);
           until IsLineEnd(Run);
-        end;
+        end
+        else
+          fTokenID := tkSymbol;
       end
     else
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynSQLSyn.SpaceProc;
 begin
   Inc(Run);
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynSQLSyn.QuoteProc;
 begin
-  FTokenID := tkDelimitedIdentifier;
+  fTokenID := tkDelimitedIdentifier;
   Inc(Run);
   while not IsLineEnd(Run) do
   begin
-    if FLine[Run] = #34 then
+    if fLine[Run] = #34 then
     begin
       Inc(Run);
-      if FLine[Run] <> #34 then
+      if fLine[Run] <> #34 then
         Break;
     end;
     Inc(Run);
@@ -1798,14 +1760,14 @@ procedure TSynSQLSyn.BacktickProc;
 begin
   if SQLDialect = sqlMySql then
   begin
-    FTokenID := tkDelimitedIdentifier;
+    fTokenID := tkDelimitedIdentifier;
     Inc(Run);
     while not IsLineEnd(Run) do
     begin
-      if FLine[Run] = '`' then
+      if fLine[Run] = '`' then
       begin
         Inc(Run);
-        if FLine[Run] <> '`' then
+        if fLine[Run] <> '`' then
           Break;
       end;
       Inc(Run);
@@ -1814,7 +1776,7 @@ begin
   else
   begin
     Inc(Run);
-    FTokenID := tkUnknown;
+    fTokenID := tkUnknown;
   end;
 end;
 
@@ -1822,14 +1784,14 @@ procedure TSynSQLSyn.BracketProc;
 begin
   if SQLDialect in [sqlMSSQL7, sqlMSSQL2K] then
   begin
-    FTokenID := tkDelimitedIdentifier;
+    fTokenID := tkDelimitedIdentifier;
     Inc(Run);
     while not IsLineEnd(Run) do
     begin
-      if FLine[Run] = ']' then
+      if fLine[Run] = ']' then
       begin
         Inc(Run);
-        if FLine[Run] <> ']' then
+        if fLine[Run] <> ']' then
           Break;
       end;
       Inc(Run);
@@ -1838,72 +1800,72 @@ begin
   else
   begin
     Inc(Run);
-    FTokenID := tkSymbol;
+    fTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynSQLSyn.SymbolProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
 procedure TSynSQLSyn.SymbolAssignProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   Inc(Run);
-  if FLine[Run] = '=' then Inc(Run);
+  if fLine[Run] = '=' then Inc(Run);
 end;
 
 procedure TSynSQLSyn.VariableProc;
 var
-  i: Integer;
+  I: Integer;
   FoundDoubleMinus: Boolean;
 begin
   // MS SQL Server uses @@ to indicate system functions/variables
-  if (SQLDialect in [sqlMSSQL7, sqlMSSQL2K]) and (FLine[Run] = '@') and (FLine[Run + 1] = '@') then
+  if (SQLDialect in [sqlMSSQL7, sqlMSSQL2K]) and (fLine[Run] = '@') and (fLine[Run + 1] = '@') then
     IdentProc
-  else if (SQLDialect in [sqlMySql, sqlOracle]) and (FLine[Run] = '@') then
+  else if (SQLDialect in [sqlMySql, sqlOracle]) and (fLine[Run] = '@') then
     SymbolProc
   // Oracle uses the ':' character to indicate bind variables
   // Ingres II also uses the ':' character to indicate variables
-  else if not (SQLDialect in [sqlOracle, sqlIngres]) and (FLine[Run] = ':') then
+  else if not (SQLDialect in [sqlOracle, sqlIngres]) and (fLine[Run] = ':') then
     SymbolProc
   else
   begin
-    FTokenID := tkVariable;
-    i := Run;
+    fTokenID := tkVariable;
+    I := Run;
     repeat
-      FoundDoubleMinus := (FLine[i] = '-') and (FLine[i + 1] = '-');
+      FoundDoubleMinus := (fLine[I] = '-') and (fLine[I + 1] = '-');
       if FoundDoubleMinus then Break;
-      Inc(i);
-    until not IsIdentChar(FLine[i]);
-    Run := i;
+      Inc(I);
+    until not IsIdentChar(fLine[I]);
+    Run := I;
   end;
 end;
 
 procedure TSynSQLSyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
 end;
 
 procedure TSynSQLSyn.AnsiCProc;
 begin
-  case FLine[Run] of
+  case fLine[Run] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
     else
     begin
-      if FRange = rsConditionalComment then
-        FTokenID := tkConditionalComment
+      if fRange = rsConditionalComment then
+        fTokenID := tkConditionalComment
       else
-        FTokenID := tkComment;
+        fTokenID := tkComment;
       repeat
-        if (FLine[Run] = '*') and (FLine[Run + 1] = '/') then
+        if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then
         begin
-          FRange := rsUnknown;
+          fRange := rsUnknown;
           Inc(Run, 2);
           Break;
         end;
@@ -1913,19 +1875,25 @@ begin
   end;
 end;
 
-function TSynSQLSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
+function TSynSQLSyn.IsKeyword(const AKeyword: string): Boolean;
 var
   tk: TtkTokenKind;
+  S: string;
 begin
-  tk := IdentKind(PWideChar(AKeyword));
-  Result := tk in [tkDatatype, tkException, tkFunction, tkKey, tkPLSQL,
-    tkDefaultPackage];
+  if not fCaseSensitive then
+    S := AnsiLowerCase(AKeyword)
+  else
+    S := AKeyword;
+  if not FKeywords.TryGetValue(S, tk) then
+    tk := tkUnknown;
+  Result := tk in
+    [tkDatatype, tkException, tkFunction, tkKey, tkPLSQL, tkDefaultPackage];
 end;
 
 procedure TSynSQLSyn.Next;
 begin
-  FTokenPos := Run;
-  case FRange of
+  fTokenPos := Run;
+  case fRange of
     rsComment, rsConditionalComment:
       AnsiCProc;
     rsConsoleOutput:
@@ -1936,7 +1904,7 @@ begin
     rsString:
       AsciiCharProc;
   else
-    case FLine[Run] of
+    case fLine[Run] of
       #0: NullProc;
       #10: LFProc;
       #13: CRProc;
@@ -1959,7 +1927,14 @@ begin
       #1..#9, #11, #12, #14..#32: SpaceProc;
       '^', '%', '*', '!': SymbolAssignProc;
       '{', '}', '.', ',', ';', '?', '(', ')', ']', '~': SymbolProc;
-      else UnknownProc;
+      else
+      begin
+        // This will work with ansi and unicode letters, including surrogate pairs
+        if (not FLine[Run].IsLowSurrogate) and Char.IsLetter(FLineStr, Run) then  // Index is 0 based here
+          IdentProc
+        else
+          UnknownProc;
+      end;
     end;
   end;
   inherited;
@@ -1969,12 +1944,12 @@ function TSynSQLSyn.GetDefaultAttribute(Index: Integer):
   TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := FCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := FKeyAttri;
-    SYN_ATTR_STRING: Result := FStringAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -1982,42 +1957,42 @@ end;
 
 function TSynSQLSyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynSQLSyn.GetRange: Pointer;
 begin
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 end;
 
 function TSynSQLSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end;
 
 function TSynSQLSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := FCommentAttri;
-    tkConditionalComment: Result := FConditionalCommentAttri;
+    tkComment: Result := fCommentAttri;
+    tkConditionalComment: Result := fConditionalCommentAttri;
     tkConsoleOutput: Result := FConsoleOutputAttri;
-    tkDatatype: Result := FDataTypeAttri;
-    tkDefaultPackage: Result := FDefaultPackageAttri;
-    tkDelimitedIdentifier: Result := FDelimitedIdentifierAttri;
-    tkException: Result := FExceptionAttri;
-    tkFunction: Result := FFunctionAttri;
-    tkIdentifier: Result := FIdentifierAttri;
-    tkKey: Result := FKeyAttri;
-    tkNumber: Result := FNumberAttri;
-    tkPLSQL: Result := FPLSQLAttri;
-    tkSpace: Result := FSpaceAttri;
-    tkSQLPlus: Result := FSQLPlusAttri;
-    tkString: Result := FStringAttri;
-    tkSymbol: Result := FSymbolAttri;
+    tkDatatype: Result := fDataTypeAttri;
+    tkDefaultPackage: Result := fDefaultPackageAttri;
+    tkDelimitedIdentifier: Result := fDelimitedIdentifierAttri;
+    tkException: Result := fExceptionAttri;
+    tkFunction: Result := fFunctionAttri;
+    tkIdentifier: Result := fIdentifierAttri;
+    tkKey: Result := fKeyAttri;
+    tkNumber: Result := fNumberAttri;
+    tkPLSQL: Result := fPLSQLAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkSQLPlus: Result := fSQLPlusAttri;
+    tkString: Result := fStringAttri;
+    tkSymbol: Result := fSymbolAttri;
     tkProcName: Result := FProcNameAttri;
-    tkTableName: Result := FTableNameAttri;
-    tkVariable: Result := FVariableAttri;
-    tkUnknown: Result := FIdentifierAttri;
+    tkTableName: Result := fTableNameAttri;
+    tkVariable: Result := fVariableAttri;
+    tkUnknown: Result := fIdentifierAttri;
   else
     Result := nil;
   end;
@@ -2025,22 +2000,22 @@ end;
 
 function TSynSQLSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTokenID);
+  Result := Ord(fTokenId);
 end;
 
 procedure TSynSQLSyn.ResetRange;
 begin
-  FRange := rsUnknown;
+  fRange := rsUnknown;
 end;
 
 procedure TSynSQLSyn.SetRange(Value: Pointer);
 begin
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 end;
 
 function TSynSQLSyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterSQL;
+  Result := fDefaultFilter <> SYNS_FilterSQL;
 end;
 
 function TSynSQLSyn.IsIdentChar(AChar: WideChar): Boolean;
@@ -2049,16 +2024,20 @@ begin
     'a'..'z', 'A'..'Z', '0'..'9', '_':
       Result := True;
     '-':
-      Result := FDialect = sqlStandard;
+      Result := fDialect = sqlStandard;
     '#', '$':                          // TODO: check this case, ANSI code wasn't clear here if this is exclusively Oracle
-      Result := FDialect in [sqlOracle, sqlNexus];
+      Result := fDialect in [sqlOracle, sqlNexus];
     '@':
-      Result := FDialect in [sqlMSSQL7, sqlMSSQL2K];
+      Result := fDialect in [sqlMSSQL7, sqlMSSQL2K];
      '!', '^', '{', '}','~':
-      Result := FDialect = sqlNexus
+      Result := fDialect = sqlNexus
     else
       Result := False;
   end;
+  if not Result then
+    Result := AChar.IsLetterOrDigit or
+      CharInSet(AChar, AdditionalIdentChars) and
+      not IsWordBreakChar(AChar);
 end;
 
 class function TSynSQLSyn.GetLanguageName: string;
@@ -2066,18 +2045,18 @@ begin
   Result := SYNS_LangSQL;
 end;
 
-procedure TSynSQLSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
+procedure TSynSQLSyn.DoAddKeyword(AKeyword: string; AKind: Integer);
 var
-  HashValue: Integer;
+  S: string;
 begin
-  AKeyword := SynWideLowerCase(AKeyword);
-  HashValue := HashKey(PWideChar(AKeyword));
-  FKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
+  S := AnsiLowerCase(AKeyword);
+  if not FKeywords.ContainsKey(S) then
+    FKeywords.Add(S, TtkTokenKind(AKind));
 end;
 
-procedure TSynSQLSyn.SetTableNames(const Value: TUnicodeStrings);
+procedure TSynSQLSyn.SetTableNames(const Value: TStrings);
 begin
-  FTableNames.Assign(Value);
+  fTableNames.Assign(Value);
 end;
 
 procedure TSynSQLSyn.TableNamesChanged(Sender: TObject);
@@ -2088,62 +2067,39 @@ end;
 procedure TSynSQLSyn.PutTableNamesInKeywordList;
 var
   i: Integer;
-  Entry: TSynHashEntry;
+  S: string;
 begin
-  for i := 0 to FTableNames.Count - 1 do
+  for i := 0 to fTableNames.Count - 1 do
   begin
-    Entry := FKeywords[HashKey(PWideChar(FTableNames[i]))];
-    while Assigned(Entry) do
-    begin
-      if SynWideLowerCase(Entry.Keyword) = SynWideLowerCase(FTableNames[i]) then
-        Break;
-      Entry := Entry.Next;
-    end;
-    if not Assigned(Entry) then
-    {$IFDEF USE_TABLE_DICTIONARY}
-      if not FTableDict.ContainsKey(SynWideLowerCase(FTableNames[i])) then
-        FTableDict.Add(SynWideLowerCase(FTableNames[i]), True);
-    {$ELSE}
-      DoAddKeyword(FTableNames[i], Ord(tkTableName));
-    {$ENDIF}
+    S := AnsiLowerCase(fTableNames[i]);
+    if not FKeywords.ContainsKey(S) then
+      FKeywords.Add(S, tkTableName);
   end;
 end;
 
 procedure TSynSQLSyn.PutFunctionNamesInKeywordList;
 var
   i: Integer;
-  Entry: TSynHashEntry;
+  S: string;
 begin
-  for i := 0 to (FFunctionNames.Count - 1) do
+  for i := 0 to (fFunctionNames.Count - 1) do
   begin
-    Entry := FKeywords[HashKey(PWideChar(FFunctionNames[i]))];
-    while Assigned(Entry) do
-    begin
-      if SynWideLowerCase(Entry.Keyword) = SynWideLowerCase(FFunctionNames[i]) then
-        Break;
-      Entry := Entry.Next;
-    end;
-    if not Assigned(Entry) then
-      DoAddKeyword(FFunctionNames[i], Ord(tkFunction));
+    S := AnsiLowerCase(fFunctionNames[i]);
+    if not FKeywords.ContainsKey(S) then
+      FKeywords.Add(S, tkFunction);
   end;
 end;
 
 procedure TSynSQLSyn.PutProcNamesInKeywordList;
 var
   i: Integer;
-  Entry: TSynHashEntry;
+  S: string;
 begin
-  for i := 0 to FProcNames.Count - 1 do
+  for i := 0 to (fProcNames.Count - 1) do
   begin
-    Entry := FKeywords[HashKey(PWideChar(FProcNames[i]))];
-    while Assigned(Entry) do
-    begin
-      if SynWideLowerCase(Entry.Keyword) = SynWideLowerCase(FProcNames[i]) then
-        Break;
-      Entry := Entry.Next;
-    end;
-    if not Assigned(Entry) then
-      DoAddKeyword(FProcNames[i], Ord(tkProcName));
+    S := AnsiLowerCase(fProcNames[i]);
+    if not FKeywords.ContainsKey(S) then
+      FKeywords.Add(S, tkProcName);
   end;
 end;
 
@@ -2151,15 +2107,8 @@ procedure TSynSQLSyn.InitializeKeywordLists;
 var
   I: Integer;
 begin
-{$IFDEF LIST_CLEAR_NOT_VIRTUAL}
-  FKeywords.DeleteEntries;
-{$ELSE}
   FKeywords.Clear;
-{$ENDIF}
-  {$IFDEF USE_TABLE_DICTIONARY}
-  FTableDict.Clear;
-  {$ENDIF}
-  FToIdent := nil;
+  fToIdent := nil;
 
   for I := 0 to Ord(High(TtkTokenKind)) do
     EnumerateKeywords(I, GetKeywords(I), IsIdentChar, DoAddKeyword);
@@ -2172,27 +2121,27 @@ end;
 
 procedure TSynSQLSyn.SetDialect(Value: TSQLDialect);
 begin
-  if (Value <> FDialect) then
+  if (Value <> fDialect) then
   begin
-    FDialect := Value;
+    fDialect := Value;
     InitializeKeywordLists;
   end;
 end;
 
-procedure TSynSQLSyn.SetFunctionNames(const Value: TUnicodeStrings);
+procedure TSynSQLSyn.SetFunctionNames(const Value: TStrings);
 begin
   FFunctionNames.Assign(Value);
 end;
 
-procedure TSynSQLSyn.SetProcNames(const Value: TUnicodeStrings);
+procedure TSynSQLSyn.SetProcNames(const Value: TStrings);
 begin
-  FProcNames.Assign(Value);
+  fProcNames.Assign(Value);
 end;
 
-function TSynSQLSyn.GetSampleSource: UnicodeString;
+function TSynSQLSyn.GetSampleSource: string;
 begin
   Result := '';
-  case FDialect of
+  case fDialect of
     sqlPostgres:
       Result := '-- ANSI SQL sample source'#13#10 +
         'SELECT *'#13#10 +
@@ -2319,16 +2268,16 @@ begin
   end;
 end;
 
-class function TSynSQLSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynSQLSyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangSQL;
 end;
 
-function TSynSQLSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
+function TSynSQLSyn.GetKeyWords(TokenKind: Integer): string;
 begin
   Result := '';
 
-  case FDialect of
+  case fDialect of
     sqlPostgres:
       begin
         case TtkTokenKind(TokenKind) of
@@ -2403,7 +2352,5 @@ begin
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynSQLSyn);
-{$ENDIF}
 end.

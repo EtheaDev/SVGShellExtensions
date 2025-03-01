@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/VCL                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors: Vincent Parrett, Kiriakos Vlahos                         }
 {                                                                              }
@@ -48,7 +48,7 @@ uses
   SvgInterfaces;
 
 const
-  SVGIconImageListVersion = '4.1.9';
+  SVGIconImageListVersion = '4.4.1';
   DEFAULT_SIZE = 16;
 
 type
@@ -109,7 +109,7 @@ type
     procedure DefineProperties(Filer: TFiler); override;
     procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer; Style: Cardinal; Enabled: Boolean = True); override;
     procedure Loaded; override;
-    function GetCount: Integer; {$IF CompilerVersion > 28}override;{$ELSE}virtual;{$ENDIF}
+    function GetCount: Integer; {$IF CompilerVersion > 28}override;{$ELSE}virtual;{$IFEND}
 
     procedure RecreateBitmaps; virtual; abstract;
     {$IF CompilerVersion < 29}

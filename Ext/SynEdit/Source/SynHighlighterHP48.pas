@@ -27,13 +27,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynHighlighterHP48.pas,v 1.10.2.9 2008/09/14 16:25:00 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides SynEdit with a HP48 assembler syntax highlighter.)
@@ -51,6 +44,7 @@ interface
 
 uses
   Windows,
+  Registry,
   Graphics,
   SynEditHighlighter,
   SynUnicode,
@@ -65,13 +59,13 @@ type
 
   TSpeedListObject = class
   protected
-    FName: UnicodeString;
+    FName: string;
     FSpeedList: TSpeedStringList;
     FObject: TObject;
-    procedure SetName(const Value: UnicodeString); virtual;
+    procedure SetName(const Value: string); virtual;
   public
-    property Name: UnicodeString read FName write SetName;
-    constructor Create(name: UnicodeString);
+    property Name: string read FName write SetName;
+    constructor Create(name: string);
     destructor Destroy; override;
     property SpeedList: TSpeedStringList read FSpeedList write FSpeedList;
     property Pointer: TObject read FObject write FObject;
@@ -82,39 +76,39 @@ type
 
   TSpeedStringList = class
   private
-    function GetText: UnicodeString;
-    procedure SetText(const Value: UnicodeString);
+    function GetText: string;
+    procedure SetText(const Value: string);
     function GetInObject(Index: Integer): TObject;
     procedure SetInObject(Index: Integer; const Value: TObject);
   protected
     FOnChange: TNotifyEvent;
-    FSumOfUsed: array[0..NbSubList - 1] of Integer;
-    FDatasUsed: array[0..NbSubList - 1] of Integer;
-    FDatas: array[0..NbSubList - 1] of PSpeedListObjects;
-    FLengthDatas: array[0..NbSubList - 1] of Integer;
+    SumOfUsed: array[0..NbSubList - 1] of Integer;
+    DatasUsed: array[0..NbSubList - 1] of Integer;
+    Datas: array[0..NbSubList - 1] of PSpeedListObjects;
+    LengthDatas: array[0..NbSubList - 1] of Integer;
     procedure Changed; virtual;
-    function Get(Index: Integer): UnicodeString; virtual;
+    function Get(Index: Integer): string; virtual;
     function GetObject(Index: Integer): TSpeedListObject;
     function GetCount: Integer;
-    function GetStringList: TUnicodeStrings;
-    procedure SetStringList(const Value: TUnicodeStrings);
+    function GetStringList: TStrings;
+    procedure SetStringList(const Value: TStrings);
   public
-    procedure NameChange(const obj: TSpeedListObject; const NewName: UnicodeString);
+    procedure NameChange(const obj: TSpeedListObject; const NewName: string);
     procedure ObjectDeleted(const obj: TSpeedListObject);
 
     destructor Destroy; override;
     constructor Create;
     function AddObj(const Value: TSpeedListObject): Integer;
-    function Add(const Value: UnicodeString): TSpeedListObject;
+    function Add(const Value: string): TSpeedListObject;
     procedure Clear;
-    function Find(const Name: UnicodeString): TSpeedListObject;
+    function Find(const Name: string): TSpeedListObject;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Objects[Index: Integer]: TSpeedListObject read GetObject;
     property InObject[Index: Integer]: TObject read GetInObject write SetInObject;
-    property Strings[Index: Integer]: UnicodeString read Get; default;
+    property Strings[Index: Integer]: string read Get; default;
     property Count: Integer read GetCount;
-    property StringList: TUnicodeStrings read GetStringList write SetStringList;
-    property Text: UnicodeString read GetText write SetText;
+    property StringList: TStrings read GetStringList write SetStringList;
+    property Text: string read GetText write SetText;
   end;
 
   TtkTokenKind = (tkNull, tkAsmKey, tkAsm, tkAsmComment, tksAsmKey, tksAsm,
@@ -125,9 +119,9 @@ type
 
   TSynHP48Syn = class(TSynCustomHighLighter)
   private
-    FTockenKind: TtkTokenKind;
-    FRange: TRangeState;
-    FAttribs: array[TtkTokenKind] of TSynHighlighterAttributes;
+    fTockenKind: TtkTokenKind;
+    fRange: TRangeState;
+    Attribs: array[TtkTokenKind] of TSynHighlighterAttributes;
     FRplKeyWords: TSpeedStringList;
     FAsmKeyWords: TSpeedStringList;
     FSAsmNoField: TSpeedStringList;
@@ -154,32 +148,30 @@ type
     function StarProc: TtkTokenKind;
   protected
     function GetAttribCount: Integer; override;
-    function GetAttribute(idx: Integer): TSynHighlighterAttributes; override;
+    function GetAttribute(Idx: Integer): TSynHighlighterAttributes; override;
     function IsFilterStored: Boolean; override;
     function IsLineEnd(Run: Integer): Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
-    procedure DoSetLine(const Value: UnicodeString; LineNumber: Integer); override;
+    procedure DoSetLine(const Value: string; LineNumber: Integer); override;
     procedure Next; override;
 
-    function GetToken: UnicodeString; override;
+    function GetToken: string; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: Integer; override;
 
     function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
-
     function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; override;
-
     procedure Assign(Source: TPersistent); override;
     property AsmKeyWords: TSpeedStringList read FAsmKeyWords;
     property SAsmFoField: TSpeedStringList read FSAsmNoField;
@@ -209,19 +201,16 @@ type
 implementation
 
 uses
-{$IFDEF UNICODE}
-  WideStrUtils,
-{$ENDIF}
   SynEditStrConst;
 
 const
-  DefaultAsmKeyWords: UnicodeString = '!RPL'#13#10'ENDCODE'#13#10'{'#13#10'}'#13#10 +
+  DefaultAsmKeyWords: string = '!RPL'#13#10'ENDCODE'#13#10'{'#13#10'}'#13#10 +
   'GOTO'#13#10'GOSUB'#13#10'GOSBVL'#13#10'GOVLNG'#13#10'GOLONG'#13#10'SKIP' +
     #13#10'SKIPYES' + #13#10'->'#13#10'SKUB'#13#10'SKUBL'#13#10'SKC'#13#10'SKNC'#13#10'SKELSE' +
     #13#10'SKEC'#13#10'SKENC'#13#10'SKLSE'#13#10 + 'GOTOL'#13#10'GOSUBL'#13#10 +
     'RTN'#13#10'RTNC'#13#10'RTNNC'#13#10'RTNSC'#13#10'RTNCC'#13#10'RTNSXM'#13#10'RTI';
-  OtherAsmKeyWords: array[0..5] of UnicodeString = ('UP', 'EXIT', 'UPC', 'EXITC', 'UPNC', 'EXITNC');
-  DefaultRplKeyWords: UnicodeString =
+  OtherAsmKeyWords: array[0..5] of string = ('UP', 'EXIT', 'UPC', 'EXITC', 'UPNC', 'EXITNC');
+  DefaultRplKeyWords: string =
     'CODEM'#13#10'ASSEMBLEM'#13#10'CODE'#13#10'ASSEMBLE'#13#10'IT'#13#10'ITE'#13#10'case'#13#10'::'#13#10';'#13#10'?SEMI'#13#10''''#13#10'#=case'#13#10'{'#13#10'}'#13#10'NAMELESS'#13#10'LOCAL'#13#10'LOCALNAME'#13#10'LABEL'#13#10 +
     'LOCALLABEL'#13#10'xNAME'#13#10'tNAME' + 'COLA'#13#10'NULLNAME'#13#10'xROMID'#13#10'#0=ITE'#13#10'#<ITE'#13#10'#=ITE'#13#10'#>ITE'#13#10'2''RCOLARPITE'#13#10'ANDITE'#13#10'COLAITE'#13#10'COLARPITE'#13#10'DUP#0=ITE'#13#10 +
     'EQITE'#13#10'ITE'#13#10'RPITE'#13#10'SysITE'#13#10'UNxSYMRPITE'#13#10'UserITE'#13#10'snnSYMRPITE'#13#10'snsSYMRPITE'#13#10'ssnSYMRPITE'#13#10'sssSYMRPITE'#13#10'$_EXIT'#13#10'DA1OK?NOTIT'#13#10'DA2aOK?NOTIT'#13#10 +
@@ -237,7 +226,7 @@ const
     'dMATRIXcase'#13#10'dREALNcase'#13#10'dREALcase'#13#10'dZINTNcase'#13#10'delimcase'#13#10'estcase'#13#10'idntcase'#13#10'idntlamcase'#13#10'j#-1=case'#13#10'j#0=case'#13#10'j#1=case'#13#10'j%-1=case'#13#10'j%0=case'#13#10 +
     'j%1=case'#13#10'jEQcase'#13#10'jZ-1=case'#13#10'jZ0=case'#13#10'jZ1=case'#13#10'namelscase'#13#10'need''case'#13#10'negrealcase'#13#10'ngsizecase'#13#10'nonopcase'#13#10'nonrmcase'#13#10'num#-1=case'#13#10'num#0=case'#13#10 +
     'num#1=case'#13#10'num-1=case'#13#10'num0=case'#13#10'num0case'#13#10'num1=case'#13#10'num2=case'#13#10'numb1stcase'#13#10'rebuildcase'#13#10'tok=casedrop'#13#10'wildcase'#13#10'zerdercase'#13#10;
-  SasmNoField: UnicodeString = 'LOOP'#13#10'RTNSXM'#13#10'RTN'#13#10'RTNSC'#13#10'RTNCC'#13#10'SETDEC'#13#10'SETHEX'#13#10'RSTK=C'#13#10'C=RSTK'#13#10'CLRST'#13#10'C=ST'#13#10'ST=C'#13#10'CSTEX'#13#10 +
+  SasmNoField: string = 'LOOP'#13#10'RTNSXM'#13#10'RTN'#13#10'RTNSC'#13#10'RTNCC'#13#10'SETDEC'#13#10'SETHEX'#13#10'RSTK=C'#13#10'C=RSTK'#13#10'CLRST'#13#10'C=ST'#13#10'ST=C'#13#10'CSTEX'#13#10 +
   'RTI'#13#10'R0=A'#13#10'R1=A'#13#10'R2=A'#13#10'R3=A'#13#10'R4=A'#13#10'R0=C'#13#10'R1=C'#13#10'R2=C'#13#10'R3=C'#13#10'R4=C'#13#10'A=R0'#13#10'A=R1'#13#10'A=R2'#13#10'A=R3'#13#10'A=R4'#13#10 +
     'C=R0'#13#10'C=R1'#13#10'C=R2'#13#10'C=R3'#13#10'C=R4'#13#10'AR0EX'#13#10'AR1EX'#13#10'AR2EX'#13#10'AR3EX'#13#10'AR4EX'#13#10'CR0EX'#13#10'CR1EX'#13#10'CR2EX'#13#10'CR3EX'#13#10'CR4EX'#13#10 +
     'D0=A'#13#10'D0=C'#13#10'D1=A'#13#10'D1=C'#13#10'AD0EX'#13#10'AD1EX'#13#10'CD0EX'#13#10'CD1EX'#13#10'D0=AS'#13#10'D1=AS'#13#10'D0=CS'#13#10'D1=CD'#13#10'CD1XS'#13#10'CD0XS'#13#10'AD1XS'#13#10'AD0XS'#13#10 +
@@ -246,33 +235,33 @@ const
     'A=PC'#13#10'C=PC'#13#10'APCEX'#13#10'CPCEX'#13#10'XM=0'#13#10'SB=0'#13#10'SR=0'#13#10'MP=0'#13#10'CLRHST'#13#10'?XM=0'#13#10'?SR=0'#13#10'?MP=0'#13#10'?SB=0'#13#10'RTNYES'#13#10'SKIPYES{'#13#10'{'#13#10'}'#13#10'UP'#13#10'EXIT'#13#10'EXITNC'#13#10'EXITC'#13#10'UPC'#13#10'UPNC' +
     '}SKELSE{'#13#10'SKC{'#13#10'SKNC{'#13#10'SKUB{'#13#10'SKUBL{'#13#10'SKIPC{'#13#10'SKIPNC{'#13#10'EXIT2'#13#10'EXIT3'#13#10'UP2'#13#10'UP3'#13#10'}SKLSE{'#13#10'}SKEC{'#13#10'}SKENC{'#13#10;
 
-function StringCrc(S: UnicodeString): Integer;
+function StringCrc(S: string): Integer;
 var
-  i: Integer;
+  I: Integer;
 begin
   Result := 0;
-  for i := 1 to length(s) do begin
-    Result := (Result shr 4) xor (((Result xor ord(s[i])) and $F) * $1081);
-    Result := (Result shr 4) xor (((Result xor (ord(s[i]) shr 4)) and $F) * $1081);
+  for I := 1 to length(s) do begin
+    Result := (Result shr 4) xor (((Result xor ord(s[I])) and $F) * $1081);
+    Result := (Result shr 4) xor (((Result xor (ord(s[I]) shr 4)) and $F) * $1081);
   end;
 end;
 
 { TSpeedListObject }
 
-constructor TSpeedListObject.create(name: UnicodeString);
+constructor TSpeedListObject.create(name: string);
 begin
   inherited create;
   FName := name;
 end;
 
-destructor TSpeedListObject.destroy;
+destructor TSpeedListObject.Destroy;
 begin
   if Assigned(FSpeedList) then
     FSpeedList.ObjectDeleted(Self);
   inherited destroy;
 end;
 
-procedure TSpeedListObject.SetName(const Value: UnicodeString);
+procedure TSpeedListObject.SetName(const Value: string);
 begin
   FName := Value;
   if FSpeedList <> nil then
@@ -283,24 +272,23 @@ end;
 
 function TSpeedStringList.AddObj(const Value: TSpeedListObject): Integer;
 var
-  crc: Integer;
-  i: Integer;
+  Crc: Integer;
+  I: Integer;
 begin
-  crc := StringCrc(Value.Name) mod High(FDatas) + 1;
-  if FDatasUsed[crc] = FLengthDatas[crc] then
-  begin
-    ReallocMem(FDatas[crc], (FLengthDatas[crc] * 2 + 1) * SizeOf(FDatas[1][0]));
-    FLengthDatas[crc] := FLengthDatas[crc] * 2 + 1;
+  Crc := StringCrc(Value.Name) mod High(Datas) + 1;
+  if DatasUsed[Crc] = lengthDatas[Crc] then begin
+    ReallocMem(datas[Crc], (lengthDatas[Crc] * 2 + 1) * SizeOf(datas[1][0]));
+    lengthDatas[Crc] := lengthDatas[Crc] * 2 + 1;
   end;
-  FDatas[crc][FDatasUsed[crc]] := Value;
-  Result := FSumOfUsed[crc] + FDatasUsed[crc];
-  Inc(FDatasUsed[crc]);
-  for i := crc + 1 to High(FSumOfUsed) do
-    Inc(FSumOfUsed[i]);
+  Datas[Crc][DatasUsed[Crc]] := Value;
+  Result := SumOfUsed[Crc] + DatasUsed[Crc];
+  Inc(DatasUsed[Crc]);
+  for I := Crc + 1 to High(SumOfUsed) do
+    Inc(SumOfUsed[I]);
   Value.SpeedList := Self;
 end;
 
-function TSpeedStringList.Add(const Value: UnicodeString): TSpeedListObject;
+function TSpeedStringList.Add(const Value: string): TSpeedListObject;
 begin
   Result := TSpeedListObject.Create(value);
   AddObj(Result);
@@ -314,31 +302,29 @@ end;
 
 procedure TSpeedStringList.Clear;
 var
-  i, j: Integer;
+  I, J: Integer;
 begin
-  for i := Low(FDatas) to High(FDatas) do
-  begin
-    for j := 0 to FDatasUsed[i] - 1 do
-      FDatas[i][j].Free;
-    FDatasUsed[i] := 0;
-    ReallocMem(FDatas[i], 0);
-    FLengthDatas[i] := 0;
-    FSumOfUsed[i] := 0;
+  for I := Low(datas) to High(datas) do begin
+    for J := 0 to DatasUsed[I] - 1 do
+      datas[I][J].free;
+    datasUsed[I] := 0;
+    ReallocMem(datas[I], 0);
+    lengthDatas[I] := 0;
+    SumOfUsed[I] := 0;
   end;
   Changed;
 end;
 
-constructor TSpeedStringList.create;
+constructor TSpeedStringList.Create;
 var
-  i: Integer;
+  I: Integer;
 begin
   inherited Create;
-  for i := Low(FDatas) to high(FDatas) do
-  begin
-    FSumOfUsed[i] := 0;
-    FDatasUsed[i] := 0;
-    FLengthDatas[i] := 0;
-    FDatas[i] := nil;
+  for I := Low(Datas) to High(datas) do begin
+    SumOfUsed[I] := 0;
+    DatasUsed[I] := 0;
+    lengthDatas[I] := 0;
+    datas[I] := nil;
   end;
 end;
 
@@ -348,27 +334,27 @@ begin
   inherited destroy;
 end;
 
-function TSpeedStringList.Find(const name: UnicodeString): TSpeedListObject;
+function TSpeedStringList.Find(const name: string): TSpeedListObject;
 var
-  crc: Integer;
-  i: Integer;
+  Crc: Integer;
+  I: Integer;
 begin
-  crc := StringCrc(name) mod High(FDatas) + 1;
-  for i := 0 to FDatasUsed[crc] - 1 do
-    if FDatas[crc][i].name = name then begin
-      Result := FDatas[crc][i];
+  Crc := StringCrc(name) mod High(Datas) + 1;
+  for I := 0 to DatasUsed[Crc] - 1 do
+    if Datas[Crc][I].name = name then begin
+      Result := Datas[Crc][I];
       Exit;
     end;
   Result := nil;
 end;
 
-function TSpeedStringList.Get(Index: Integer): UnicodeString;
+function TSpeedStringList.Get(Index: Integer): string;
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := Low(FSumOfUsed) + 1 to High(FSumOfUsed) do
-    if Index > FSumOfUsed[i] then begin
-      Result := FDatas[i - 1][Index - FSumOfUsed[i - 1]].name;
+  for I := Low(SumOfUsed) + 1 to High(SumOfUsed) do
+    if Index > SumOfUsed[I] then begin
+      Result := Datas[I - 1][Index - SumOfUsed[I - 1]].name;
       Exit;
     end;
   Result := '';
@@ -376,16 +362,16 @@ end;
 
 function TSpeedStringList.GetCount: Integer;
 begin
-  Result := FSumOfUsed[High(FDatas)] + FDatasUsed[High(FDatas)];
+  Result := SumOfUsed[High(datas)] + DatasUsed[High(Datas)];
 end;
 
 function TSpeedStringList.GetInObject(Index: Integer): TObject;
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := Low(FSumOfUsed) + 1 to High(FSumOfUsed) do
-    if Index > FSumOfUsed[i] then begin
-      Result := FDatas[i - 1][Index - FSumOfUsed[i - 1]].Pointer;
+  for I := Low(SumOfUsed) + 1 to High(SumOfUsed) do
+    if Index > SumOfUSed[I] then begin
+      Result := Datas[I - 1][Index - SumOfUsed[I - 1]].pointer;
       Exit;
     end;
   Result := nil;
@@ -393,50 +379,50 @@ end;
 
 function TSpeedStringList.GetObject(Index: Integer): TSpeedListObject;
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := Low(FSumOfUsed) + 1 to High(FSumOfUsed) do
-    if Index > FSumOfUsed[i] then begin
-      Result := FDatas[i - 1][Index - FSumOfUsed[i - 1]];
+  for I := Low(SumOfUsed) + 1 to High(SumOfUsed) do
+    if Index > SumOfUSed[I] then begin
+      Result := Datas[I - 1][Index - SumOfUsed[I - 1]];
       Exit;
     end;
   Result := nil;
 end;
 
-function TSpeedStringList.GetStringList: TUnicodeStrings;
+function TSpeedStringList.GetStringList: TStrings;
 var
-  i, j: Integer;
+  I, J: Integer;
 begin
-  Result := TUnicodeStringList.Create;
-  for i := Low(FDatas) to High(FDatas) do
-    for j := 0 to FDatasUsed[i] - 1 do
-      Result.add(FDatas[i][j].name);
+  Result := TStringList.Create;
+  for I := Low(Datas) to High(Datas) do
+    for J := 0 to DatasUsed[I] - 1 do
+      Result.add(datas[I][J].name);
 end;
 
-function TSpeedStringList.GetText: UnicodeString;
+function TSpeedStringList.GetText: string;
 begin
   with StringList do begin
     Result := Text;
-    Free;
+    free;
   end;
 end;
 
-procedure TSpeedStringList.NameChange(const Obj: TSpeedListObject; const NewName: UnicodeString);
+procedure TSpeedStringList.NameChange(const Obj: TSpeedListObject; const NewName: string);
 var
-  crc: Integer;
-  i: Integer;
-  j: Integer;
+  Crc: Integer;
+  I: Integer;
+  J: Integer;
 begin
-  crc := StringCrc(obj.Name) mod High(FDatas) + 1;
-  for i := 0 to FDatasUsed[crc] - 1 do
-    if FDatas[crc][i] = Obj then begin
-      for j := i + 1 to FDatasUsed[crc] - 1 do
-        FDatas[i - 1] := FDatas[i];
-      for j := crc + 1 to High(FDatas) do
-        Dec(FSumOfUsed[j]);
-      if FDatasUsed[crc] < FLengthDatas[crc] div 2 then begin
-        ReallocMem(FDatas[crc], FDatasUsed[crc] * SizeOf(FDatas[crc][0]));
-        FLengthDatas[crc] := FDatasUsed[crc];
+  Crc := StringCrc(obj.Name) mod High(Datas) + 1;
+  for I := 0 to DatasUsed[Crc] - 1 do
+    if Datas[Crc][I] = Obj then begin
+      for J := I + 1 to DatasUsed[Crc] - 1 do
+        Datas[I - 1] := Datas[I];
+      for J := Crc + 1 to High(Datas) do
+        Dec(SumOfUsed[J]);
+      if DatasUsed[Crc] < lengthDatas[Crc] div 2 then begin
+        ReallocMem(Datas[Crc], DatasUsed[Crc] * SizeOf(Datas[Crc][0]));
+        lengthDatas[Crc] := DatasUsed[Crc];
       end;
       AddObj(Obj);
       Exit;
@@ -445,18 +431,18 @@ end;
 
 procedure TSpeedStringList.ObjectDeleted(const obj: TSpeedListObject);
 var
-  crc: Integer;
-  i: Integer;
-  j: Integer;
+  Crc: Integer;
+  I: Integer;
+  J: Integer;
 begin
-  crc := StringCrc(obj.Name) mod High(FDatas) + 1;
-  for i := 0 to FDatasUsed[crc] - 1 do
-    if FDatas[crc][i] = Obj then begin
-      for j := i + 1 to FDatasUsed[crc] - 1 do
-        if i > 0 then
-          FDatas[i - 1] := FDatas[i];
-      for j := crc + 1 to High(FDatas) do
-        Dec(FSumOfUsed[j]);
+  Crc := StringCrc(obj.Name) mod High(Datas) + 1;
+  for I := 0 to DatasUsed[Crc] - 1 do
+    if Datas[Crc][I] = Obj then begin
+      for J := I + 1 to DatasUsed[Crc] - 1 do
+        if I > 0 then
+          Datas[I - 1] := Datas[I];
+      for J := Crc + 1 to High(Datas) do
+        Dec(SumOfUsed[J]);
       Obj.FSpeedList := nil;
       Exit;
     end;
@@ -465,34 +451,34 @@ end;
 procedure TSpeedStringList.SetInObject(Index: Integer;
   const Value: TObject);
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := Low(FSumOfUsed) + 1 to High(FSumOfUsed) do
-    if Index > FSumOfUsed[i] then begin
-      FDatas[i - 1][Index - FSumOfUsed[i - 1]].Pointer := value;
+  for I := Low(SumOfUsed) + 1 to High(SumOfUsed) do
+    if Index > SumOfUSed[I] then begin
+      Datas[I - 1][Index - SumOfUsed[I - 1]].pointer := value;
       Exit;
     end;
 end;
 
-procedure TSpeedStringList.SetStringList(const value: TUnicodeStrings);
+procedure TSpeedStringList.SetStringList(const value: TStrings);
 var
-  i: Integer;
+  I: Integer;
 begin
   clear;
-  for i := 0 to Value.Count - 1 do
-    AddObj(TSpeedListObject.Create(value[i]));
+  for I := 0 to Value.Count - 1 do
+    AddObj(TSpeedListObject.Create(value[I]));
 end;
 
-procedure TSpeedStringList.SetText(const Value: UnicodeString);
+procedure TSpeedStringList.SetText(const Value: string);
 var
-  s: TUnicodeStrings;
+  SL: TStrings;
 begin
-  s := TUnicodeStringList.Create;
+  SL := TStringList.Create;
   try
-    s.Text := Value;
-    StringList := s;
+    SL.Text := Value;
+    StringList := SL;
   finally
-    s.Free;
+    SL.Free;
   end;
 end;
 
@@ -500,62 +486,62 @@ end;
 
 constructor TSynHP48Syn.Create(AOwner: TComponent);
 var
-  j, k: Integer;
+  J, K: Integer;
 begin
-  FAttribs[tkNull] := TSynHighlighterAttributes.Create(SYNS_AttrNull, SYNS_FriendlyAttrNull);
-  FAttribs[tkAsmKey] := TSynHighlighterAttributes.Create(SYNS_AttrAsmKey, SYNS_FriendlyAttrAsmKey);
-  FAttribs[tkAsm] := TSynHighlighterAttributes.Create(SYNS_AttrAsm, SYNS_FriendlyAttrAsm);
-  FAttribs[tkAsmComment] := TSynHighlighterAttributes.Create(SYNS_AttrAsmComment, SYNS_FriendlyAttrAsmComment);
-  FAttribs[tksAsmKey] := TSynHighlighterAttributes.Create(SYNS_AttrSASMKey, SYNS_FriendlyAttrSASMKey);
-  FAttribs[tksAsm] := TSynHighlighterAttributes.Create(SYNS_AttrSASM, SYNS_FriendlyAttrSASM);
-  FAttribs[tksAsmComment] := TSynHighlighterAttributes.Create(SYNS_AttrSASMComment, SYNS_FriendlyAttrSASMComment);
-  FAttribs[tkRplKey] := TSynHighlighterAttributes.Create(SYNS_AttrRplKey, SYNS_FriendlyAttrRplKey);
-  FAttribs[tkRpl] := TSynHighlighterAttributes.Create(SYNS_AttrRpl, SYNS_FriendlyAttrRpl);
-  FAttribs[tkRplComment] := TSynHighlighterAttributes.Create(SYNS_AttrRplComment, SYNS_FriendlyAttrRplComment);
+  Attribs[tkNull] := TSynHighlighterAttributes.Create(SYNS_AttrNull, SYNS_FriendlyAttrNull);
+  Attribs[tkAsmKey] := TSynHighlighterAttributes.Create(SYNS_AttrAsmKey, SYNS_FriendlyAttrAsmKey);
+  Attribs[tkAsm] := TSynHighlighterAttributes.Create(SYNS_AttrAsm, SYNS_FriendlyAttrAsm);
+  Attribs[tkAsmComment] := TSynHighlighterAttributes.Create(SYNS_AttrAsmComment, SYNS_FriendlyAttrAsmComment);
+  Attribs[tksAsmKey] := TSynHighlighterAttributes.Create(SYNS_AttrSASMKey, SYNS_FriendlyAttrSASMKey);
+  Attribs[tksAsm] := TSynHighlighterAttributes.Create(SYNS_AttrSASM, SYNS_FriendlyAttrSASM);
+  Attribs[tksAsmComment] := TSynHighlighterAttributes.Create(SYNS_AttrSASMComment, SYNS_FriendlyAttrSASMComment);
+  Attribs[tkRplKey] := TSynHighlighterAttributes.Create(SYNS_AttrRplKey, SYNS_FriendlyAttrRplKey);
+  Attribs[tkRpl] := TSynHighlighterAttributes.Create(SYNS_AttrRpl, SYNS_FriendlyAttrRpl);
+  Attribs[tkRplComment] := TSynHighlighterAttributes.Create(SYNS_AttrRplComment, SYNS_FriendlyAttrRplComment);
 
   inherited Create(AOwner);
   SetHighlightChange;
   FAsmKeyWords := TSpeedStringList.Create;
   FAsmKeyWords.Text := DefaultAsmKeyWords;
-  for j := Low(OtherAsmKeyWords) to High(OtherAsmKeyWords) do begin
-    FAsmKeyWords.AddObj(TSpeedListObject.Create(OtherAsmKeyWords[j]));
-    for k := 1 to 8 do
-      FAsmKeyWords.AddObj(TSpeedListObject.Create(OtherAsmKeyWords[j] + IntToStr(k)));
+  for J := Low(OtherAsmKeyWords) to High(OtherAsmKeyWords) do begin
+    FAsmKeyWords.AddObj(TSpeedListObject.Create(OtherAsmKeyWords[J]));
+    for K := 1 to 8 do
+      FAsmKeyWords.AddObj(TSpeedListObject.Create(OtherAsmKeyWords[J] + IntToStr(K)));
   end;
   FRplKeyWords := TSpeedStringList.Create;
   FRplKeyWords.Text := DefaultRplKeyWords;
   FSAsmNoField := TSpeedStringList.Create;
   FSAsmNoField.Text := SAsmNoField;
   BaseRange := rsRpl;
-  FRange := rsRpl;
-  FDefaultFilter := SYNS_FilterHP48;
+  fRange := rsRpl;
+  fDefaultFilter := SYNS_FilterHP48;
 end; { Create }
 
 destructor TSynHP48Syn.Destroy;
 var
-  i: TtkTokenKind;
+  I: TtkTokenKind;
 begin
-  for i := Low(TtkTokenKind) to High(TtkTokenKind) do
-    FAttribs[i].Free;
+  for I := Low(TtkTokenKind) to High(TtkTokenKind) do
+    Attribs[I].Free;
   FAsmKeyWords.Free;
   FRplKeyWords.Free;
-  FSAsmNoField.Free;
+  FSAsmNoField.free;
   inherited Destroy;
 end; { Destroy }
 
 function TSynHP48Syn.AsmComProc(c: WideChar): TtkTokenKind;
 begin
   Result := tkAsmComment;
-  if (Run > Length(FLineStr)) then
+  if (Run > Length(fLineStr)) then
     Result := NullProc
   else
-    while Run <= Length(FLineStr) do
-      if ((Run = 1) or (FLineStr[Run - 1] <= ' ')) and
-        (FLineStr[Run] = '*') and
-        ((Run < Length(FLineStr)) and (FLineStr[Run + 1] = c)) and
-        ((Run + 1 = Length(FLineStr)) or (FLineStr[Run + 2] <= ' ')) then begin
-        Inc(Run, 2);
-        FRange := rsAsm;
+    while Run <= Length(fLineStr) do
+      if ((run = 1) or (fLineStr[run - 1] <= ' ')) and
+        (fLineStr[Run] = '*') and
+        ((run < Length(fLineStr)) and (fLineStr[run + 1] = c)) and
+        ((run + 1 = Length(fLineStr)) or (fLineStr[run + 2] <= ' ')) then begin
+        Inc(run, 2);
+        fRange := rsAsm;
         Break;
       end
       else
@@ -565,13 +551,13 @@ end;
 function TSynHP48Syn.RplComProc: TtkTokenKind;
 begin
   Result := tkRplComment;
-  if (Run > Length(FLineStr)) then
+  if (Run > Length(fLineStr)) then
     Result := NullProc
   else
-    while Run <= Length(FLineStr) do
-      if FLineStr[Run] = ')' then begin
-        Inc(Run);
-        FRange := rsRpl;
+    while Run <= Length(fLineStr) do
+      if fLineStr[Run] = ')' then begin
+        Inc(run);
+        fRange := rsRpl;
         Break;
       end
       else
@@ -580,22 +566,22 @@ end;
 
 function TSynHP48Syn.SlashProc: TtkTokenKind;
 begin
-  if FRange = rsRpl then
+  if fRange = rsRpl then
     Result := IdentProc
-  else if ((Run = 1) or (FLineStr[Run - 1] <= ' ')) and
-    (FLineStr[Run] = '/') and
-    (Run < Length(FLineStr)) and
-    (FLineStr[Run + 1] = '*') and
-    ((Run + 1 = Length(FLineStr)) or (FLineStr[Run + 2] <= ' ')) then begin
+  else if ((Run = 1) or (fLineStr[Run - 1] <= ' ')) and
+    (fLineStr[Run] = '/') and
+    (run < Length(fLineStr)) and
+    (fLineStr[run + 1] = '*') and
+    ((run + 1 = Length(fLineStr)) or (fLineStr[Run + 2] <= ' ')) then begin
     Inc(Run, 2);
     Result := tkAsmComment;
-    FRange := rsComAsm2;
+    fRange := rsComAsm2;
   end
-  else if (Run < Length(FLineStr)) and (FLineStr[Run + 1] = '/') then begin
+  else if (run < Length(fLineStr)) and (fLineStr[Run + 1] = '/') then begin
     Inc(Run, 2);
     Result := tkAsmComment;
-    while (Run <= Length(FLineStr)) do
-      if CharInSet(FLineStr[Run], [#10, #13]) then
+    while (run <= Length(fLineStr)) do
+      if CharInSet(fLineStr[Run], [#10, #13]) then
       begin
         Inc(Run);
         Break;
@@ -609,23 +595,23 @@ end;
 
 function TSynHP48Syn.ParOpenProc: TtkTokenKind;
 begin
-  if FRange = rsRpl then
-    if ((Run = 1) and ((Length(FLineStr) = 1) or (FLineStr[Run + 1] <= ' '))) or
-      ((FLineStr[Run - 1] <= ' ') and ((Length(FLineStr) = Run) or (FLineStr[Run + 1] <= ' '))) then begin
+  if fRange = rsRpl then
+    if ((Run = 1) and ((Length(fLineStr) = 1) or (fLineStr[Run + 1] <= ' '))) or
+      ((fLineStr[Run - 1] <= ' ') and ((Length(fLineStr) = Run) or (fLineStr[Run + 1] <= ' '))) then begin
       Inc(Run);
       Result := tkRplComment;
-      FRange := rsComRpl;
+      fRange := rsComRpl;
     end
     else
       Result := IdentProc
-  else if ((Run = 1) or (FLineStr[Run - 1] <= ' ')) and
-    (FLineStr[Run] = '(') and
-    (Run < Length(FLineStr)) and
-    (FLineStr[Run + 1] = '*') and
-    ((Run + 2 > Length(FLineStr)) or (FLineStr[Run + 2] <= ' ')) then begin
+  else if ((run = 1) or (fLineStr[run - 1] <= ' ')) and
+    (fLineStr[Run] = '(') and
+    (run < Length(fLineStr)) and
+    (fLineStr[run + 1] = '*') and
+    ((run + 2 > Length(fLineStr)) or (fLineStr[run + 2] <= ' ')) then begin
     Inc(Run, 2);
     Result := tkAsmComment;
-    FRange := rsComAsm1;
+    fRange := rsComAsm1;
   end
   else
     Result := IdentProc
@@ -633,11 +619,11 @@ end;
 
 function TSynHP48Syn.PersentProc: TtkTokenKind;
 begin
-  if FRange = rsAsm then begin
+  if fRange = rsAsm then begin
     Inc(Run);
     Result := tkAsmComment;
-    while (Run <= Length(FLineStr)) do
-      case FLineStr[Run] of
+    while (run <= Length(fLineStr)) do
+      case fLineStr[Run] of
         #10, #13: begin
             Inc(Run);
             Break;
@@ -652,11 +638,11 @@ end;
 
 function TSynHP48Syn.StarProc: TtkTokenKind;
 begin
-  if FRange = rsRpl then begin
+  if fRange = rsRpl then begin
     Inc(Run);
     Result := tkRplComment;
-    while (Run <= Length(FLineStr)) do
-      case FLineStr[Run] of
+    while (run <= Length(fLineStr)) do
+      case fLineStr[Run] of
         #10, #13: begin
             Inc(Run);
             Break;
@@ -671,31 +657,31 @@ end;
 
 function TSynHP48Syn.IdentProc: TtkTokenKind;
 var
-  i: Integer;
-  s: UnicodeString;
+  I: Integer;
+  s: string;
 begin
-  i := Run;
+  I := Run;
   EndOfToken;
-  s := Copy(FLineStr, i, Run - i);
-  if FRange = rsAsm then
+  s := Copy(fLineStr, I, run - I);
+  if fRange = rsAsm then
     if FAsmKeyWords.Find(s) <> nil then
       if (s = '!RPL') or (s = 'ENDCODE') then begin
-        FRange := rsRpl;
+        fRange := rsRpl;
         Result := tkAsmKey;
       end
       else
         Result := tkAsmKey
-    else if FLineStr[i] <> '*' then
+    else if fLineStr[I] <> '*' then
       Result := tkAsm
     else
       Result := tkAsmKey
   else if FRplKeyWords.Find(s) <> nil then
     if (s = 'CODEM') or (s = 'ASSEMBLEM') then begin
-      FRange := rsAsm;
+      fRange := rsAsm;
       Result := tkAsmKey;
     end
     else if (s = 'CODE') or (s = 'ASSEMBLE') then begin
-      FRange := rssAsm1;
+      fRange := rssAsm1;
       Result := tksAsmKey;
     end
     else
@@ -706,7 +692,7 @@ end;
 
 function TSynHP48Syn.GetTokenFromRange: TtkTokenKind;
 begin
-  case FRange of
+  case frange of
     rsAsm: Result := tkAsm;
     rssAsm1: Result := tksAsmKey;
     rssAsm2: Result := tksAsm;
@@ -728,37 +714,37 @@ end;
 function TSynHP48Syn.SpaceProc: TtkTokenKind;
 begin
   Inc(Run);
-  while (Run <= Length(FLineStr)) and CharInSet(FLineStr[Run], [#1..#32]) do
+  while (Run <= Length(fLineStr)) and CharInSet(fLineStr[Run], [#1..#32]) do
     Inc(Run);
   Result := GetTokenFromRange;
 end;
 
 function TSynHP48Syn.Next1: TtkTokenKind;
 begin
-  FTokenPos := Run - 1;
-  if Run > Length(FLineStr) then
+  fTokenPos := Run - 1;
+  if Run > Length(fLineStr) then
     Result := NullProc
-  else if FRange = rsComRpl then
+  else if fRange = rsComRpl then
     Result := RplComProc
-  else if FRange = rsComAsm1 then
+  else if fRange = rsComAsm1 then
     Result := AsmComProc(')')
-  else if FRange = rsComAsm2 then
+  else if fRange = rsComAsm2 then
     Result := AsmComProc('/')
-  else if FRange = rssasm1 then
+  else if frange = rssasm1 then
     Result := SasmProc1
-  else if FRange = rssasm2 then
+  else if frange = rssasm2 then
     Result := sasmproc2
-  else if FRange = rssasm3 then
+  else if frange = rssasm3 then
     Result := sasmproc3
-  else if CharInSet(FLineStr[Run], [#1..#32]) then
+  else if CharInSet(fLineStr[Run], [#1..#32]) then
     Result := SpaceProc
-  else if FLineStr[Run] = '(' then
+  else if fLineStr[Run] = '(' then
     Result := ParOpenProc
-  else if FLineStr[Run] = '%' then
+  else if fLineStr[Run] = '%' then
     Result := PersentProc
-  else if FLineStr[Run] = '/' then
+  else if fLineStr[Run] = '/' then
     Result := SlashProc
-  else if (Run = 1) and (FRange = rsRpl) and (FLineStr[1] = '*') then
+  else if (run = 1) and (fRange = rsRpl) and (fLineStr[1] = '*') then
     Result := StarProc
   else
     Result := IdentProc;
@@ -766,7 +752,7 @@ end;
 
 procedure TSynHP48Syn.Next2(tkk: TtkTokenKind);
 begin
-  FTockenKind := tkk;
+  fTockenKind := tkk;
 end;
 
 procedure TSynHP48Syn.Next;
@@ -777,45 +763,45 @@ end;
 
 function TSynHP48Syn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 2;
+  Result := Run = fLineLen + 2;
 end;
 
 function TSynHP48Syn.GetRange: Pointer;
 begin
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 end;
 
 procedure TSynHP48Syn.SetRange(Value: Pointer);
 begin
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 end;
 
 procedure TSynHP48Syn.ResetRange;
 begin
-  FRange := BaseRange;
+  fRange := BaseRange;
 end;
 
 function TSynHP48Syn.GetAttrib(Index: Integer): TSynHighlighterAttributes;
 begin
-  Result := FAttribs[TtkTokenKind(Index)];
+  Result := Attribs[TtkTokenKind(Index)];
 end;
 
 procedure TSynHP48Syn.SetAttrib(Index: Integer; Value: TSynHighlighterAttributes);
 begin
-  FAttribs[TtkTokenKind(Index)].Assign(Value);
+  Attribs[TtkTokenKind(Index)].Assign(Value);
 end;
 
 procedure TSynHP48Syn.EndOfToken;
 begin
-  while (Run <= Length(FLineStr)) and (FLineStr[Run] > ' ') do
+  while (Run <= Length(fLineStr)) and (fLineStr[Run] > ' ') do
     Inc(Run);
 end;
 
 function TSynHP48Syn.LoadFromRegistry(RootKey: HKEY; Key: string): Boolean;
 var
-  r: TBetterRegistry;
+  r: TRegistry;
 begin
-  r := TBetterRegistry.Create;
+  r := TRegistry.Create;
   try
     r.RootKey := RootKey;
     if r.OpenKeyReadOnly(Key) then begin
@@ -827,42 +813,38 @@ begin
     end
     else
       Result := False;
-  finally
-    r.Free;
+  finally r.Free;
   end;
 end;
 
 function TSynHP48Syn.SaveToRegistry(RootKey: HKEY; Key: string): Boolean;
 var
-  r: TBetterRegistry;
+  r: TRegistry;
 begin
-  r := TBetterRegistry.Create;
+  r := TRegistry.Create;
   try
     r.RootKey := RootKey;
-    if r.OpenKey(Key, true) then begin
-      {$IFNDEF SYN_COMPILER_25_UP}
-      Result := true;
-      {$ENDIF}
+    if r.OpenKey(Key, True) then
+    begin
       r.WriteString('AsmKeyWordList', AsmKeywords.Text);
       r.WriteString('RplKeyWordList', RplKeywords.Text);
       Result := inherited SaveToRegistry(RootKey, Key);
     end
     else
       Result := False;
-  finally
-    r.Free;
+  finally r.Free;
   end;
 end;
 
 procedure TSynHP48Syn.Assign(Source: TPersistent);
 var
-  i: TtkTokenKind;
+  I: TtkTokenKind;
 begin
   if Source is TSynHP48Syn then begin
-    for i := Low(FAttribs) to High(FAttribs) do begin
-      FAttribs[i].Background := TSynHP48Syn(source).FAttribs[i].Background;
-      FAttribs[i].Foreground := TSynHP48Syn(source).FAttribs[i].Foreground;
-      FAttribs[i].Style := TSynHP48Syn(source).FAttribs[i].Style;
+    for I := Low(Attribs) to High(Attribs) do begin
+      Attribs[I].Background := TSynHP48Syn(source).Attribs[I].Background;
+      Attribs[I].Foreground := TSynHP48Syn(source).Attribs[I].Foreground;
+      Attribs[I].Style := TSynHP48Syn(source).Attribs[I].Style;
     end;
     AsmKeyWords.Text := TSynHP48Syn(source).AsmKeyWords.Text;
     RplKeyWords.Text := TSynHP48Syn(source).RplKeyWords.Text;
@@ -873,20 +855,20 @@ end;
 
 function TSynHP48Syn.GetAttribCount: Integer;
 begin
-  Result := Ord(High(FAttribs)) - Ord(Low(FAttribs)) + 1;
+  Result := Ord(High(Attribs)) - Ord(Low(Attribs)) + 1;
 end;
 
-function TSynHP48Syn.GetAttribute(idx: Integer): TSynHighlighterAttributes;
+function TSynHP48Syn.GetAttribute(Idx: Integer): TSynHighlighterAttributes;
 begin // sorted by name
-  if (idx <= Ord(High(TtkTokenKind))) then
-    Result := FAttribs[TtkTokenKind(idx)]
+  if (Idx <= Ord(High(TtkTokenKind))) then
+    Result := Attribs[TtkTokenKind(Idx)]
   else
     Result := nil;
 end;
 
 function TSynHP48Syn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterHP48;
+  Result := fDefaultFilter <> SYNS_FilterHP48;
 end;
 
 class function TSynHP48Syn.GetLanguageName: string;
@@ -896,98 +878,98 @@ end;
 
 procedure TSynHP48Syn.SetHighLightChange;
 var
-  i: TtkTokenKind;
+  I: TtkTokenKind;
 begin
-  for i := Low(FAttribs) to High(FAttribs) do begin
-    FAttribs[i].OnChange := DefHighLightChange;
-    FAttribs[i].InternalSaveDefaultValues;
+  for I := Low(Attribs) to High(Attribs) do begin
+    Attribs[I].OnChange := DefHighLightChange;
+    Attribs[I].InternalSaveDefaultValues;
   end;
 end;
 
 function TSynHP48Syn.SasmProc1: TtkTokenKind;
 var
-  i: Integer;
-  s: UnicodeString;
+  I: Integer;
+  s: string;
 begin
   Result := tksAsmKey;
-  if Run > Length(FLineStr) then
+  if run > Length(fLineStr) then
     Exit;
-  if FLineStr[Run] = '*' then begin
-    FRange := rssasm3;
+  if fLineStr[Run] = '*' then begin
+    frange := rssasm3;
     Result := tksAsmComment;
     Exit;
   end;
-  if FLineStr[Run] >= ' ' then begin
-    i := Run;
-    while (Run <= Length(FLineStr)) and (FLineStr[Run] > ' ') do
-      Inc(Run);
-    s := Copy(FLineStr, i, Run - i);
+  if fLineStr[Run] >= ' ' then begin
+    I := run;
+    while (run <= Length(fLineStr)) and (fLineStr[run] > ' ') do
+      Inc(run);
+    s := Copy(fLineStr, I, run - I);
     if (s = 'RPL') or (s = 'ENDCODE') then begin
-      FRange := rsRpl;
+      frange := rsRpl;
       Exit;
     end;
   end;
-  while (Run <= Length(FLineStr)) and (FLineStr[Run] <= ' ') and (FLineStr[Run] <> #10) do
-    Inc(Run);
-  if Run <= Length(FLineStr) then
-    FRange := rssasm2
+  while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
+    Inc(run);
+  if run <= Length(fLineStr) then
+    frange := rssasm2
   else
-    FRange := rssasm1;
+    frange := rssasm1;
 end;
 
 function TSynHP48Syn.SasmProc2: TtkTokenKind;
 var
-  i: Integer;
-  s: UnicodeString;
+  I: Integer;
+  s: string;
 begin
   Result := tksAsm;
-  while (Run <= Length(FLineStr)) and (FLineStr[Run] <= ' ') and (FLineStr[Run] <> #10) do
-    Inc(Run);
-  if Run > 30 then begin
-    FRange := rssasm3;
+  while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
+    Inc(run);
+  if run > 30 then begin
+    frange := rssasm3;
     Exit;
   end;
-  i := Run;
-  while (Run <= Length(FLineStr)) and (FLineStr[Run] > ' ') do
-    Inc(Run);
-  s := Copy(FLineStr, i, Run - i);
+  I := run;
+  while (run <= Length(fLineStr)) and (fLineStr[run] > ' ') do
+    Inc(run);
+  s := Copy(fLineStr, I, run - I);
   if (s = 'ENDCODE') or (s = 'RPL') then begin
-    FRange := rsRpl;
+    frange := rsRpl;
     Result := tksAsmKey;
   end
   else begin
     if FSAsmNoField.Find(s) = nil then begin
-      while (Run <= Length(FLineStr)) and (FLineStr[Run] <= ' ') and (FLineStr[Run] <> #10) do
-        Inc(Run);
-      while (Run <= Length(FLineStr)) and (FLineStr[Run] > ' ') do
-        Inc(Run);
-      while (Run <= Length(FLineStr)) and (FLineStr[Run] <= ' ') and (FLineStr[Run] <> #10) do
-        Inc(Run);
+      while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
+        Inc(run);
+      while (run <= Length(fLineStr)) and (fLineStr[run] > ' ') do
+        Inc(run);
+      while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
+        Inc(run);
     end;
-    if Run <= Length(FLineStr) then
-      FRange := rssasm3
+    if run <= Length(fLineStr) then
+      frange := rssasm3
     else
-      FRange := rssasm1;
+      frange := rssasm1;
   end;
 end;
 
 function TSynHP48Syn.SasmProc3: TtkTokenKind;
 begin
   Result := tksAsmComment;
-  while (Run <= Length(FLineStr)) and (FLineStr[Run] <> #10) do
-    Inc(Run);
-  if Run <= Length(FLineStr) then Inc(Run);
-  FRange := rssasm1;
+  while (run <= Length(fLineStr)) and (fLineStr[run] <> #10) do
+    Inc(run);
+  if run <= Length(fLineStr) then Inc(run);
+  frange := rssasm1;
 end;
 
 function TSynHP48Syn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  Result := GetAttrib(Ord(FTockenKind));
+  Result := GetAttrib(Ord(fTockenKind));
 end;
 
 function TSynHP48Syn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTockenKind);
+  Result := Ord(fTockenKind);
 end;
 
 function TSynHP48Syn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
@@ -998,7 +980,7 @@ end;
 // reimplement functions to handle the non-standard use of 1-based Run
 // (instead of the standard 0-based Run)
 
-procedure TSynHP48Syn.DoSetLine(const Value: UnicodeString;
+procedure TSynHP48Syn.DoSetLine(const Value: string;
   LineNumber: Integer);
 begin
   inherited;
@@ -1006,28 +988,26 @@ begin
   fOldRun := Run;
 end;
 
-function TSynHP48Syn.GetToken: UnicodeString;
+function TSynHP48Syn.GetToken: string;
 var
   Len: Integer;
 begin
-  Len := (Run - 1) - FTokenPos;
+  Len := (Run - 1) - fTokenPos;
   SetLength(Result, Len);
   if Len > 0 then
-    WStrLCopy(@Result[1], fCasedLine + FTokenPos, Len);
+    StrLCopy(@Result[1], fCasedLine + fTokenPos, Len);
 end;
 
 function TSynHP48Syn.IsLineEnd(Run: Integer): Boolean;
 begin
-  Result := (Run - 1 >= FLineLen) or (FLine[Run - 1] = #10) or (FLine[Run - 1] = #13);
+  Result := (Run - 1 >= fLineLen) or (fLine[Run - 1] = #10) or (fLine[Run - 1] = #13);
 end;
 
-class function TSynHP48Syn.GetFriendlyLanguageName: UnicodeString;
+class function TSynHP48Syn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangHP48;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynHP48Syn);
-{$ENDIF}
 end.

@@ -2,7 +2,7 @@
 {                                                                              }
 {  StyledTaskDialog: a Task Dialog Component with StyleButtons                 }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -32,11 +32,13 @@ interface
 uses
   System.SysUtils
   , System.Classes
+  , System.UITypes
   , WinApi.Windows
   , Vcl.Dialogs
   , Vcl.Graphics
   , Vcl.Forms
   , Vcl.ButtonStylesAttributes
+  , Vcl.StyledButton
   ;
 
 const
@@ -55,12 +57,22 @@ const
   DEFAULT_MAIN_ICON_SIZE = 64;
   {$ENDIF}
 
+  tdiQuestion = 5;
+
 type
+  //A new TTaskDialogIcon Value for StyledComponents to
+  //include tdiQuestion Value
+
   TStyledDialogIcons = array[TMsgDlgType] of TIcon;
+  TOnFindDialogButtonEvent = function (const AModalResult: TModalResult): TStyledButton of object;
+  EStyledTaskDialogException = class(Exception);
 
 {$WARN SYMBOL_PLATFORM OFF}
-{ TaskDialog based message dialog; requires Windows Vista or later }
+
 type
+  TTaskDialogShow = procedure(
+    const AStyledTaskDialogForm: TForm) of Object;
+
   { TStyledTaskDialog }
   [ComponentPlatforms(pidWin32 or pidWin64)]
   TStyledTaskDialog = class(TTaskDialog)
@@ -77,33 +89,50 @@ type
     FButtonsHeight: Integer;
     FAutoClick: Boolean;
     FAutoClickDelay: Integer;
+    FOnFindDialogButton: TOnFindDialogButtonEvent;
+    FUseAnimations: Boolean;
+    FUseMessageDefaultButton: Boolean;
+    FMessageDefaultButton: TMsgDlgBtn;
+    FDefineDialogSize: TTaskDialogShow;
+    FHideSystemCloseButton: Boolean;
     function IsDefaultFamily: Boolean;
     procedure SetAutoClick(const AValue: Boolean);
     procedure SetAutoClickDelay(const AValue: Integer);
     procedure SetAlphaBlendValue(const AValue: Byte);
     procedure SetButtonsHeight(const AValue: Integer);
     procedure SetButtonsWidth(const AValue: Integer);
+    function GetFlags: TTaskDialogFlags;
+    procedure SetFlags(const AValue: TTaskDialogFlags);
   strict protected
     function DoExecute(ParentWnd: HWND): Boolean; override;
     procedure DoOnDialogCreated; override;
     procedure DoOnHelp; override;
   public
+    procedure DoOnExpandButtonClicked(Expanded: Boolean); override;
     procedure DoOnRadioButtonClicked(ButtonID: Integer); override;
     procedure DoOnHyperlinkClicked(const AURL: string); override;
     constructor Create(AOwner: TComponent); override;
     function Execute(ParentWnd: HWND): Boolean; overload; override;
+    function FindDialogButton(const AModalResult: TModalResult): TStyledButton;
+    property MessageDefaultButton: TMsgDlgBtn read FMessageDefaultButton;
+    property UseMessageDefaultButton: Boolean read FUseMessageDefaultButton;
     property HelpFile: string read FHelpFile write FHelpFile;
     property Position: TPoint read FPosition write FPosition;
     property MainIconSize: Integer read FMainIconSize write FMainIconSize default DEFAULT_MAIN_ICON_SIZE;
+    property OnFindDialogButton: TOnFindDialogButtonEvent read FOnFindDialogButton write FOnFindDialogButton;
   published
     property AutoClick: Boolean read FAutoClick write SetAutoClick default False;
     property AutoClickDelay: Integer read FAutoClickDelay write SetAutoClickDelay default DEFAULT_AUTOCLICK_DELAY;
     property DialogButtonsFamily: TStyledButtonFamily read FDialogButtonsFamily write FDialogButtonsFamily stored IsDefaultFamily;
     property UseCommandLinks: Boolean read FUseCommandLinks write FUseCommandLinks default False;
+    property UseAnimations: Boolean read FUseAnimations write FUseAnimations default false;
     property UseTitleInMessageDlg: Boolean read FUseTitleInMessageDlg write FUseTitleInMessageDlg default True;
     property AlphaBlendValue: Byte read FAlphaBlendValue write SetAlphaBlendValue default DEFAULT_STYLEDDIALOG_ALPHABLEND;
     property ButtonsWidth: Integer read FButtonsWidth write SetButtonsWidth default DEFAULT_STYLEDDIALOG_BUTTONSWIDTH;
     property ButtonsHeight: Integer read FButtonsHeight write SetButtonsHeight default DEFAULT_STYLEDDIALOG_BUTTONSHEIGHT;
+    property Flags: TTaskDialogFlags read GetFlags write SetFlags default [tfAllowDialogCancellation, tfPositionRelativeToWindow];
+    property HideSystemCloseButton: Boolean read FHideSystemCloseButton write FHideSystemCloseButton default False;
+    property OnDialogShow: TTaskDialogShow read FDefineDialogSize write FDefineDialogSize;
   end;
 
   //Abstraction of a Dialog Launcher
@@ -205,6 +234,10 @@ function GetDialogAlphaBlendValue: Byte;
 function MsgDlgBtnToDefaultBtn(const ABtn: TMsgDlgBtn): TTaskDialogCommonButton;
 
 //Global Initialization procedures (different versions)
+procedure InitializeStyledTaskDialogs(AFont: TFont); overload;
+
+procedure InitializeStyledTaskDialogs(AUseAnimations: Boolean); overload;
+
 procedure InitializeStyledTaskDialogs(
   const ADialogButtonsFamily: TStyledButtonFamily = '';
   const AUseCommandLinks: Boolean = False;
@@ -230,16 +263,15 @@ uses
   , System.WideStrUtils
   , Winapi.MultiMon
   , System.HelpIntfs
-  , System.UITypes
   , Vcl.Controls
   , Vcl.StdCtrls
   , Vcl.ExtCtrls
   , Vcl.Consts
   , Winapi.ShellApi
   , Vcl.StyledCmpMessages
-  , Vcl.StyledButton
   , Vcl.StandardButtonStyles
   , Vcl.StyledCmpStrUtils
+  , Vcl.StyledTaskDialogFormUnit
   , Vcl.StyledTaskDialogStdUnit
   ;
 
@@ -247,6 +279,7 @@ var
   _TaskDialogExecute: ITaskDialogLauncher;
   _DialogButtonsFamily: TStyledButtonFamily;
   _CustomIcons: TStyledDialogIcons;
+  _UseAnimations: Boolean;
   _DialogFont: TFont;
   _UseCommandLinks: Boolean;
   _UseTitleInMessageDlg: boolean;
@@ -294,14 +327,14 @@ function InternalDoTaskMessageDlgPosHelp(const Instruction, Msg: string;
   const CustomButtonCaptions: array of string): Integer;
 const
   IconMap: array[TMsgDlgType] of TTaskDialogIcon = (tdiWarning, tdiError,
-    tdiInformation, tdiInformation, tdiNone);
+    tdiInformation, tdiQuestion, tdiShield);
   LModalResults: array[TMsgDlgBtn] of Integer = (mrYes, mrNo, mrOk, mrCancel,
     mrAbort, mrRetry, mrIgnore, mrAll, mrNoToAll, mrYesToAll, mrHelp, mrClose);
 var
   DlgBtn: TMsgDlgBtn;
   LTaskDialog: TStyledTaskDialog;
   LTaskDialogButtonItem: TTaskDialogButtonItem;
-  LUseCommandLinks: Boolean;
+  LCommandLinkPresent: Boolean;
   LIndex: Integer;
 begin
   //At least OK Button
@@ -311,6 +344,13 @@ begin
   Application.ModalStarted;
   LTaskDialog := TStyledTaskDialog.Create(nil);
   try
+    //Reset default CommonButtons
+    LTaskDialog.Flags := LTaskDialog.Flags + [tfPositionRelativeToWindow];
+    LTaskDialog.CommonButtons := [];
+    //To inform the Dialog Form to use the Default Button specified in MessageDlg
+    LTaskDialog.FUseMessageDefaultButton := True;
+    LTaskDialog.FMessageDefaultButton := DefaultButton;
+    LTaskDialog.UseAnimations :=  _UseAnimations;
     LTaskDialog.AutoClick := AutoClickDelay > 0;
     if LTaskDialog.AutoClick then
       LTaskDialog.AutoClickDelay := AutoClickDelay;
@@ -319,11 +359,29 @@ begin
       LTaskDialog.Flags := AlternateTaskDlgFlags; //Replace the default Flags to AlternateTaskDlgFlags.
     // Assign buttons
     LIndex := -1;
-    LUseCommandLinks := True;
+    LCommandLinkPresent := False;
     for DlgBtn := Low(TMsgDlgBtn) to High(TMsgDlgBtn) do
     begin
+      //Check for particular case using command links:
+      if UseCommandLinks then
+      begin
+        //if mbYes and mbOK are both present with "UseCommandLinks", then tcbOk is used as CommonButton
+        if (DlgBtn = TMsgDlgBtn.mbOK) and (DlgBtn in Buttons) and (TMsgDlgBtn.mbYes in Buttons) then
+        begin
+          LTaskDialog.CommonButtons := LTaskDialog.CommonButtons + [TTaskDialogCommonButton.tcbOk];
+          Continue;
+        end;
+        //if mbNo and mbCancel are both present with "UseCommandLinks", then tcbCancel is used as CommonButton
+        if (DlgBtn = TMsgDlgBtn.mbCancel) and (DlgBtn in Buttons) and (TMsgDlgBtn.mbNo in Buttons) then
+        begin
+          LTaskDialog.CommonButtons := LTaskDialog.CommonButtons + [TTaskDialogCommonButton.tcbCancel];
+          Continue;
+        end;
+      end;
+
       if DlgBtn in Buttons then
       begin
+        //if a Button is "common", add only if not using CommandLinks
         LTaskDialogButtonItem := LTaskDialog.Buttons.Add as TTaskDialogButtonItem;
         Inc(LIndex);
         if LIndex <= High(CustomButtonCaptions) then
@@ -360,7 +418,9 @@ begin
           mbNoToAll: LTaskDialogButtonItem.CommandLinkHint := Format('%s %s', [STR_CANCEL, STR_THE_OPERATION]);
           mbYesToAll: LTaskDialogButtonItem.CommandLinkHint := Format('%s %s', [STR_CONFIRM, STR_THE_OPERATION]);
         end;
-        LUseCommandLinks := LUseCommandLinks and (LTaskDialogButtonItem.CommandLinkHint <> '');
+
+        if LTaskDialogButtonItem.CommandLinkHint <> '' then
+          LCommandLinkPresent := UseCommandLinks;
 
         if DlgBtn = DefaultButton then
           LTaskDialogButtonItem.Default := True;
@@ -370,13 +430,12 @@ begin
 
     //use Captions defined in Vcl.StyledCmpMessages.pas
     LTaskDialog.Caption := GetDialogTypeTitle(DlgType);
-    LTaskDialog.CommonButtons := [];
     if Not UseAlternateTaskDlgFlags and Application.UseRightToLeftReading then
       LTaskDialog.Flags := LTaskDialog.Flags + [tfRtlLayout];
     if pos('<A HREF=',Msg) > 0 then
       LTaskDialog.Flags := LTaskDialog.Flags + [tfEnableHyperlinks];
 
-    if LTaskDialog.UseCommandLinks and LUseCommandLinks then
+    if LTaskDialog.UseCommandLinks and LCommandLinkPresent then
       LTaskDialog.Flags := LTaskDialog.Flags + [tfUseCommandLinks];
 
     LTaskDialog.HelpContext := HelpCtx;
@@ -485,7 +544,8 @@ end;
 function StyledMessageDlg(const Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer; overload;
 begin
-  Result := DoStyledTaskMessageDlgPosHelp('', Msg, DlgType, Buttons, HelpCtx);
+  Result := DoStyledTaskMessageDlgPosHelp('', Msg, DlgType, Buttons, HelpCtx,
+    -1, -1, _AutoClickDelay, _UseCommandLinks);
 end;
 
 function StyledMessageDlg(const Title, Msg: string; DlgType: TMsgDlgType;
@@ -534,7 +594,24 @@ function StyledMessageDlgPos(const Msg: string; DlgType: TMsgDlgType;
   X: Integer; Y: Integer): Integer;
 begin
   Result := DoStyledTaskMessageDlgPosHelp('', Msg, DlgType, Buttons,
-    HelpCtx, DefaultButton, X, Y);
+    HelpCtx, DefaultButton, X, Y, -1, _UseCommandLinks, '');
+end;
+
+procedure InitializeStyledTaskDialogs(AUseAnimations: Boolean);
+begin
+  _UseAnimations  := AUseAnimations;
+end;
+
+procedure InitializeStyledTaskDialogs(AFont: TFont);
+begin
+  if Assigned(AFont) then
+  begin
+    if not Assigned(_DialogFont) then
+      _DialogFont := TFont.Create;
+    _DialogFont.Assign(AFont);
+  end
+  else
+    FreeAndNil(_DialogFont);
 end;
 
 procedure InitializeStyledTaskDialogs(
@@ -621,6 +698,8 @@ begin
     Result := TMsgDlgType.mtError
   else if AIcon = tdiInformation then
     Result := TMsgDlgType.mtInformation
+  else if AIcon = tdiQuestion then
+    Result := TMsgDlgType.mtConfirmation
   else if AIcon = tdiShield then
     Result := TMsgDlgType.mtCustom
   else
@@ -630,25 +709,29 @@ end;
 function StyledTaskMessageDlg(const Title, Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer; overload;
 begin
-  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx);
+  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx,
+    -1, -1, _AutoClickDelay, _UseCommandLinks);
 end;
 
 function StyledTaskMessageDlg(const Title, Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint; DefaultButton: TMsgDlgBtn): Integer; overload;
 begin
-  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx, DefaultButton);
+  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx, DefaultButton,
+    -1, -1, _AutoClickDelay, _UseCommandLinks, '');
 end;
 
 function StyledTaskDlgPos(const Title, Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint; X: Integer = -1; Y: Integer = -1): Integer;
 begin
-  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx, X, Y);
+  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx, X, Y,
+    _AutoClickDelay, _UseCommandLinks, '');
 end;
 
 function StyledTaskMessageDlgPos(const Title, Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint; X: Integer; Y: Integer): Integer;
 begin
-  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx, X, Y);
+  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx, X, Y,
+    _AutoClickDelay, _UseCommandLinks, '');
 end;
 
 function StyledTaskDlgPos(const Title, Msg: string; DlgType: TMsgDlgType;
@@ -676,7 +759,7 @@ function StyledTaskMessageDlgPosHelp(const Title, Msg: string; DlgType: TMsgDlgT
   const HelpFileName: string; DefaultButton: TMsgDlgBtn; CustomButtonCaptions: array of string): Integer;
 begin
   Result := InternalDoTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx,
-    X, Y, HelpFileName, DefaultButton, -1, False, False, [], []);
+    X, Y, HelpFileName, DefaultButton, -1, _UseCommandLinks, False, [], []);
 end;
 
 procedure StyledShowMessage(const Msg: string); overload;
@@ -693,6 +776,7 @@ end;
 constructor TStyledTaskDialog.Create(AOwner: TComponent);
 begin
   inherited;
+  Flags := [tfAllowDialogCancellation, tfPositionRelativeToWindow];
   FDialogButtonsFamily := _DialogButtonsFamily;
   FUseCommandLinks := _UseCommandLinks;
   FUseTitleInMessageDlg := _UseTitleInMessageDlg;
@@ -705,17 +789,14 @@ begin
   else
     FAutoClickDelay := DEFAULT_AUTOCLICK_DELAY;
   FMainIconSize := DEFAULT_MAIN_ICON_SIZE;
+  DoOnDialogCreated;
 end;
 
 function TStyledTaskDialog.DoExecute(ParentWnd: HWND): Boolean;
-type
-  TTaskDialogIcon = (tdiWarning, tdiError,
-    tdiInformation, tdiShield, tdiNone);
 var
   LTaskDlgType: TMsgDlgType;
 begin
   LTaskDlgType := GetTaskDlgType(MainIcon);
-
   //Use a custom interface for StyledTaskDialog, if registered
   if Assigned(_TaskDialogExecute) then
     Result := _TaskDialogExecute.DoExecute(ParentWnd,
@@ -749,27 +830,15 @@ begin
     end;
 end;
 
+procedure TStyledTaskDialog.DoOnExpandButtonClicked(Expanded: Boolean);
+begin
+  inherited DoOnExpandButtonClicked(not Expanded);
+end;
+
 procedure TStyledTaskDialog.DoOnHelp;
 var
   LHelpFile: string;
   LHelpSystem: IHelpSystem;
-
-{$IFNDEF D12+}
-  procedure ShowHelpException(E: Exception);
-  var
-    Msg: string;
-    Flags: Integer;
-  begin
-    Flags := MB_OK or MB_ICONSTOP;
-    if Application.UseRightToLeftReading then
-      Flags := Flags or MB_RTLREADING;
-    Msg := E.Message;
-    if (Msg <> '') and (AnsiLastChar(Msg) > '.') then
-      Msg := Msg + '.';
-    MessageBox(Application.Handle, PChar(Msg), PChar(Application.Title), Flags);
-  end;
-{$ENDIF}
-
 begin
   if HelpContext <> 0 then
   begin
@@ -801,6 +870,20 @@ function TStyledTaskDialog.Execute(ParentWnd: HWND): Boolean;
 begin
   FParentWnd := ParentWnd;
   Result := inherited Execute(ParentWnd);
+end;
+
+function TStyledTaskDialog.FindDialogButton(
+  const AModalResult: TModalResult): TStyledButton;
+begin
+  if Assigned(FOnFindDialogButton) then
+    Result := FOnFindDialogButton(AModalResult)
+  else
+    Result := nil;
+end;
+
+function TStyledTaskDialog.GetFlags: TTaskDialogFlags;
+begin
+  Result := inherited Flags;
 end;
 
 function TStyledTaskDialog.IsDefaultFamily: Boolean;
@@ -837,6 +920,11 @@ begin
   FButtonsWidth := AValue;
 end;
 
+procedure TStyledTaskDialog.SetFlags(const AValue: TTaskDialogFlags);
+begin
+  inherited Flags := AValue;
+end;
+
 function GetDialogTypeTitle(const DlgType: TMsgDlgType): string;
 begin
   case DlgType of
@@ -870,9 +958,11 @@ initialization
   _ButtonsWidth := DEFAULT_STYLEDDIALOG_BUTTONSWIDTH;
   _ButtonsHeight := DEFAULT_STYLEDDIALOG_BUTTONSHEIGHT;
   _DialogFont := nil;
+  RegisterTaskDialogFormClass(TStyledTaskDialogStd);
 
 finalization
   if Assigned(_DialogFont) then
     _DialogFont.Free;
+  UnRegisterTaskDialogFormClass(TStyledTaskDialogStd);
 
 end.

@@ -25,11 +25,6 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterURI.pas,v 1.16.2.9 2008/09/14 16:25:03 maelh Exp $
-
-You may retrieve the latest version of SynEdit from the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides an URI syntax highlighter for SynEdit)
@@ -73,6 +68,7 @@ unit SynHighlighterURI;
 interface
 
 uses
+  Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
@@ -88,18 +84,18 @@ type
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Key: Integer): TtkTokenKind of object;
 
-  TAlreadyVisitedURIFunc = function (URI: UnicodeString): Boolean of object;
+  TAlreadyVisitedURIFunc = function (URI: string): Boolean of object;
 
   TSynURISyn = class(TSynCustomHighlighter)
   private
-    FMayBeProtocol: PWideChar;
-    FTokenID: TtkTokenKind;
-    FIdentFuncTable: array[0..15] of TIdentFuncTableFunc;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FURIAttri: TSynHighlighterAttributes;
-    FVisitedURIAttri: TSynHighlighterAttributes;
-    FAlreadyVisitedURI: TAlreadyVisitedURIFunc;
+    fMayBeProtocol: PWideChar;
+    fTokenID: TtkTokenKind;
+    fIdentFuncTable: array[0..15] of TIdentFuncTableFunc;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fURIAttri: TSynHighlighterAttributes;
+    fVisitedURIAttri: TSynHighlighterAttributes;
+    fAlreadyVisitedURI: TAlreadyVisitedURIFunc;
 
     function HashKey(Str: PWideChar): Integer;
     procedure InitIdent;
@@ -140,13 +136,13 @@ type
     procedure SetURIAttri(const Value: TSynHighlighterAttributes);
     procedure SetVisitedURIAttri(const Value: TSynHighlighterAttributes);
   protected
-    function GetSampleSource: UnicodeString; override;
-    function IsCurrentToken(const Token: UnicodeString): Boolean; override;
+    function GetSampleSource: string; override;
+    function IsCurrentToken(const Token: string): Boolean; override;
     function IsFilterStored: Boolean; override;
     procedure SetAlreadyVisitedURIFunc(Value: TAlreadyVisitedURIFunc);
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -159,8 +155,8 @@ type
     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
-    property URIAttri: TSynHighlighterAttributes read FURIAttri write SetURIAttri;
-    property VisitedURIAttri: TSynHighlighterAttributes read FVisitedURIAttri
+    property URIAttri: TSynHighlighterAttributes read fURIAttri write SetURIAttri;
+    property VisitedURIAttri: TSynHighlighterAttributes read fVisitedURIAttri
       write SetVisitedURIAttri;
   end;
 
@@ -174,7 +170,7 @@ uses
   SynEditStrConst;
 
 const
-  KeyWords: array[0..15] of UnicodeString = (
+  KeyWords: array[0..15] of string = (
     '', 'http://', '', 'https://', 'news:', 'gopher://', '', 'prospero://',
     'news://', 'www', 'nntp://', 'ftp://', 'wais://', '', 'telnet://', 'mailto:'
   );
@@ -206,42 +202,42 @@ begin
     Inc(Str);
   end;
 
-  FStringLen := Str - FMayBeProtocol;
+  fStringLen := Str - fMayBeProtocol;
 end;
 
 procedure TSynURISyn.InitIdent;
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
-    FIdentFuncTable[i] := AltFunc;
+  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    fIdentFuncTable[I] := AltFunc;
   
-  FIdentFuncTable[11] := FuncFtp;
-  FIdentFuncTable[5] := FuncGopher;
-  FIdentFuncTable[1] := FuncHttp;
-  FIdentFuncTable[3] := FuncHttps;
-  FIdentFuncTable[15] := FuncMailto;
-  FIdentFuncTable[4] := FuncNews;
-  FIdentFuncTable[8] := FuncNews;
-  FIdentFuncTable[10] := FuncNntp;
-  FIdentFuncTable[7] := FuncProspero;
-  FIdentFuncTable[14] := FuncTelnet;
-  FIdentFuncTable[12] := FuncWais;
-  FIdentFuncTable[9] := FuncWeb;
+  fIdentFuncTable[11] := FuncFtp;
+  fIdentFuncTable[5] := FuncGopher;
+  fIdentFuncTable[1] := FuncHttp;
+  fIdentFuncTable[3] := FuncHttps;
+  fIdentFuncTable[15] := FuncMailto;
+  fIdentFuncTable[4] := FuncNews;
+  fIdentFuncTable[8] := FuncNews;
+  fIdentFuncTable[10] := FuncNntp;
+  fIdentFuncTable[7] := FuncProspero;
+  fIdentFuncTable[14] := FuncTelnet;
+  fIdentFuncTable[12] := FuncWais;
+  fIdentFuncTable[9] := FuncWeb;
 end;
 
-function TSynURISyn.IsCurrentToken(const Token: UnicodeString): Boolean;
+function TSynURISyn.IsCurrentToken(const Token: string): Boolean;
 var
   I: Integer;
   Temp: PWideChar;
 begin
-  Temp := FMayBeProtocol;
-  if Length(Token) = FStringLen then
+  Temp := fMayBeProtocol;
+  if Length(Token) = fStringLen then
   begin
     Result := True;
-    for i := 1 to FStringLen do
+    for I := 1 to fStringLen do
     begin
-      if Temp^ <> Token[i] then
+      if Temp^ <> Token[I] then
       begin
         Result := False;
         Break;
@@ -261,76 +257,76 @@ end;
 constructor TSynURISyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FCaseSensitive := False;
+  fCaseSensitive := False;
 
-  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
 
-  FURIAttri := TSynHighlighterAttributes.Create(SYNS_AttrURI, SYNS_FriendlyAttrURI);
-  FURIAttri.Foreground := clBlue;
-  FURIAttri.Style := [fsUnderline];
-  AddAttribute(FURIAttri);
+  fURIAttri := TSynHighlighterAttributes.Create(SYNS_AttrURI, SYNS_FriendlyAttrURI);
+  fURIAttri.Foreground := clBlue;
+  fURIAttri.Style := [fsUnderline];
+  AddAttribute(fURIAttri);
 
-  FVisitedURIAttri := TSynHighlighterAttributes.Create(SYNS_AttrVisitedURI, SYNS_FriendlyAttrVisitedURI);
-  FVisitedURIAttri.Foreground := clPurple;
-  FVisitedURIAttri.Style := [fsUnderline];
-  AddAttribute(FVisitedURIAttri);
+  fVisitedURIAttri := TSynHighlighterAttributes.Create(SYNS_AttrVisitedURI, SYNS_FriendlyAttrVisitedURI);
+  fVisitedURIAttri.Foreground := clPurple;
+  fVisitedURIAttri.Style := [fsUnderline];
+  AddAttribute(fVisitedURIAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  FDefaultFilter := SYNS_FilterURI;
+  fDefaultFilter := SYNS_FilterURI;
 end;
 
 destructor TSynURISyn.Destroy; 
 begin
   inherited;
   //the other attributes are automatically freed because of AddAttribute()
-  FSpaceAttri.Free;
-  FIdentifierAttri.Free;
+  fSpaceAttri.Free;
+  fIdentifierAttri.Free;
 end;
 
 procedure TSynURISyn.CRProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
-  if FLine[Run] = #10 then
+  if fLine[Run] = #10 then
     Inc(Run);
 end;
 
 procedure TSynURISyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end;
 
 procedure TSynURISyn.NullProc;
 begin
-  if Run < FLineLen + 1 then
+  if Run < fLineLen + 1 then
   begin
     Inc(Run);
-    FTokenID := tkNullChar;
+    fTokenID := tkNullChar;
   end
   else
-    FTokenID := tkNull
+    fTokenID := tkNull
 end;
 
 procedure TSynURISyn.SpaceProc;
 begin
   Inc(Run);
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynURISyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
 end;
 
 procedure TSynURISyn.Next;
 begin
-  FTokenPos := Run;
-  case FLine[Run] of
+  fTokenPos := Run;
+  case fLine[Run] of
     #13: CRProc;
     #10: LFProc;
     #0: NullProc;
@@ -345,10 +341,10 @@ end;
 function TSynURISyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
-    SYN_ATTR_URI: Result := FURIAttri;
-    SYN_ATTR_VISITEDURI: Result := FVisitedURIAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_URI: Result := fURIAttri;
+    SYN_ATTR_VISITEDURI: Result := fVisitedURIAttri;
   else
     Result := nil;
   end;
@@ -356,7 +352,7 @@ end;
 
 function TSynURISyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynURISyn.GetTokenAttribute: TSynHighlighterAttributes;
@@ -364,7 +360,7 @@ var
   Visited: Boolean;
 begin
   case GetTokenID of
-    tkSpace: Result := FSpaceAttri;
+    tkSpace: Result := fSpaceAttri;
     tkFtpLink, tkGopherLink, tkHttpLink, tkHttpsLink, tkMailtoLink, tkNewsLink,
     tkNntpLink, tkProsperoLink, tkTelnetLink, tkWaisLink, tkWebLink:
     begin
@@ -372,23 +368,23 @@ begin
       if Assigned(FAlreadyVisitedURI) then
         Visited := FAlreadyVisitedURI(GetToken);
       if Visited then
-        Result := FVisitedURIAttri
+        Result := fVisitedURIAttri
       else
-        Result := FURIAttri;
+        Result := fURIAttri;
     end;
-    tkUnknown: Result := FIdentifierAttri;
+    tkUnknown: Result := fIdentifierAttri;
     else Result := nil;
   end;
 end;
 
 function TSynURISyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end;
 
 function TSynURISyn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTokenID);
+  Result := Ord(fTokenId);
 end;
 
 class function TSynURISyn.GetLanguageName: string;
@@ -396,7 +392,7 @@ begin
   Result := SYNS_LangURI;
 end;
 
-function TSynURISyn.GetSampleSource: UnicodeString;
+function TSynURISyn.GetSampleSource: string;
 begin
   Result := 'Universal Resource Identifier highlighting'#13#10#13#10 +
             'http://www.somewhere.org'#13#10 +
@@ -409,12 +405,12 @@ end;
 
 function TSynURISyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterURI;
+  Result := fDefaultFilter <> SYNS_FilterURI;
 end;
 
 function TSynURISyn.IsIdentChar(AChar: WideChar): Boolean;
 begin
-  Result := SynIsCharAlphaNumeric(AChar);
+  Result := IsCharAlphaNumeric(AChar);
 end;
 
 procedure TSynURISyn.SetAlreadyVisitedURIFunc(Value: TAlreadyVisitedURIFunc);
@@ -424,12 +420,12 @@ end;
 
 procedure TSynURISyn.SetURIAttri(const Value: TSynHighlighterAttributes);
 begin
-  FURIAttri.Assign(Value);
+  fURIAttri.Assign(Value);
 end;
 
 procedure TSynURISyn.SetVisitedURIAttri(const Value: TSynHighlighterAttributes);
 begin
-  FVisitedURIAttri.Assign(Value);
+  fVisitedURIAttri.Assign(Value);
 end;
 
 procedure TSynURISyn.ProtocolProc;
@@ -437,17 +433,17 @@ var
   Key: Integer;
 begin
   if IsValidEmailAddress then
-    FTokenID := tkMailtoLink
+    fTokenID := tkMailtoLink
   else
   begin
-    FMayBeProtocol := FLine + Run;
-    Key := HashKey(FMayBeProtocol);
-    Inc(Run, FStringLen);
+    fMayBeProtocol := fLine + Run;
+    Key := HashKey(fMayBeProtocol);
+    Inc(Run, fStringLen);
 
     if Key <= 15 then
-      FTokenID := FIdentFuncTable[Key](Key)
+      fTokenID := fIdentFuncTable[Key](Key)
     else
-      FTokenID := tkUnknown;
+      fTokenID := tkUnknown;
   end;
 end;
 
@@ -542,7 +538,7 @@ end;
 
 function TSynURISyn.IsAlphaNum(AChar: WideChar): Boolean;
 begin
-  Result := SynIsCharAlphaNumeric(AChar);
+  Result := IsCharAlphaNumeric(AChar);
 end;
 
 function TSynURISyn.IsMark(AChar: WideChar): Boolean;
@@ -604,11 +600,11 @@ begin
 
   AtPos := -1;
   DotPos := -1;
-  while IsEMailAddressChar(FLine[Run]) do
+  while IsEMailAddressChar(fLine[Run]) do
   begin
-    if FLine[Run] = '@' then
+    if fLine[Run] = '@' then
       AtPos := Run
-    else if FLine[Run] = '.' then
+    else if fLine[Run] = '.' then
       // reject array of dots: "neighbour" dots are not allowed
       if (Run = StartPos) or (DotPos >= 0) and (DotPos = Run - 1) then
         Break
@@ -617,10 +613,10 @@ begin
     Inc(Run);
   end;
 
-  while (Run > StartPos) and (IsNeverAtEMailAddressEnd(FLine[Run - 1])) do
+  while (Run > StartPos) and (IsNeverAtEMailAddressEnd(fLine[Run - 1])) do
     Dec(Run);
 
-  while (DotPos >= Run) or (DotPos > -1) and (FLine[DotPos] <> '.') do
+  while (DotPos >= Run) or (DotPos > -1) and (fLine[DotPos] <> '.') do
     Dec(DotPos);
 
   Result := (StartPos < AtPos) and (AtPos < Run - 1) and (DotPos > AtPos + 1);
@@ -634,17 +630,17 @@ var
   function IsRelativePath: Boolean;
   begin
     Result := (DotPos - 1 >= 0) and
-      ((FLine[DotPos - 1] = '/') and (FLine[DotPos + 2] = '/')) or
-      ((FLine[DotPos - 1] = '\') and (FLine[DotPos + 2] = '\'));
+      ((fLine[DotPos - 1] = '/') and (fLine[DotPos + 2] = '/')) or
+      ((fLine[DotPos - 1] = '\') and (fLine[DotPos + 2] = '\'));
   end;
 
 begin
   ProtocolEndPos := Run;
 
   DotPos := -1;
-  while IsURIChar(FLine[Run]) do
+  while IsURIChar(fLine[Run]) do
   begin
-    if FLine[Run] = '.' then
+    if fLine[Run] = '.' then
       // reject array of dots: "neighbour" dots are not allowed
       if (DotPos >= 0) and (DotPos = Run - 1) and not IsRelativePath then
         Break
@@ -653,7 +649,7 @@ begin
     Inc(Run);
   end;
 
-  while (Run > ProtocolEndPos) and IsNeverAtEnd(FLine[Run - 1]) do
+  while (Run > ProtocolEndPos) and IsNeverAtEnd(fLine[Run - 1]) do
     Dec(Run);
 
   Result := Run > ProtocolEndPos;
@@ -666,8 +662,8 @@ var
   function IsRelativePath: Boolean;
   begin
     Result := (DotPos - 1 >= 0) and
-      ((FLine[DotPos - 1] = '/') and (FLine[DotPos + 2] = '/')) or
-      ((FLine[DotPos - 1] = '\') and (FLine[DotPos + 2] = '\'));
+      ((fLine[DotPos - 1] = '/') and (fLine[DotPos + 2] = '/')) or
+      ((fLine[DotPos - 1] = '\') and (fLine[DotPos + 2] = '\'));
   end;
 
 begin
@@ -675,9 +671,9 @@ begin
 
   DotPos := -1;
   SecondDotPos := -1;
-  while IsURIChar(FLine[Run]) do
+  while IsURIChar(fLine[Run]) do
   begin
-    if FLine[Run] = '.' then
+    if fLine[Run] = '.' then
       // reject array of dots: "neighbour" dots are not allowed
       if (DotPos >= 0) and (DotPos = Run - 1) and not IsRelativePath then
         Break
@@ -690,20 +686,18 @@ begin
     Inc(Run);
   end;
 
-  while (Run > WWWEndPos) and IsNeverAtEnd(FLine[Run - 1]) do
+  while (Run > WWWEndPos) and IsNeverAtEnd(fLine[Run - 1]) do
     Dec(Run);
 
-  Result := (Run > WWWEndPos) and (FLine[WWWEndPos] = '.') and
+  Result := (Run > WWWEndPos) and (fLine[WWWEndPos] = '.') and
             (SecondDotPos > WWWEndPos + 1) and (SecondDotPos < Run);
 end;
 
-class function TSynURISyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynURISyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangURI;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynURISyn);
-{$ENDIF}
 end.

@@ -25,12 +25,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynHighlighterSDD.pas,v 1.13.2.6 2008/09/14 16:25:03 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
 -------------------------------------------------------------------------------}
 
 unit SynHighlighterSDD;
@@ -63,21 +57,21 @@ type
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
-  TRangeState = (rsComment, rsUnknown);
+  TRangeState = (rsComment, rsUnKnown);
 
 type
   TSynSDDSyn = class(TSynCustomHighlighter)
   private
-    FRange: TRangeState;
-    FTokenID: TtkTokenKind;
-    FIdentFuncTable: array[0..36] of TIdentFuncTableFunc;
-    FCommentAttri: TSynHighlighterAttributes;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FKeyAttri: TSynHighlighterAttributes;
-    FDatatypeAttri: TSynHighlighterAttributes;
-    FNumberAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FSymbolAttri: TSynHighlighterAttributes;
+    fRange: TRangeState;
+    fTokenID: TtkTokenKind;
+    fIdentFuncTable: array[0..36] of TIdentFuncTableFunc;
+    fCommentAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fDatatypeAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function FuncArray(Index: Integer): TtkTokenKind;
     function FuncBinarydata(Index: Integer): TtkTokenKind;
@@ -120,11 +114,11 @@ type
     procedure UnknownProc;
     procedure SymbolProc;
   protected
-    function GetSampleSource: UnicodeString; override;
+    function GetSampleSource: string; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;   
+    class function GetFriendlyLanguageName: string; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -138,13 +132,13 @@ type
     function GetTokenKind: Integer; override;
     procedure Next; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
-    property DatatypeAttri: TSynHighlighterAttributes read FDatatypeAttri write FDatatypeAttri;
-    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri write FSpaceAttri;
-    property NumberAttri: TSynHighlighterAttributes read FNumberAttri write FNumberAttri;
-    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri write FSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property DatatypeAttri: TSynHighlighterAttributes read fDatatypeAttri write fDatatypeAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
   end;
 
 implementation
@@ -153,7 +147,7 @@ uses
   SynEditStrConst;
 
 const
-  KeyWords: array[0..26] of UnicodeString = (
+  KeyWords: array[0..26] of string = (
     'array', 'binarydata', 'block', 'byte', 'database', 'date', 'end',
     'endblock', 'integer', 'keys', 'longint', 'memotext', 'object', 'objects',
     'of', 'owner', 'partition', 'partitions', 'primary', 'real', 'secondary',
@@ -175,7 +169,7 @@ begin
     Inc(Str);
   end;
   Result := Result mod 37;
-  FStringLen := Str - FToIdent;
+  fStringLen := Str - fToIdent;
 end;
 {$Q+}
 
@@ -183,10 +177,10 @@ function TSynSDDSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  FToIdent := MayBe;
+  fToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(FIdentFuncTable) then
-    Result := FIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -195,37 +189,37 @@ procedure TSynSDDSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      FIdentFuncTable[i] := AltFunc;
+      fIdentFuncTable[i] := AltFunc;
 
-  FIdentFuncTable[3] := FuncArray;
-  FIdentFuncTable[20] := FuncBinarydata;
-  FIdentFuncTable[14] := FuncBlock;
-  FIdentFuncTable[1] := FuncByte;
-  FIdentFuncTable[29] := FuncDatabase;
-  FIdentFuncTable[8] := FuncDate;
-  FIdentFuncTable[30] := FuncEnd;
-  FIdentFuncTable[27] := FuncEndblock;
-  FIdentFuncTable[0] := FuncInteger;
-  FIdentFuncTable[24] := FuncKeys;
-  FIdentFuncTable[10] := FuncLongint;
-  FIdentFuncTable[26] := FuncMemotext;
-  FIdentFuncTable[19] := FuncObject;
-  FIdentFuncTable[32] := FuncObjects;
-  FIdentFuncTable[5] := FuncOf;
-  FIdentFuncTable[22] := FuncOwner;
-  FIdentFuncTable[6] := FuncPartition;
-  FIdentFuncTable[21] := FuncPartitions;
-  FIdentFuncTable[2] := FuncPrimary;
-  FIdentFuncTable[9] := FuncReal;
-  FIdentFuncTable[11] := FuncSecondary;
-  FIdentFuncTable[17] := FuncSpec;
-  FIdentFuncTable[7] := FuncString;
-  FIdentFuncTable[36] := FuncSuperblock;
-  FIdentFuncTable[35] := FuncSuperspec;
-  FIdentFuncTable[4] := FuncTime;
-  FIdentFuncTable[15] := FuncVar;
+  fIdentFuncTable[3] := FuncArray;
+  fIdentFuncTable[20] := FuncBinarydata;
+  fIdentFuncTable[14] := FuncBlock;
+  fIdentFuncTable[1] := FuncByte;
+  fIdentFuncTable[29] := FuncDatabase;
+  fIdentFuncTable[8] := FuncDate;
+  fIdentFuncTable[30] := FuncEnd;
+  fIdentFuncTable[27] := FuncEndblock;
+  fIdentFuncTable[0] := FuncInteger;
+  fIdentFuncTable[24] := FuncKeys;
+  fIdentFuncTable[10] := FuncLongint;
+  fIdentFuncTable[26] := FuncMemotext;
+  fIdentFuncTable[19] := FuncObject;
+  fIdentFuncTable[32] := FuncObjects;
+  fIdentFuncTable[5] := FuncOf;
+  fIdentFuncTable[22] := FuncOwner;
+  fIdentFuncTable[6] := FuncPartition;
+  fIdentFuncTable[21] := FuncPartitions;
+  fIdentFuncTable[2] := FuncPrimary;
+  fIdentFuncTable[9] := FuncReal;
+  fIdentFuncTable[11] := FuncSecondary;
+  fIdentFuncTable[17] := FuncSpec;
+  fIdentFuncTable[7] := FuncString;
+  fIdentFuncTable[36] := FuncSuperblock;
+  fIdentFuncTable[35] := FuncSuperspec;
+  fIdentFuncTable[4] := FuncTime;
+  fIdentFuncTable[15] := FuncVar;
 end;
 
 function TSynSDDSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -453,85 +447,85 @@ constructor TSynSDDSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FCaseSensitive := False;
+  fCaseSensitive := False;
 
-  FCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  FCommentAttri.Foreground := clNavy;
-  FCommentAttri.Style := [fsItalic];
-  AddAttribute(FCommentAttri);
+  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  fCommentAttri.Foreground := clNavy;
+  fCommentAttri.Style := [fsItalic];
+  AddAttribute(fCommentAttri);
 
-  FIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
+  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(fIdentifierAttri);
 
-  FKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  FKeyAttri.Style := [fsBold];
-  FKeyAttri.Foreground := clGreen;
-  AddAttribute(FKeyAttri);
+  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  fKeyAttri.Style := [fsBold];
+  fKeyAttri.Foreground := clGreen;
+  AddAttribute(fKeyAttri);
 
-  FDatatypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDataType, SYNS_FriendlyAttrDataType);
-  FDatatypeAttri.Style := [fsBold];
-  FDatatypeAttri.Foreground := clTeal;
-  AddAttribute(FDatatypeAttri);
+  fDatatypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDataType, SYNS_FriendlyAttrDataType);
+  fDatatypeAttri.Style := [fsBold];
+  fDatatypeAttri.Foreground := clTeal;
+  AddAttribute(fDatatypeAttri);
 
-  FSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
+  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(fSpaceAttri);
 
-  FNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  FNumberAttri.Foreground := clBlue;
-  AddAttribute(FNumberAttri);
+  fNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  fNumberAttri.Foreground := clBlue;
+  AddAttribute(fNumberAttri);
 
-  FSymbolAttri := TSynHighLighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(FSymbolAttri);
+  fSymbolAttri := TSynHighLighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(fSymbolAttri);
   
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  FDefaultFilter := SYNS_FilterSDD;
-  FRange := rsUnknown;
+  fDefaultFilter := SYNS_FilterSDD;
+  fRange := rsUnknown;
 end; { Create }
 
 procedure TSynSDDSyn.BraceOpenProc;
 begin
-  FRange := rsComment;
+  fRange := rsComment;
   BraceCommentProc;
-  FTokenID := tkComment;
+  fTokenID := tkComment;
 end; { BraceOpenProc }
 
 procedure TSynSDDSyn.IdentProc;
 begin
-  FTokenID := IdentKind((FLine + Run));
-  Inc(Run, FStringLen);
-  while IsIdentChar(FLine[Run]) do
+  fTokenID := IdentKind((fLine + Run));
+  Inc(Run, fStringLen);
+  while IsIdentChar(fLine[Run]) do
     Inc(Run);
 end; { IdentProc }
 
 procedure TSynSDDSyn.NullProc;
 begin
-  FTokenID := tkNull;
+  fTokenID := tkNull;
   Inc(Run);
 end; { NullProc }
 
 procedure TSynSDDSyn.SpaceProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   repeat
     Inc(Run);
-  until not CharInSet(FLine[Run], [#1..#32]);
+  until not CharInSet(fLine[Run], [#1..#32]);
 end; { SpaceProc }
 
 procedure TSynSDDSyn.BraceCommentProc;
 begin
-  case FLine[Run] of
+  case fLine[Run] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
   else
     begin
-      FTokenID := tkComment;
+      fTokenID := tkComment;
       repeat
-        if FLine[Run] = '}' then
+        if fLine[Run] = '}' then
         begin
           Inc(Run);
-          FRange := rsUnknown;
+          fRange := rsUnKnown;
           Break;
         end;
         Inc(Run);
@@ -543,16 +537,16 @@ end; { BraceCommentProc }
 procedure TSynSDDSyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
 end; { UnknownProc }
 
 procedure TSynSDDSyn.Next;
 begin
-  FTokenPos := Run;
-  case FRange of
+  fTokenPos := Run;
+  case fRange of
     rsComment: BraceCommentProc;
   else
-    case FLine[Run] of
+    case fLine[Run] of
       '{': BraceOpenProc;
       '}', '!', '%', '&', '('..'/', ':'..'@', '['..'^', '`', '~': SymbolProc;
       'A'..'Z', 'a'..'z', '_': IdentProc;
@@ -567,19 +561,19 @@ end; { Next }
 
 procedure TSynSDDSyn.CRProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
-  if FLine[Run] = #10 then
+  if fLine[Run] = #10 then
     Inc(Run);
 end; { CRProc }
 
 procedure TSynSDDSyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end; { LFProc }
 
-function TSynSDDSyn.GetSampleSource: UnicodeString;
+function TSynSDDSyn.GetSampleSource: string;
 begin
   Result := '{ Semanta data dictionary }'#13#10 +
             'database Sample.001;'#13#10 +
@@ -598,11 +592,11 @@ end; { GetSampleSource }
 function TSynSDDSyn.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := FCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := FKeyAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -610,25 +604,25 @@ end; { GetDefaultAttribute }
 
 function TSynSDDSyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end; { GetEol }
 
 function TSynSDDSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end; { GetTokenId }
 
 function TSynSDDSyn.GetTokenAttribute: TSynHighLighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := FCommentAttri;
-    tkIdentifier: Result := FIdentifierAttri;
-    tkKey: Result := FKeyAttri;
-    tkDatatype: Result := FDatatypeAttri;
-    tkSpace: Result := FSpaceAttri;
-    tkNumber: Result := FNumberAttri;
-    tkUnknown: Result := FIdentifierAttri;
-    tkSymbol: Result := FSymbolAttri;
+    tkComment: Result := fCommentAttri;
+    tkIdentifier: Result := fIdentifierAttri;
+    tkKey: Result := fKeyAttri;
+    tkDatatype: Result := fDatatypeAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkNumber: Result := fNumberAttri;
+    tkUnknown: Result := fIdentifierAttri;
+    tkSymbol: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -636,24 +630,24 @@ end; { GetTokenAttribute }
 
 function TSynSDDSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTokenID);
+  Result := Ord(fTokenId);
 end; { GetTokenKind }
 
 procedure TSynSDDSyn.ResetRange;
 begin
   inherited;
-  FRange := rsUnknown;
+  fRange := rsUnknown;
 end; { ResetRange }
 
 procedure TSynSDDSyn.SetRange(Value: Pointer);
 begin
   inherited;
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 end; { SetRange }
 
 function TSynSDDSyn.GetRange: Pointer;
 begin
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 end; { GetRange }
 
 class function TSynSDDSyn.GetLanguageName: string;
@@ -665,7 +659,7 @@ procedure TSynSDDSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case FLine[Run] of
+    case fLine[Run] of
       '0'..'9', '.', 'e', 'E':
         Result := True;
       else
@@ -675,7 +669,7 @@ procedure TSynSDDSyn.NumberProc;
 
 begin
   Inc(Run);
-  FTokenID := tkNumber;
+  fTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
@@ -688,22 +682,20 @@ end; { NumberProc }
 
 function TSynSDDSyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterSDD;
+  Result := fDefaultFilter <> SYNS_FilterSDD;
 end; { IsFilterStored }
 
 procedure TSynSDDSyn.SymbolProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
-class function TSynSDDSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynSDDSyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangSDD;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynSDDSyn);
-{$ENDIF}
 end.

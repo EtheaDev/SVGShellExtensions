@@ -3,7 +3,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
-  ClientHeight = 262
+  ClientHeight = 286
   ClientWidth = 992
   Color = clWindow
   Constraints.MinHeight = 200
@@ -24,7 +24,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   object FooterPanel: TPanel
     AlignWithMargins = True
     Left = 4
-    Top = 236
+    Top = 260
     Width = 984
     Height = 26
     Margins.Left = 4
@@ -36,7 +36,8 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     BevelKind = bkFlat
     BevelOuter = bvNone
     ParentBackground = False
-    TabOrder = 5
+    TabOrder = 6
+    Visible = False
     object FooterIconPanel: TPanel
       AlignWithMargins = True
       Left = 4
@@ -78,8 +79,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     Margins.Bottom = 4
     Align = alClient
     BevelOuter = bvNone
-    Color = clWindow
-    ParentBackground = False
+    ParentColor = True
     TabOrder = 0
     object ImagePanel: TPanel
       AlignWithMargins = True
@@ -93,6 +93,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
       Margins.Bottom = 4
       Align = alLeft
       BevelOuter = bvNone
+      ParentColor = True
       TabOrder = 0
       object IconContainer: TPanel
         Left = 0
@@ -101,6 +102,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
         Height = 64
         Align = alTop
         BevelOuter = bvNone
+        ParentColor = True
         TabOrder = 0
       end
     end
@@ -109,6 +111,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
       Top = 0
       Width = 912
       Height = 73
+      HorzScrollBar.Visible = False
       VertScrollBar.Visible = False
       Align = alClient
       BevelInner = bvNone
@@ -119,7 +122,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
         AlignWithMargins = True
         Left = 4
         Top = 4
-        Width = 46
+        Width = 904
         Height = 15
         Margins.Left = 4
         Margins.Top = 4
@@ -128,6 +131,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
         Align = alTop
         Caption = 'Title Text'
         WordWrap = True
+        ExplicitWidth = 46
       end
       object AutoSizeLabel: TLabel
         AlignWithMargins = True
@@ -166,7 +170,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   object CommandLinksPanel: TPanel
     AlignWithMargins = True
     Left = 4
-    Top = 106
+    Top = 130
     Width = 984
     Height = 62
     Margins.Left = 4
@@ -175,8 +179,96 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     Margins.Bottom = 4
     Align = alBottom
     BevelOuter = bvNone
+    ParentColor = True
     TabOrder = 2
     Visible = False
+  end
+  object VerificationPanel: TPanel
+    AlignWithMargins = True
+    Left = 4
+    Top = 236
+    Width = 984
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 0
+    Margins.Right = 4
+    Margins.Bottom = 0
+    Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
+    TabOrder = 4
+    Visible = False
+    object VerificationCheckBox: TCheckBox
+      AlignWithMargins = True
+      Left = 8
+      Top = 0
+      Width = 972
+      Height = 24
+      Margins.Left = 8
+      Margins.Top = 0
+      Margins.Right = 4
+      Margins.Bottom = 0
+      Align = alClient
+      TabOrder = 0
+      WordWrap = True
+      OnClick = VerificationCheckBoxClick
+    end
+  end
+  object RadioGroupPanel: TPanel
+    AlignWithMargins = True
+    Left = 4
+    Top = 105
+    Width = 984
+    Height = 21
+    Margins.Left = 4
+    Margins.Top = 0
+    Margins.Right = 4
+    Margins.Bottom = 0
+    Align = alBottom
+    BevelOuter = bvNone
+    ParentColor = True
+    TabOrder = 5
+    Visible = False
+  end
+  object ExpandedPanel: TPanel
+    AlignWithMargins = True
+    Left = 4
+    Top = 81
+    Width = 984
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 0
+    Margins.Right = 4
+    Margins.Bottom = 0
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 1
+    Visible = False
+    object ExpandLabel: TLabel
+      AlignWithMargins = True
+      Left = 31
+      Top = 4
+      Width = 950
+      Height = 16
+      Margins.Top = 4
+      Margins.Bottom = 4
+      Align = alClient
+      ExplicitWidth = 3
+      ExplicitHeight = 15
+    end
+    object ExpandButton: TStyledButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 2
+      Width = 22
+      Height = 20
+      Margins.Top = 2
+      Margins.Bottom = 2
+      Align = alLeft
+      Caption = '+'
+      TabOrder = 0
+      OnClick = ExpandButtonClick
+    end
   end
   object ButtonsPanel: TPanel
     AlignWithMargins = True
@@ -192,7 +284,8 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     BevelEdges = [beTop]
     BevelKind = bkFlat
     BevelOuter = bvNone
-    TabOrder = 4
+    ParentBackground = False
+    TabOrder = 3
     object YesButton: TStyledButton
       AlignWithMargins = True
       Left = 27
@@ -361,50 +454,5 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
       TabOrder = 11
       OnClick = ButtonClick
     end
-  end
-  object VerificationPanel: TPanel
-    AlignWithMargins = True
-    Left = 4
-    Top = 172
-    Width = 984
-    Height = 24
-    Margins.Left = 4
-    Margins.Top = 0
-    Margins.Right = 4
-    Margins.Bottom = 0
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 3
-    Visible = False
-    object VerificationCheckBox: TCheckBox
-      AlignWithMargins = True
-      Left = 8
-      Top = 0
-      Width = 972
-      Height = 24
-      Margins.Left = 8
-      Margins.Top = 0
-      Margins.Right = 4
-      Margins.Bottom = 0
-      Align = alClient
-      TabOrder = 0
-      WordWrap = True
-      OnClick = VerificationCheckBoxClick
-    end
-  end
-  object RadioGroupPanel: TPanel
-    AlignWithMargins = True
-    Left = 4
-    Top = 81
-    Width = 984
-    Height = 21
-    Margins.Left = 4
-    Margins.Top = 0
-    Margins.Right = 4
-    Margins.Bottom = 0
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 1
-    Visible = False
   end
 end

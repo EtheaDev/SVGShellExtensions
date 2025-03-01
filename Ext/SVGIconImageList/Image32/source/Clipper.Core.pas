@@ -2,12 +2,12 @@ unit Clipper.Core;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Date      :  12 August 2024                                                  *
-* Website   :  http://www.angusj.com                                           *
+* Date      :  22 November 2024                                                *
+* Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2010-2024                                         *
 * Purpose   :  Core Clipper Library module                                     *
 *              Contains structures and functions used throughout the library   *
-* License   :  http://www.boost.org/LICENSE_1_0.txt                            *
+* License   :  https://www.boost.org/LICENSE_1_0.txt                           *
 *******************************************************************************)
 
 {$I Clipper.inc}
@@ -19,15 +19,14 @@ uses
 
 type
 {$IFDEF USINGZ}
-    Ztype   = type double;//Int64;//
-    PZtype  = ^Ztype;
+    ZType = Int64; // or alternatively, ZType = double
 {$ENDIF}
 
   PPoint64  = ^TPoint64;
   TPoint64  = record
     X, Y: Int64;
 {$IFDEF USINGZ}
-    Z: Ztype;
+    Z: ZType;
 {$ENDIF}
   end;
 
@@ -35,7 +34,7 @@ type
   TPointD   = record
     X, Y: double;
 {$IFDEF USINGZ}
-    Z: Ztype;
+    Z: ZType;
 {$ENDIF}
   end;
 
@@ -125,6 +124,7 @@ type
     fCount    : integer;
     fCapacity : integer;
     fList     : TPointerList;
+    fSorted   : Boolean;
   protected
     function UnsafeGet(idx: integer): Pointer; // no range checking
     procedure UnsafeSet(idx: integer; val: Pointer);
@@ -134,14 +134,16 @@ type
     destructor Destroy; override;
     procedure Clear; virtual;
     function Add(item: Pointer): integer;
+    procedure DeleteLast;
     procedure Swap(idx1, idx2: integer);
-    procedure Sort(Compare: TListSortCompare);
+    procedure Sort(Compare: TListSortCompareFunc);
     procedure Resize(count: integer);
     property Count: integer read fCount;
+    property Sorted: Boolean read fSorted;
     property Item[idx: integer]: Pointer read UnsafeGet; default;
   end;
 
-  TClipType = (ctNone, ctIntersection, ctUnion, ctDifference, ctXor);
+  TClipType = (ctNoClip, ctIntersection, ctUnion, ctDifference, ctXor);
 
   TPointInPolygonResult = (pipOn, pipInside, pipOutside);
 
@@ -544,6 +546,7 @@ begin
   fList := nil;
   fCount := 0;
   fCapacity := 0;
+  fSorted := false;
 end;
 //------------------------------------------------------------------------------
 
@@ -559,6 +562,13 @@ begin
   fList[fCount] := item;
   Result := fCount;
   inc(fCount);
+  fSorted := false;
+end;
+//------------------------------------------------------------------------------
+
+procedure TListEx.DeleteLast;
+begin
+  dec(fCount);
 end;
 //------------------------------------------------------------------------------
 
@@ -615,10 +625,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-procedure TListEx.Sort(Compare: TListSortCompare);
+procedure TListEx.Sort(Compare: TListSortCompareFunc);
 begin
   if fCount < 2 then Exit;
   QuickSort(FList, 0, fCount - 1, Compare);
+  fSorted := true;
 end;
 //------------------------------------------------------------------------------
 
@@ -658,6 +669,7 @@ begin
   p := fList[idx1];
   fList[idx1] := fList[idx2];
   fList[idx2] := p;
+  fSorted := false;
 end;
 
 //------------------------------------------------------------------------------

@@ -23,13 +23,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditReg.pas,v 1.33.2.2 2004/10/18 15:25:00 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
 unit SynEditReg;
@@ -39,13 +32,11 @@ unit SynEditReg;
 interface
 
 uses
+  System.Classes,
+  System.Actions,
   // SynEdit components
   SynEdit,
-  SynMemo,
-  SynEditDocumentManager,
-  {$IFNDEF SYN_DELPHI_PE}
   SynDBEdit,
-  {$ENDIF}
   SynEditStrConst,
   SynEditHighlighter,
   SynEditMiscClasses,
@@ -63,9 +54,7 @@ uses
   SynAutoCorrect,
   SynEditSearch,
   SynEditRegexSearch,
-  {$IFDEF SYN_COMPILER_4_UP}
   SynHighlighterManager,
-  {$ENDIF}
   SynEditOptionsDialog,
   SynHighlighterADSP21xx,
   SynHighlighterAsm,
@@ -81,22 +70,15 @@ uses
   SynHighlighterDfm,
   SynHighlighterDml,
   SynHighlighterDOT,
-  {$ifdef SYN_DELPHI_2010_UP}
-  SynHighlighterAsmMASM,
-  {$endif}
-  {$ifdef SYN_DELPHI_2009_UP}
   SynHighlighterDWS,
-  {$endif}
   SynHighlighterEiffel,
   SynHighlighterFortran,
   SynHighlighterFoxpro,
   SynHighlighterGalaxy,
   SynHighlighterGeneral,
-  SynHighlighterGo,
-  SynHighlighterGLSL,
   SynHighlighterHaskell,
   SynHighlighterHC11,
-  SynHighlighterHP48, 
+  SynHighlighterHP48,
   SynHighlighterHtml,
   SynHighlighterIni,
   SynHighlighterInno,
@@ -112,28 +94,29 @@ uses
   SynHighlighterProgress, 
   SynHighlighterPython,
   SynHighlighterRC,
-  SynHighlighterRuby, 
+  SynHighlighterRuby,
   SynHighlighterSml,
-  SynHighlighterSQL,  
+  SynHighlighterSQL,
   SynHighlighterTclTk,
   SynHighlighterTeX,
   SynHighlighterUNIXShellScript,
   SynHighlighterURI,
   SynHighlighterVB,
   SynHighlighterVBScript,
-  SynHighlighterVrml97,  
+  SynHighlighterVrml97,
   SynHighlighterGWS,
-  SynHighlighterCPM, 
+  SynHighlighterCPM,
   SynHighlighterSDD,
   SynHighlighterXML,
-  SynHighlighterMsg, 
+  SynHighlighterYAML,
+  SynHighlighterMsg,
   SynHighlighterIDL,
   SynHighlighterUnreal,
   SynHighlighterST,
-  SynHighlighterLDraw,   
-  SynHighlighterYAML,   
-  SynURIOpener,
-  Classes;
+  SynHighlighterLDraw,
+  SynHighlighterOmni,
+  SynSpellCheck,
+  SynURIOpener;
 
 procedure Register;
 
@@ -142,13 +125,10 @@ implementation
 procedure Register;
 begin
 // SynEdit main components
-  RegisterComponents(SYNS_ComponentsPage, [TSynEdit, TSynMemo]);
+  RegisterComponents(SYNS_ComponentsPage, [TSynEdit]);
 
-{$IFNDEF SYN_DELPHI_PE}
   RegisterComponents(SYNS_ComponentsPage, [TDBSynEdit]);
-{$ENDIF}
 
-{$IFDEF SYN_COMPILER_6_UP}
   GroupDescendentsWith(TSynCustomHighlighter, TSynEdit);
   GroupDescendentsWith(TSynEditSearchCustom, TSynEdit);
   GroupDescendentsWith(TSynCustomExporter, TSynEdit);
@@ -163,50 +143,49 @@ begin
   GroupDescendentsWith(TSynHighlighterManager, TSynEdit);
   GroupDescendentsWith(TSynEditOptionsDialog, TSynEdit);
   GroupDescendentsWith(TSynURIOpener, TSynEdit);
-{$ENDIF}
 
 // SynEdit extra components
   RegisterComponents(SYNS_ComponentsPage, [TSynExporterHTML, TSynExporterRTF,
     TSynExporterTeX, TSynEditPythonBehaviour, TSynMultiSyn,
     TSynCompletionProposal, TSynAutoComplete, TSynMacroRecorder,
     TSynEditPrint, TSynEditPrintPreview, TSynAutoCorrect,
-    TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener,
-    TSynEditDocumentManager]);
-{$IFDEF SYN_COMPILER_4_UP}
+    TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener]);
   RegisterComponents(SYNS_ComponentsPage, [TSynHighlighterManager]);
-{$ENDIF}
+  RegisterComponents(SYNS_ComponentsPage, [TSynSpellCheck]);
 
 // SynEdit highlighters
   RegisterComponents(SYNS_HighlightersPage, [
     //classic
     TSynCppSyn, TSynEiffelSyn, TSynFortranSyn, TSynGeneralSyn, TSynJavaSyn,
-    TSynM3Syn, TSynPasSyn, TSynVBSyn, TSynCobolSyn, TSynCSSyn, TSynGoSyn,
+    TSynM3Syn, TSynPasSyn, TSynVBSyn, TSynCobolSyn, TSynCSSyn, TSynOmniSyn,
     // internet
     TSynCssSyn, TSynHTMLSyn, TSynJScriptSyn, TSynPHPSyn, TSynVBScriptSyn,
     TSynXMLSyn, TSynJSONSyn, TSynVrml97Syn,
     //interpreted
     TSynAWKSyn, TSynBATSyn,
-    {$ifdef SYN_DELPHI_2009_UP}
     TSynDWSSyn,
-    {$endif}
-    TSynKixSyn, TSynPerlSyn, TSynPythonSyn, TSynGLSLSyn,
+    TSynKixSyn, TSynPerlSyn, TSynPythonSyn,
     TSynTclTkSyn, TSynGWScriptSyn, TSynRubySyn, TSynUNIXShellScriptSyn,
     //database
     TSynCACSyn, TSynCacheSyn, TSynFoxproSyn, TSynSQLSyn, TSynSDDSyn,
     //assembler
     TSynADSP21xxSyn, TSynAsmSyn, TSynHC11Syn, TSynHP48Syn, TSynSTSyn,
-    {$ifdef SYN_DELPHI_2010_UP}
-    TSynAsmMASMSyn,
-    {$endif}
     //data modeling
     TSynDmlSyn, TSynModelicaSyn, TSynSMLSyn,
     //data
     TSynDfmSyn, TSynIniSyn, TSynInnoSyn,
     // other
-    TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn, 
-    TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn,
-    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn, TSynYAMLSyn
+    TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn,
+    TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, TSynYAMLSyn,
+    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn
   ]);
+
+  // SynEdit Actions
+  RegisterActions('SynEdit Spell Check',
+    [TSynSpellCheckFile, TSynSpellCheckLine, TSynSpellCheckSelection,
+    TSynSpellCheckWord, TSynSpellClearErrors, TSynSpellCheckAsYouType,
+    TSynSpellErrorAdd, TSynSpellErrorIgnoreOnce, 
+    TSynSpellErrorIgnore, TSynSpellErrorDelete], nil);
 end;
 
 end.

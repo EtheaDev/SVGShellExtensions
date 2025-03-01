@@ -30,7 +30,7 @@ object UserSettingsForm: TUserSettingsForm
     Top = 41
     Width = 662
     Height = 451
-    ActivePage = tsColors
+    ActivePage = stGeneral
     Align = alClient
     Images = SettingsImageList
     TabOrder = 0
@@ -38,14 +38,11 @@ object UserSettingsForm: TUserSettingsForm
       Caption = 'Text color'
       ImageName = 'palette'
       object VertSplitter: TSplitter
-        Left = 193
-        Top = 25
+        Left = 143
+        Top = 0
         Width = 4
         Height = 377
-        MinSize = 100
-        ExplicitLeft = 143
-        ExplicitTop = 0
-        ExplicitHeight = 366
+        MinSize = 366
       end
       object paLeft: TPanel
         Left = 0
@@ -254,30 +251,66 @@ object UserSettingsForm: TUserSettingsForm
           Left = 0
           Top = 65
           Width = 457
-          Height = 312
+          Height = 289
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
           Font.Name = 'Courier New'
           Font.Style = []
+          Font.Quality = fqClearTypeNatural
           TabOrder = 1
           OnClick = SynEditClick
           OnKeyUp = SynEditKeyUp
           CodeFolding.GutterShapeSize = 11
-          CodeFolding.CollapsedLineColor = clGrayText
-          CodeFolding.FolderBarLinesColor = clGrayText
           CodeFolding.IndentGuidesColor = clGray
           CodeFolding.IndentGuides = True
-          CodeFolding.ShowCollapsedLine = False
-          CodeFolding.ShowHintMark = True
           UseCodeFolding = False
           Gutter.Font.Charset = DEFAULT_CHARSET
           Gutter.Font.Color = clWindowText
           Gutter.Font.Height = -11
-          Gutter.Font.Name = 'Terminal'
+          Gutter.Font.Name = 'Consolas'
           Gutter.Font.Style = []
+          Gutter.Font.Quality = fqClearTypeNatural
+          Gutter.Width = 0
+          Gutter.Bands = <>
+          ScrollbarAnnotations = <>
           FontSmoothing = fsmNone
+        end
+        object ActiveLineColorGroupBox: TGroupBox
+          Left = 0
+          Top = 354
+          Width = 453
+          Height = 47
+          Align = alBottom
+          Caption = 'Active Line Color of Editor'
+          TabOrder = 2
+          object DarkActiveLineColorColorBox: TColorBox
+            Left = 2
+            Top = 17
+            Width = 174
+            Height = 22
+            Hint = 'Active Line Color for Dark Theme'
+            Align = alLeft
+            NoneColorColor = clDefault
+            Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+            DropDownCount = 20
+            TabOrder = 0
+            OnSelect = ColorBoxSelect
+          end
+          object LightActiveLineColorColorBox: TColorBox
+            Left = 176
+            Top = 17
+            Width = 174
+            Height = 22
+            Hint = 'Active Line Color for Light Theme'
+            Align = alLeft
+            NoneColorColor = clDefault
+            Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+            DropDownCount = 20
+            TabOrder = 1
+            OnSelect = ColorBoxSelect
+          end
         end
       end
       object PanelTopEditor: TPanel
@@ -464,6 +497,38 @@ object UserSettingsForm: TUserSettingsForm
           Caption = 'Apply to Menu Buttons'
           TabOrder = 2
         end
+      end
+      object FixedColorGroupBox: TGroupBox
+        AlignWithMargins = True
+        Left = 13
+        Top = 248
+        Width = 284
+        Height = 73
+        Caption = 'Apply Fixed Color to SVG'
+        TabOrder = 3
+        object ApplyToRootCheckBox: TCheckBox
+          Left = 15
+          Top = 47
+          Width = 185
+          Height = 17
+          Caption = 'Applied to Root Only'
+          TabOrder = 0
+        end
+        object FixedColorColorBox: TColorBox
+          Left = 15
+          Top = 19
+          Width = 145
+          Height = 22
+          TabOrder = 1
+        end
+      end
+      object GrayScaleCheckBox: TCheckBox
+        Left = 28
+        Top = 327
+        Width = 185
+        Height = 17
+        Caption = 'Apply GrayScale'
+        TabOrder = 4
       end
     end
   end

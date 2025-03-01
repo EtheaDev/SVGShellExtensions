@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -69,6 +69,9 @@ uses
 
 const
   SET_FILE_NAME = 'HiglightSettings';
+  SV_COLLAPSED_WIDTH = 42;
+  SV_COLLAPSED_WIDTH_WITH_SCROLLBARS = 60;
+
 
 resourcestring
   PAGE_HEADER_FIRST_LINE_LEFT = '$TITLE$';
@@ -208,6 +211,11 @@ type
     VirtualImageList20: TVirtualImageList;
     LoadTimer: TTimer;
     CheckFileChangedTimer: TTimer;
+    ColorPanel: TPanel;
+    GrayscaleCheckBox: TCheckBox;
+    ApplyToRootCheckBox: TCheckBox;
+    FixedColorBox: TColorBox;
+    FixedColorCheckBox: TCheckBox;
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure acOpenFileExecute(Sender: TObject);
     procedure acSaveExecute(Sender: TObject);
@@ -281,6 +289,10 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
+    procedure ApplyToRootCheckBoxClick(Sender: TObject);
+    procedure GrayscaleCheckBoxClick(Sender: TObject);
+    procedure FixedColorBoxSelect(Sender: TObject);
+    procedure FixedColorCheckBoxClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure acEditCopyUpdate(Sender: TObject);
     procedure CheckFileChangedTimerTimer(Sender: TObject);
@@ -288,6 +300,7 @@ type
     procedure LoadTimerTimer(Sender: TObject);
     procedure AppDeactivate(Sender: TObject);
     procedure AppActivate(Sender: TObject);
+    procedure SVResize(Sender: TObject);
   private
     FormTabsBar: TSpecialFormTabsBar;
     FEditingInProgress: Boolean;
@@ -322,7 +335,7 @@ type
     procedure UpdateFromSettings(AEditor: TSynEdit);
     function DialogPosRect: TRect;
     procedure AdjustCompactWidth;
-    procedure AdjustViewerWidth;
+    procedure AdjustViewerWidth(const ACenter: Boolean = False);
     function OpenFile(const FileName: string;
       const ARaiseError: Boolean = True): Boolean;
     function AddEditingFile(const EditingFile: TEditingFile): Integer;
@@ -349,11 +362,21 @@ type
     procedure UpdateChildFormImage(AChildForm: TMDIChildForm; AModified: Boolean;
       const AImageName: string);
     property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
+    function GetApplyToRootOnly: Boolean;
+    function GetFixedColor: TColor;
+    function GetGrayScale: Boolean;
+    procedure SetApplyToRootOnly(const Value: Boolean);
+    procedure SetFixedColor(const Value: TColor);
+    procedure SetGrayScale(const Value: Boolean);
+    procedure UpdateColorGUI;
   protected
     procedure CreateWindowHandle(const Params: TCreateParams); override;
     procedure DestroyWindowHandle; override;
   public
     procedure ManageExceptions(Sender: TObject; E: Exception);
+    property FixedColor: TColor read GetFixedColor write SetFixedColor;
+    property ApplyToRootOnly: Boolean read GetApplyToRootOnly write SetApplyToRootOnly;
+    property GrayScale: Boolean read GetGrayScale write SetGrayScale;
   end;
 
 var
@@ -499,6 +522,12 @@ begin
 end;
 
 { TfrmMain }
+
+procedure TfrmMain.ApplyToRootCheckBoxClick(Sender: TObject);
+begin
+  inherited;
+  ApplyToRootOnly := ApplyToRootCheckBox.Checked;
+end;
 
 procedure TfrmMain.acOpenFileExecute(Sender: TObject);
 var
@@ -756,6 +785,12 @@ procedure TfrmMain.SVOpening(Sender: TObject);
 begin
   // When animating, change size of catMenuItems at the beginning of open
   catMenuItems.ButtonOptions := catMenuItems.ButtonOptions + [boShowCaptions];
+end;
+
+procedure TfrmMain.SVResize(Sender: TObject);
+begin
+//  StyledToolbar.Margins.Left :=
+//    Round(SV.Width - (SV_COLLAPSED_WIDTH * ScaleFactor) + (3 * ScaleFactor));
 end;
 
 procedure TfrmMain.DestroyWindowHandle;
@@ -1114,7 +1149,6 @@ begin
 
     //Assign user preferences to the editor
     FEditorOptions.AssignTo(LEditor);
-    LEditor.MaxScrollWidth := 3000;
     EditingFile.SynEditor := LEditor;
     UpdateFromSettings(LEditor);
     UpdateHighlighter(LEditor);
@@ -1124,6 +1158,7 @@ begin
     //Make the ChildForm the current page
     //and call "change" method passing EditingChild
     ChildFormActivate(LChildForm);
+    AdjustViewerWidth(True);
   Except
     LChildForm.Free;
     LEditor.Free;
@@ -1134,6 +1169,15 @@ end;
 procedure TfrmMain.AssignSVGToImage;
 var
   LSVGText: string;
+
+  procedure ClearIcons;
+  begin
+    SVGIconImage16.SVGText := '';
+    SVGIconImage32.SVGText := '';
+    SVGIconImage48.SVGText := '';
+    SVGIconImage96.SVGText := '';
+  end;
+
 begin
   if FProcessingFiles then
     Exit;
@@ -1142,20 +1186,29 @@ begin
     if CurrentEditor <> nil then
     begin
       LSVGText := CurrentEditor.Lines.Text;
-      SVGIconImage.SVGText := LSVGText;
-      SVGIconImage16.SVGText := LSVGText;
-      SVGIconImage32.SVGText := LSVGText;
-      SVGIconImage48.SVGText := LSVGText;
-      SVGIconImage96.SVGText := LSVGText;
+      Screen.Cursor := crHourGlass;
+      try
+        SVGIconImage.SVGText := LSVGText;
+        if CurrentEditor.Lines.Count < 1000 then
+        begin
+          SVGIconImage16.SVGText := LSVGText;
+          SVGIconImage32.SVGText := LSVGText;
+          SVGIconImage48.SVGText := LSVGText;
+          SVGIconImage96.SVGText := LSVGText;
+        end
+        else
+        begin
+          ClearIcons;
+        end;
+      finally
+        Screen.Cursor := crDefault;
+      end;
       StatusBar.Panels[STATUSBAR_MESSAGE].Text := CurrentEditFile.FileName;
     end
     else
     begin
       SVGIconImage.SVGText := '';
-      SVGIconImage16.SVGText := '';
-      SVGIconImage32.SVGText := '';
-      SVGIconImage48.SVGText := '';
-      SVGIconImage96.SVGText := '';
+      ClearIcons;
     end;
     StatusImage.ImageIndex := 40;
     StatusStaticText.Caption := SVG_PARSING_OK;
@@ -1248,6 +1301,25 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+procedure TfrmMain.FixedColorBoxSelect(Sender: TObject);
+begin
+  inherited;
+  FixedColor := FixedColorBox.Selected;
+end;
+
+procedure TfrmMain.FixedColorCheckBoxClick(Sender: TObject);
+begin
+  inherited;
+  if FixedColorCheckBox.Checked then
+  begin
+    FixedColorBox.Visible := True;
+    ApplyToRootCheckBox.Visible := True;
+    ApplyToRootCheckBox.Left := FixedColorBox.Left + 1;
+  end
+  else
+    FixedColor := clDefault;
+end;
+
 procedure TfrmMain.CreateWindowHandle(const Params: TCreateParams);
 begin
   inherited;
@@ -1327,6 +1399,27 @@ begin
     AssignSVGToImage;
     UpdateStatusBarPanels;
   end;
+end;
+
+function TfrmMain.GetApplyToRootOnly: Boolean;
+begin
+  Result := SVGIconImage.ApplyFixedColorToRootOnly;
+end;
+
+function TfrmMain.GetFixedColor: TColor;
+begin
+  Result := SVGIconImage.FixedColor;
+end;
+
+function TfrmMain.GetGrayScale: Boolean;
+begin
+  Result := SVGIconImage.GrayScale;
+end;
+
+procedure TfrmMain.GrayscaleCheckBoxClick(Sender: TObject);
+begin
+  inherited;
+  GrayScale := GrayscaleCheckBox.Checked;
 end;
 
 procedure TfrmMain.acSaveAllUpdate(Sender: TObject);
@@ -1436,20 +1529,59 @@ begin
 end;
 
 procedure TfrmMain.SetEditorFontSize(const Value: Integer);
-var
-  LScaleFactor: Single;
 begin
   if (CurrentEditor <> nil) and (Value >= MinfontSize) and (Value <= MaxfontSize) then
   begin
-    if FFontSize <> 0 then
-      LScaleFactor := CurrentEditor.Font.Height / FFontSize
-    else
-      LScaleFactor := 1;
-    CurrentEditor.Font.PixelsPerInch := Self.PixelsPerInch;
-    CurrentEditor.Font.Height := Round(Value * LScaleFactor * Self.ScaleFactor);
+    CurrentEditor.Font.Height := -Round(Value * Self.ScaleFactor);
     FEditorSettings.FontSize := Value;
   end;
   FFontSize := Value;
+end;
+
+procedure TfrmMain.SetApplyToRootOnly(const Value: Boolean);
+begin
+  ApplyToRootCheckBox.Checked := Value;
+  SVGIconImage.ApplyFixedColorToRootOnly := Value;
+  SVGIconImage16.ApplyFixedColorToRootOnly := Value;
+  SVGIconImage32.ApplyFixedColorToRootOnly := Value;
+  SVGIconImage48.ApplyFixedColorToRootOnly := Value;
+  SVGIconImage96.ApplyFixedColorToRootOnly := Value;
+  FEditorSettings.ApplyToRootOnly := Value;
+end;
+
+procedure TfrmMain.UpdateColorGUI;
+var
+  LUseFixedColor: Boolean;
+begin
+  LUseFixedColor := FixedColor <> clDefault;
+  FixedColorCheckBox.Checked := LUseFixedColor;
+  FixedColorBox.Visible := LUseFixedColor;
+  ApplyToRootCheckBox.Visible := LUseFixedColor;
+  ApplyToRootCheckBox.Left := FixedColorBox.Left + 1;
+  GrayscaleCheckBox.Checked := Grayscale;
+end;
+
+procedure TfrmMain.SetFixedColor(const Value: TColor);
+begin
+  SVGIconImage.FixedColor := Value;
+  SVGIconImage16.FixedColor := Value;
+  SVGIconImage32.FixedColor := Value;
+  SVGIconImage48.FixedColor := Value;
+  SVGIconImage96.FixedColor := Value;
+  FixedColorBox.Selected := Value;
+  FEditorSettings.FixedColor := Value;
+  UpdateColorGUI;
+end;
+
+procedure TfrmMain.SetGrayScale(const Value: Boolean);
+begin
+  SVGIconImage.GrayScale := Value;
+  SVGIconImage16.GrayScale := Value;
+  SVGIconImage32.GrayScale := Value;
+  SVGIconImage48.GrayScale := Value;
+  SVGIconImage96.GrayScale := Value;
+  FEditorSettings.GrayScale := Value;
+  UpdateColorGUI;
 end;
 
 procedure TfrmMain.SetSynEditPrintProperties(SynEditPrint : TSynEditPrint);
@@ -1539,6 +1671,11 @@ begin
   UpdateEditorsOptions;
   UpdateHighlighter(AEditor);
   BackgroundTrackBar.Position := FEditorSettings.LightBackground;
+
+  FixedColor := FEditorSettings.FixedColor;
+  ApplyToRootOnly := FEditorSettings.ApplyToRootOnly;
+  Grayscale := FEditorSettings.GrayScale;
+
   SVGIconImage.UpdateSVGFactory;
   SVGIconImage16.UpdateSVGFactory;
   SVGIconImage32.UpdateSVGFactory;
@@ -1810,26 +1947,35 @@ begin
   FEditorSettings.HistoryFileList.Insert(0, AFileName);
 end;
 
-procedure TfrmMain.AdjustViewerWidth;
+procedure TfrmMain.AdjustViewerWidth(const ACenter: Boolean = False);
 begin
   if CurrentEditFile <> nil then
   begin
-    var LViewerWidth := ImagePanel.Width;
-    var LMinWidth := Self.Width div 6;
-    if LViewerWidth < LMinWidth then
-      ImagePanel.Width := LMinWidth
-    else if LViewerWidth > Self.Width - LMinWidth then
-      ImagePanel.Width := Self.Width - LMinWidth;
+    if ACenter then
+    begin
+      ImagePanel.Width :=
+        (Self.Width - catMenuItems.Width) div 2;
+    end
+    else
+    begin
+      var LViewerWidth := ImagePanel.Width;
+      var LMinWidth := Self.Width div 6;
+      var LMaxWidth := Self.Width - LMinWidth;
+      if LViewerWidth < LMinWidth then
+        ImagePanel.Width := LMinWidth
+      else if LViewerWidth > LMaxWidth then
+        ImagePanel.Width := LMaxWidth;
+    end;
   end;
 end;
 
 procedure TfrmMain.AdjustCompactWidth;
 begin
-  //Change size of compact because Scrollbars appears
+  //Change size of compact view because Scrollbars appears
   if (Height / ScaleFactor) > 900 then
-    SV.CompactWidth := Round(38 * ScaleFactor)
+    SV.CompactWidth := Round(SV_COLLAPSED_WIDTH * ScaleFactor)
   else
-    SV.CompactWidth := Round(58 * ScaleFactor);
+    SV.CompactWidth := Round(SV_COLLAPSED_WIDTH_WITH_SCROLLBARS * ScaleFactor);
   if (CurrentEditFile <> nil) and (ImagePanel.Width > CurrentEditFile.ChildForm.Width) then
     ImagePanel.Width := width div 3;
 end;

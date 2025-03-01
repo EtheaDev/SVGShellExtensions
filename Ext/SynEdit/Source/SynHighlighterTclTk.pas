@@ -27,13 +27,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynHighlighterTclTk.pas,v 1.18.2.12 2008/09/14 16:25:03 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides a TCL/Tk highlighter for SynEdit)
@@ -51,6 +44,7 @@ interface
 
 uses
   Windows,
+  Registry,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
@@ -67,25 +61,25 @@ type
 type
   TSynTclTkSyn = class(TSynCustomHighlighter)
   private
-    FRange: TRangeState;
+    fRange: TRangeState;
     FTokenID: TtkTokenKind;
-    FStringAttri: TSynHighlighterAttributes;
-    FSymbolAttri: TSynHighlighterAttributes;
-    FKeyAttri: TSynHighlighterAttributes;
-    FSecondKeyAttri: TSynHighlighterAttributes;
-    FNumberAttri: TSynHighlighterAttributes;
-    FCommentAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FOptionsAttri: TSynHighlighterAttributes;
-    FVariableAttri: TSynHighlighterAttributes;
-    FPathAttri: TSynHighlighterAttributes;
-    FKeyWords: TUnicodeStrings;
-    FSecondKeys: TUnicodeStrings;
-    FTixWords: TUnicodeStrings;
-    FTixKeyAttri: TSynHighlighterAttributes;
-    FWidgetWords: TUnicodeStrings;
-    FWidgetKeyAttri: TSynHighlighterAttributes;
+    fStringAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fSecondKeyAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fCommentAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fOptionsAttri: TSynHighlighterAttributes;
+    fVariableAttri: TSynHighlighterAttributes;
+    fPathAttri: TSynHighlighterAttributes;
+    fKeyWords: TStrings;
+    fSecondKeys: TStrings;
+    fTixWords: TStrings;
+    fTixKeyAttri: TSynHighlighterAttributes;
+    fWidgetWords: TStrings;
+    fWidgetKeyAttri: TSynHighlighterAttributes;
     procedure BraceOpenProc;
     procedure PointCommaProc;
     procedure CRProc;
@@ -105,18 +99,18 @@ type
     procedure PathProc;
     procedure MinusProc;
     procedure SymbolProc;
-    procedure SetKeyWords(const Value: TUnicodeStrings);
-    procedure SetSecondKeys(const Value: TUnicodeStrings);
+    procedure SetKeyWords(const Value: TStrings);
+    procedure SetSecondKeys(const Value: TStrings);
     function IsKeywordListStored: Boolean;
     function IsSecondKeywordListStored: Boolean;
-    function InternalIsKeyword(const AKeyword: UnicodeString;
-        KeyWordList: TUnicodeStrings; ACaseSensitive: Boolean = False): Boolean;
+    function InternalIsKeyword(const AKeyword: string;
+        KeyWordList: TStrings; ACaseSensitive: Boolean = False): Boolean;
   protected
-    function GetSampleSource: UnicodeString; override;
+    function GetSampleSource: string; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -125,7 +119,7 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
+    function IsKeyword(const AKeyword: string): Boolean; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: Integer; override;
     procedure Next; override;
@@ -134,38 +128,38 @@ type
     function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
-      write FCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
-      write FIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
-    property KeyWords: TUnicodeStrings read FKeyWords write SetKeyWords
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
+      write fCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
+      write fIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property KeyWords: TStrings read fKeyWords write SetKeyWords
       stored IsKeywordListStored;
-    property SecondKeyAttri: TSynHighlighterAttributes read FSecondKeyAttri
-      write FSecondKeyAttri;
-    property SecondKeyWords: TUnicodeStrings read FSecondKeys write SetSecondKeys
+    property SecondKeyAttri: TSynHighlighterAttributes read fSecondKeyAttri
+      write fSecondKeyAttri;
+    property SecondKeyWords: TStrings read fSecondKeys write SetSecondKeys
       stored IsSecondKeywordListStored;
-    property TixKeyAttri: TSynHighlighterAttributes read FTixKeyAttri
-      write FTixKeyAttri;
-    property TixWords: TUnicodeStrings read FTixWords;
-    property WidgetKeyAttri: TSynHighlighterAttributes read FWidgetKeyAttri
-      write FWidgetKeyAttri;
-    property WidgetWords: TUnicodeStrings read FWidgetWords;
+    property TixKeyAttri: TSynHighlighterAttributes read fTixKeyAttri
+      write fTixKeyAttri;
+    property TixWords: TStrings read fTixWords;
+    property WidgetKeyAttri: TSynHighlighterAttributes read fWidgetKeyAttri
+      write fWidgetKeyAttri;
+    property WidgetWords: TStrings read fWidgetWords;
 
-    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
-      write FNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
-      write FSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read FStringAttri
-      write FStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
-      write FSymbolAttri;
-    property OptionsAttri: TSynHighlighterAttributes read FOptionsAttri
-      write FOptionsAttri;
-    property PathAttri: TSynHighlighterAttributes read FPathAttri
-      write FPathAttri;
-    property VariableAttri: TSynHighlighterAttributes read FVariableAttri
-      write FVariableAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
+      write fNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
+      write fSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri
+      write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
+      write fSymbolAttri;
+    property OptionsAttri: TSynHighlighterAttributes read fOptionsAttri
+      write fOptionsAttri;
+    property PathAttri: TSynHighlighterAttributes read fPathAttri
+      write fPathAttri;
+    property VariableAttri: TSynHighlighterAttributes read fVariableAttri
+      write fVariableAttri;
   end;
 
 implementation
@@ -174,11 +168,11 @@ uses
   SynEditStrConst;
 
 const
-  TclTkKeys: array[0..128] of UnicodeString = (
+  TclTkKeys: array[0..128] of string = (
     'after', 'append', 'array', 'auto_execok', 'auto_import', 'auto_load', 
     'auto_mkindex', 'auto_mkindex_old', 'auto_qualify', 'auto_reset', 'base', 
     'bgerror', 'binary', 'body', 'break', 'catch', 'cd', 'class', 'clock', 
-    'close', 'code', 'concat', 'configbody', 'constructor', 'continue', 'dde', 
+    'close', 'code', 'concat', 'configbody', 'constructor', 'continue', 'dde',
     'delete', 'destructor', 'else', 'elseif', 'encoding', 'ensemble', 'eof', 
     'error', 'eval', 'exec', 'exit', 'expr', 'fblocked', 'fconfigure', 'fcopy', 
     'file', 'fileevent', 'filename', 'find', 'flush', 'for', 'foreach', 
@@ -196,7 +190,7 @@ const
     'update', 'uplevel', 'upvar', 'variable', 'vwait', 'while' 
   );
    
-  SecondTclTkKeys: array[0..91] of UnicodeString = (
+  SecondTclTkKeys: array[0..91] of string = (
     'bell', 'bind', 'bindidproc', 'bindproc', 'bindtags', 'bitmap', 'button', 
     'canvas', 'checkbutton', 'clipboard', 'colors', 'combobox', 'console', 
     'cursors', 'debug', 'destroy', 'entry', 'event', 'exp_after', 'exp_before', 
@@ -214,7 +208,7 @@ const
     'tkerror', 'tkvars', 'tkwait', 'toplevel', 'wait', 'winfo', 'wm' 
   );
 
-  TixKeys: array[0..43] of UnicodeString = (
+  TixKeys: array[0..43] of string = (
     'compound', 'pixmap', 'tix', 'tixballoon', 'tixbuttonbox', 'tixchecklist', 
     'tixcombobox', 'tixcontrol', 'tixdestroy', 'tixdirlist', 
     'tixdirselectdialog', 'tixdirtree', 'tixdisplaystyle', 'tixexfileselectbox', 
@@ -227,7 +221,7 @@ const
     'tixstdbuttonbox', 'tixtlist', 'tixtree', 'tixutils', 'tixwish' 
   );
   
-  WidgetKeys: array[0..32] of UnicodeString = (
+  WidgetKeys: array[0..32] of string = (
     'ArrowButton', 'Button', 'ButtonBox', 'BWidget', 'ComboBox', 'Dialog', 
     'DragSite', 'DropSite', 'DynamicHelp', 'Entry', 'Label', 'LabelEntry', 
     'LabelFrame', 'ListBox', 'MainFrame', 'MessageDlg', 'NoteBook', 
@@ -237,11 +231,11 @@ const
     'Widget' 
   );
 
-function TSynTclTkSyn.InternalIsKeyword(const AKeyword: UnicodeString;
-  KeyWordList: TUnicodeStrings; ACaseSensitive: Boolean = False): Boolean;
+function TSynTclTkSyn.InternalIsKeyword(const AKeyword: string;
+  KeyWordList: TStrings; ACaseSensitive: Boolean = False): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: UnicodeString;
+  Token: string;
 begin
   First := 0;
   Last := KeyWordList.Count - 1;
@@ -249,11 +243,11 @@ begin
   if ACaseSensitive then
     Token := AKeyword
   else
-    Token := SynWideLowerCase(AKeyword);
+    Token := SysUtils.AnsiLowerCase(AKeyword);
   while First <= Last do
   begin
     I := (First + Last) shr 1;
-    Compare := WideCompareStr(KeyWordList[i], Token);
+    Compare := CompareStr(KeyWordList[i], Token);
     if Compare = 0 then
     begin
       Result := True;
@@ -264,103 +258,103 @@ begin
   end;
 end;
 
-function TSynTclTkSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
+function TSynTclTkSyn.IsKeyword(const AKeyword: string): Boolean;
 begin
-  Result := InternalIsKeyword(AKeyword, FWidgetWords, True) or
-    InternalIsKeyword(AKeyword, FTixWords) or
-    InternalIsKeyword(AKeyword, FKeyWords) or
-    InternalIsKeyword(AKeyword, FSecondKeys);
+  Result := InternalIsKeyword(AKeyword, fWidgetWords, True) or
+    InternalIsKeyword(AKeyword, fTixWords) or
+    InternalIsKeyword(AKeyword, fKeyWords) or
+    InternalIsKeyword(AKeyword, fSecondKeys);
 end;
 
 constructor TSynTclTkSyn.Create(AOwner: TComponent);
 var
-  i: Integer;
+  I: Integer;
 begin
   inherited Create(AOwner);
 
-  FCaseSensitive := False;
+  fCaseSensitive := False;
 
-  FKeyWords := TUnicodeStringList.Create;
-  TUnicodeStringList(FKeyWords).Sorted := True;
-  TUnicodeStringList(FKeyWords).Duplicates := dupIgnore;
-  FSecondKeys := TUnicodeStringList.Create;
-  TUnicodeStringList(FSecondKeys).Sorted := True;
-  TUnicodeStringList(FSecondKeys).Duplicates := dupIgnore;
-  FTixWords := TUnicodeStringList.Create;
-  TUnicodeStringList(FTixWords).Sorted := True;
-  TUnicodeStringList(FTixWords).Duplicates := dupIgnore;
-  FWidgetWords := TUnicodeStringList.Create;
-  TUnicodeStringList(FWidgetWords).Sorted := True;
-  TUnicodeStringList(FWidgetWords).Duplicates := dupIgnore;
-  FKeyWords.BeginUpdate;
-  for i := Low(TclTkKeys) to High(TclTkKeys) do
-    FKeyWords.Add(TclTkKeys[i]);
-  FKeyWords.EndUpdate;
-  FSecondKeys.BeginUpdate;
-  for i := Low(SecondTclTkKeys) to High(SecondTclTkKeys) do
-    FSecondKeys.Add(SecondTclTkKeys[i]);
-  FSecondKeys.EndUpdate;
-  FTixWords.BeginUpdate;
-  for i := Low(TixKeys) to High(TixKeys) do
-    FTixWords.Add(TixKeys[i]);
-  FTixWords.EndUpdate;
-  FWidgetWords.BeginUpdate;
-  for i := Low(WidgetKeys) to High(WidgetKeys) do
-    FWidgetWords.Add(WidgetKeys[i]);
-  FWidgetWords.EndUpdate;
+  fKeyWords := TStringList.Create;
+  TStringList(fKeyWords).Sorted := True;
+  TStringList(fKeyWords).Duplicates := dupIgnore;
+  fSecondKeys := TStringList.Create;
+  TStringList(fSecondKeys).Sorted := True;
+  TStringList(fSecondKeys).Duplicates := dupIgnore;
+  fTixWords := TStringList.Create;
+  TStringList(fTixWords).Sorted := True;
+  TStringList(fTixWords).Duplicates := dupIgnore;
+  fWidgetWords := TStringList.Create;
+  TStringList(fWidgetWords).Sorted := True;
+  TStringList(fWidgetWords).Duplicates := dupIgnore;
+  fKeyWords.BeginUpdate;
+  for I := Low(TclTkKeys) to High(TclTkKeys) do
+    FKeyWords.Add(TclTkKeys[I]);
+  fKeyWords.EndUpdate;
+  fSecondKeys.BeginUpdate;
+  for I := Low(SecondTclTkKeys) to High(SecondTclTkKeys) do
+    fSecondKeys.Add(SecondTclTkKeys[I]);
+  fSecondKeys.EndUpdate;
+  fTixWords.BeginUpdate;
+  for I := Low(TixKeys) to High(TixKeys) do
+    FTixWords.Add(TixKeys[I]);
+  fTixWords.EndUpdate;
+  fWidgetWords.BeginUpdate;
+  for I := Low(WidgetKeys) to High(WidgetKeys) do
+    FWidgetWords.Add(WidgetKeys[I]);
+  fWidgetWords.EndUpdate;
 
-  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  FCommentAttri.Style := [fsItalic];
-  AddAttribute(FCommentAttri);
-  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
-  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  FKeyAttri.Style := [fsBold];
-  AddAttribute(FKeyAttri);
-  FSecondKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord, SYNS_FriendlyAttrSecondReservedWord);
-  FSecondKeyAttri.Style := [fsBold];
-  AddAttribute(FSecondKeyAttri);
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  fCommentAttri.Style := [fsItalic];
+  AddAttribute(fCommentAttri);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(fIdentifierAttri);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  fKeyAttri.Style := [fsBold];
+  AddAttribute(fKeyAttri);
+  fSecondKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord, SYNS_FriendlyAttrSecondReservedWord);
+  fSecondKeyAttri.Style := [fsBold];
+  AddAttribute(fSecondKeyAttri);
 
-  FTixKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrTixKeyWords, SYNS_FriendlyAttrTixKeyWords);
-  FTixKeyAttri.Style := [fsBold, fsItalic];
-  AddAttribute(FTixKeyAttri);
+  fTixKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrTixKeyWords, SYNS_FriendlyAttrTixKeyWords);
+  fTixKeyAttri.Style := [fsBold, fsItalic];
+  AddAttribute(fTixKeyAttri);
 
-  FWidgetKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrWidgetWords, SYNS_FriendlyAttrWidgetWords);
-  FWidgetKeyAttri.Style := [fsBold, fsItalic];
-  AddAttribute(FWidgetKeyAttri);
+  fWidgetKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrWidgetWords, SYNS_FriendlyAttrWidgetWords);
+  fWidgetKeyAttri.Style := [fsBold, fsItalic];
+  AddAttribute(fWidgetKeyAttri);
 
-  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(FNumberAttri);
-  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
-  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(FStringAttri);
-  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(FSymbolAttri);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(fNumberAttri);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(fSpaceAttri);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(fStringAttri);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
-  FOptionsAttri := TSynHighlighterAttributes.Create(SYNS_AttrOptions, SYNS_FriendlyAttrOptions);
-  AddAttribute(FOptionsAttri);
-  FVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
-  AddAttribute(FVariableAttri);
-  FPathAttri := TSynHighlighterAttributes.Create(SYNS_AttrPath, SYNS_FriendlyAttrPath);
-  AddAttribute(FPathAttri);
+  fOptionsAttri := TSynHighlighterAttributes.Create(SYNS_AttrOptions, SYNS_FriendlyAttrOptions);
+  AddAttribute(fOptionsAttri);
+  fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
+  AddAttribute(fVariableAttri);
+  fPathAttri := TSynHighlighterAttributes.Create(SYNS_AttrPath, SYNS_FriendlyAttrPath);
+  AddAttribute(fPathAttri);
 
-  FRange := rsUnknown;
-  FDefaultFilter := SYNS_FilterTclTk;
+  fRange := rsUnknown;
+  fDefaultFilter := SYNS_FilterTclTk;
 end;
 
 destructor TSynTclTkSyn.Destroy;
 begin
-  FWidgetWords.Free;
-  FTixWords.Free;
-  FSecondKeys.Free;
-  FKeyWords.Free;
+  fWidgetWords.Free;
+  fTixWords.Free;
+  fSecondKeys.Free;
+  fKeyWords.Free;
   inherited Destroy;
 end;
 
 procedure TSynTclTkSyn.AnsiProc;
 begin
-  FTokenID := tkComment;
+  fTokenID := tkComment;
   case FLine[Run] of
     #0:
       begin
@@ -381,11 +375,11 @@ begin
   end;
 
   while not IsLineEnd(Run) do
-    if FLine[Run] = '*' then
+    if fLine[Run] = '*' then
     begin
-      if FLine[Run + 1] = ')' then
+      if fLine[Run + 1] = ')' then
       begin
-        FRange := rsUnknown;
+        fRange := rsUnKnown;
         Inc(Run, 2);
         Break;
       end
@@ -398,7 +392,7 @@ end;
 
 procedure TSynTclTkSyn.PasStyleProc;
 begin
-  FTokenID := tkComment;
+  fTokenID := tkComment;
   case FLine[Run] of
     #0:
       begin
@@ -421,7 +415,7 @@ begin
   while not IsLineEnd(Run) do
     if FLine[Run] = '}' then
     begin
-      FRange := rsUnknown;
+      fRange := rsUnKnown;
       Inc(Run);
       Break;
     end
@@ -431,7 +425,7 @@ end;
 
 procedure TSynTclTkSyn.CStyleProc;
 begin
-  FTokenID := tkComment;
+  fTokenID := tkComment;
   case FLine[Run] of
     #0:
       begin
@@ -452,11 +446,11 @@ begin
   end;
 
   while not IsLineEnd(Run) do
-    if FLine[Run] = '*' then
+    if fLine[Run] = '*' then
     begin
-      if FLine[Run + 1] = '/' then
+      if fLine[Run + 1] = '/' then
       begin
-        FRange := rsUnknown;
+        fRange := rsUnKnown;
         Inc(Run, 2);
         Break;
       end
@@ -469,18 +463,18 @@ end;
 procedure TSynTclTkSyn.BraceOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
 procedure TSynTclTkSyn.PointCommaProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
 procedure TSynTclTkSyn.CRProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   case FLine[Run + 1] of
     #10: Inc(Run, 2);
     else Inc(Run);
@@ -489,28 +483,28 @@ end;
 
 procedure TSynTclTkSyn.IdentProc;
 begin
-  while IsIdentChar(FLine[Run]) do Inc(Run);
-  if InternalIsKeyword(GetToken, FWidgetWords, True) then
-    FTokenID := tkWidgetKey
-  else if InternalIsKeyword(GetToken, FTixWords) then
-    FTokenID := tkTixKey
-  else if InternalIsKeyword(GetToken, FKeyWords) then
-    FTokenID := tkKey
-  else if InternalIsKeyword(GetToken, FSecondKeys) then
-    FTokenID := tkSecondKey
+  while IsIdentChar(fLine[Run]) do Inc(Run);
+  if InternalIsKeyword(GetToken, fWidgetWords, True) then
+    fTokenId := tkWidgetKey
+  else if InternalIsKeyword(GetToken, fTixWords) then
+    fTokenId := tkTixKey
+  else if InternalIsKeyword(GetToken, fKeyWords) then
+    fTokenId := tkKey
+  else if InternalIsKeyword(GetToken, fSecondKeys) then
+    fTokenId := tkSecondKey
   else
-    FTokenID := tkIdentifier;
+    fTokenId := tkIdentifier;
 end;
 
 procedure TSynTclTkSyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end;
 
 procedure TSynTclTkSyn.NullProc;
 begin
-  FTokenID := tkNull;
+  fTokenID := tkNull;
   Inc(Run);
 end;
 
@@ -518,7 +512,7 @@ procedure TSynTclTkSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case FLine[Run] of
+    case fLine[Run] of
       '0'..'9', '.', 'e', 'E':
         Result := True;
       else
@@ -528,7 +522,7 @@ procedure TSynTclTkSyn.NumberProc;
 
 begin
   Inc(Run);
-  FTokenID := tkNumber;
+  fTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
@@ -542,14 +536,14 @@ end;
 procedure TSynTclTkSyn.RoundOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
 end;
 
 procedure TSynTclTkSyn.SlashProc;
 begin
   if FLine[Run] = '#' then
   begin
-    FTokenID := tkComment;
+    fTokenID := tkComment;
     while not IsLineEnd(Run) do Inc(Run);
   end
   else
@@ -562,13 +556,13 @@ end;
 procedure TSynTclTkSyn.SpaceProc;
 begin
   Inc(Run);
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynTclTkSyn.StringProc;
 begin
-  FTokenID := tkString;
+  fTokenID := tkString;
   if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then
     Inc(Run, 2);
   repeat
@@ -581,18 +575,18 @@ end;
 procedure TSynTclTkSyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnKnown;
+  fTokenID := tkUnKnown;
 end;
 
 procedure TSynTclTkSyn.Next;
 begin
-  FTokenPos := Run;
-  case FRange of
+  fTokenPos := Run;
+  case fRange of
     rsAnsi: AnsiProc;
     rsPasStyle: PasStyleProc;
     rsCStyle: CStyleProc;
     else
-      case FLine[Run] of
+      case fLine[Run] of
         '-': MinusProc;
         '#': SlashProc;
         '{': BraceOpenProc;
@@ -618,12 +612,12 @@ end;
 function TSynTclTkSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := FCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := FKeyAttri;
-    SYN_ATTR_STRING: Result := FStringAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -631,36 +625,36 @@ end;
 
 function TSynTclTkSyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynTclTkSyn.GetRange: Pointer;
 begin
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 end;
 
 function TSynTclTkSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end;
 
 function TSynTclTkSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case FTokenID of
-    tkComment: Result := FCommentAttri;
-    tkIdentifier: Result := FIdentifierAttri;
-    tkKey: Result := FKeyAttri;
-    tkSecondKey: Result := FSecondKeyAttri;
-    tkTixKey: Result := FTixKeyAttri;
-    tkWidgetKey: Result := FWidgetKeyAttri;
-    tkNumber: Result := FNumberAttri;
-    tkSpace: Result := FSpaceAttri;
-    tkString: Result := FStringAttri;
-    tkSymbol: Result := FSymbolAttri;
-    tkOptions: Result := FOptionsAttri;
-    tkVariable: Result := FVariableAttri;
-    tkPath: Result := FPathAttri;
-    tkUnknown: Result := FSymbolAttri;
+  case fTokenID of
+    tkComment: Result := fCommentAttri;
+    tkIdentifier: Result := fIdentifierAttri;
+    tkKey: Result := fKeyAttri;
+    tkSecondKey: Result := fSecondKeyAttri;
+    tkTixKey: Result := fTixKeyAttri;
+    tkWidgetKey: Result := fWidgetKeyAttri;
+    tkNumber: Result := fNumberAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkString: Result := fStringAttri;
+    tkSymbol: Result := fSymbolAttri;
+    tkOptions: Result := fOptionsAttri;
+    tkVariable: Result := fVariableAttri;
+    tkPath: Result := fPathAttri;
+    tkUnknown: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -668,52 +662,52 @@ end;
 
 function TSynTclTkSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTokenID);
+  Result := Ord(fTokenId);
 end;
 
 procedure TSynTclTkSyn.ResetRange;
 begin
-  FRange := rsUnknown;
+  fRange := rsUnknown;
 end;
 
 procedure TSynTclTkSyn.SetRange(Value: Pointer);
 begin
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 end;
 
-procedure TSynTclTkSyn.SetKeyWords(const Value: TUnicodeStrings);
+procedure TSynTclTkSyn.SetKeyWords(const Value: TStrings);
 var
-  i: Integer;
+  I: Integer;
 begin
   if Value <> nil then
     begin
       Value.BeginUpdate;
-      for i := 0 to Value.Count - 1 do
-        Value[i] := SynWideUpperCase(Value[i]);
+      for I := 0 to Value.Count - 1 do
+        Value[I] := SysUtils.AnsiUpperCase(Value[I]);
       Value.EndUpdate;
     end;
-  FKeyWords.Assign(Value);
+  fKeyWords.Assign(Value);
   DefHighLightChange(nil);
 end;
 
-procedure TSynTclTkSyn.SetSecondKeys(const Value: TUnicodeStrings);
+procedure TSynTclTkSyn.SetSecondKeys(const Value: TStrings);
 var
-  i: Integer;
+  I: Integer;
 begin
   if Value <> nil then
     begin
       Value.BeginUpdate;
-      for i := 0 to Value.Count - 1 do
-        Value[i] := SynWideUpperCase(Value[i]);
+      for I := 0 to Value.Count - 1 do
+        Value[I] := SysUtils.AnsiUpperCase(Value[I]);
       Value.EndUpdate;
     end;
-  FSecondKeys.Assign(Value);
+  fSecondKeys.Assign(Value);
   DefHighLightChange(nil);
 end;
 
 function TSynTclTkSyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterTclTk;
+  Result := fDefaultFilter <> SYNS_FilterTclTk;
 end;
 
 class function TSynTclTkSyn.GetLanguageName: string;
@@ -723,9 +717,9 @@ end;
 
 function TSynTclTkSyn.LoadFromRegistry(RootKey: HKEY; Key: string): Boolean;
 var
-  r: TBetterRegistry;
+  r: TRegistry;
 begin
-  r := TBetterRegistry.Create;
+  r := TRegistry.Create;
   try
     r.RootKey := RootKey;
     if r.OpenKeyReadOnly(Key) then
@@ -742,19 +736,18 @@ end;
 
 function TSynTclTkSyn.SaveToRegistry(RootKey: HKEY; Key: string): Boolean;
 var
-  r: TBetterRegistry;
+  r: TRegistry;
 begin
-  r:= TBetterRegistry.Create;
+  r:= TRegistry.Create;
   try
     r.RootKey := RootKey;
-    if r.OpenKey(Key,true) then begin
-      {$IFNDEF SYN_COMPILER_25_UP}
-      Result := true;
-      {$ENDIF}
+    if r.OpenKey(Key, True) then
+    begin
       r.WriteString('KeyWords', KeyWords.Text);
       Result := inherited SaveToRegistry(RootKey, Key);
     end
-    else Result := False;
+    else
+      Result := False;
   finally
     r.Free;
   end;
@@ -762,11 +755,11 @@ end;
 
 function TSynTclTkSyn.IsKeywordListStored: Boolean;
 var
-  Keys: TUnicodeStringList;
+  Keys: TStringList;
   DefKey: Integer;
   Index: Integer;
 begin
-  Keys := TUnicodeStringList.Create;
+  Keys := TStringList.Create;
   try
     Keys.Assign(KeyWords);
     Index := 0;
@@ -785,7 +778,7 @@ begin
   end;
 end;
 
-function TSynTclTkSyn.GetSampleSource: UnicodeString;
+function TSynTclTkSyn.GetSampleSource: string;
 begin
   Result :=
     '#!/usr/local/tclsh8.0'#13#10 +
@@ -795,7 +788,7 @@ begin
     '}';
 end;
 
-class function TSynTclTkSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynTclTkSyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangTclTk;
 end;
@@ -809,23 +802,23 @@ begin
   OK := False;
   Inc(Run);
   { minus like symbol }
-  if CharInSet(FLine[Run], ['0'..'9']) then
+  if CharInSet(fLine[Run], ['0'..'9']) then
     FTokenID := tkSymbol
   else
   { special option -- }
-  if (FLine[Run] = '-') and CharInSet(FLine[Run + 1], EmptyChars) then
+  if (fLine[Run] = '-') and CharInSet(fLine[Run + 1], EmptyChars) then
   begin
     OK := True;
     Inc(Run);
   end
   { normal options -options }
   else begin
-    if CharInSet(FLine[Run], ['a'..'z', 'A'..'Z']) then
+    if CharInSet(fLine[Run], ['a'..'z', 'A'..'Z']) then
     begin
       Inc(Run);
       while CharInSet(FLine[Run], ['a'..'z', 'A'..'Z']) do
         Inc(Run);
-      OK := CharInSet(FLine[Run], EmptyChars);
+      OK := CharInSet(fLine[Run], EmptyChars);
     end
     { bad option syntax }
     else
@@ -842,7 +835,7 @@ procedure TSynTclTkSyn.PathProc;
 begin
   if CharInSet(FLine[Run + 1], ['a'..'z', 'A'..'Z']) then
   begin
-    FTokenID := tkPath;
+    fTokenID := tkPath;
     Inc(Run);
     while CharInSet(FLine[Run], ['a'..'z', 'A'..'Z', '0'..'9']) do Inc(Run);
   end
@@ -855,18 +848,18 @@ end;
 
 procedure TSynTclTkSyn.VariableProc;
 begin
-  FTokenID := tkVariable;
+  fTokenId := tkVariable;
   Inc(Run);
   while CharInSet(FLine[Run], ['_', '0'..'9', 'A'..'Z', 'a'..'z']) do Inc(Run);
 end;
 
 function TSynTclTkSyn.IsSecondKeywordListStored: Boolean;
 var
-  Keys: TUnicodeStringList;
+  Keys: TStringList;
   DefKey: Integer;
   Index: Integer;
 begin
-  Keys := TUnicodeStringList.Create;
+  Keys := TStringList.Create;
   try
     Keys.Assign(SecondKeyWords);
     Index := 0;
@@ -892,7 +885,5 @@ begin
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynTclTkSyn);
-{$ENDIF}
 end.

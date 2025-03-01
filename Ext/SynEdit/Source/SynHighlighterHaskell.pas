@@ -28,13 +28,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-You may retrieve the latest version of SynEdit from the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-You may retrieve the latest version of this file from
-http://www.ashleybrown.co.uk/synedit/
-
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides a Haskell syntax highlighter for SynEdit)
@@ -87,18 +80,18 @@ type
 
   TSynHaskellSyn = class(TSynCustomHighlighter)
   private
-    FAsmStart: Boolean;
-    FRange: TRangeState;
+    fAsmStart: Boolean;
+    fRange: TRangeState;
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
-    FIdentFuncTable: array[0..28] of TIdentFuncTableFunc;
-    FCommentAttri: TSynHighlighterAttributes;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FKeyAttri: TSynHighlighterAttributes;
-    FNumberAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FStringAttri: TSynHighlighterAttributes;
-    FSymbolAttri: TSynHighlighterAttributes;
+    fIdentFuncTable: array[0..28] of TIdentFuncTableFunc;
+    fCommentAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fStringAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function KeyWordFunc(Index: Integer): TtkTokenKind;
     function HashKey(Str: PWideChar): Cardinal;
@@ -140,13 +133,13 @@ type
     procedure XOrSymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: UnicodeString; override;
+    function GetSampleSource: string; override;
     function GetExtTokenID: TxtkTokenKind;
     function IsFilterStored: Boolean; override;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
@@ -163,29 +156,30 @@ type
     procedure EnumUserSettings(settings: TStrings); override;
     property ExtTokenID: TxtkTokenKind read GetExtTokenID;
   published
-    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
-      write FCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
-      write FIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
-      write FNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
-      write FSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read FStringAttri
-      write FStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
-      write FSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
+      write fCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
+      write fIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
+      write fNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
+      write fSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri
+      write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
+      write fSymbolAttri;
   end;
 
 implementation
 
 uses
   Windows,
+  Registry,
   SynEditStrConst;
 
 const
-  KeyWords: array[0..23] of UnicodeString = (
+  KeyWords: array[0..23] of string = (
     'Bool', 'Char', 'class', 'data', 'deriving', 'Double', 'else', 'False', 
     'Float', 'if', 'import', 'in', 'instance', 'Int', 'Integer', 'IO', 'let', 
     'module', 'otherwise', 'String', 'then', 'True', 'type', 'where' 
@@ -206,7 +200,7 @@ begin
     Inc(Str);
   end;
   Result := Result mod 29;
-  FStringLen := Str - FToIdent;
+  fStringLen := Str - fToIdent;
 end;
 {$Q+}
 
@@ -214,10 +208,10 @@ function TSynHaskellSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  FToIdent := MayBe;
+  fToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(FIdentFuncTable) then
-    Result := FIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -226,13 +220,13 @@ procedure TSynHaskellSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      FIdentFuncTable[i] := AltFunc;
+      fIdentFuncTable[i] := AltFunc;
 
-  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
-    if @FIdentFuncTable[i] = nil then
-      FIdentFuncTable[i] := KeyWordFunc;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if @fIdentFuncTable[i] = nil then
+      fIdentFuncTable[i] := KeyWordFunc;
 end;
 
 function TSynHaskellSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -252,34 +246,34 @@ constructor TSynHaskellSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FCaseSensitive := True;
+  fCaseSensitive := True;
 
-  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  FCommentAttri.Style := [fsItalic];
-  AddAttribute(FCommentAttri);
-  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
-  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  FKeyAttri.Style:= [fsBold];
-  AddAttribute(FKeyAttri);
-  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(FNumberAttri);
-  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
-  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(FStringAttri);
-  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(FSymbolAttri);
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  fCommentAttri.Style := [fsItalic];
+  AddAttribute(fCommentAttri);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(fIdentifierAttri);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  fKeyAttri.Style:= [fsBold];
+  AddAttribute(fKeyAttri);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(fNumberAttri);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(fSpaceAttri);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(fStringAttri);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  FRange := rsUnknown;
-  FAsmStart := False;
-  FDefaultFilter := SYNS_FilterHaskell;
+  fRange := rsUnknown;
+  fAsmStart := False;
+  fDefaultFilter := SYNS_FilterHaskell;
 end; { Create }
 
 procedure TSynHaskellSyn.AnsiCProc;
 begin
-  FTokenID := tkComment;
+  fTokenID := tkComment;
   case FLine[Run] of
     #0:
       begin
@@ -301,29 +295,29 @@ begin
   while FLine[Run] <> #0 do
     case FLine[Run] of
       '*':
-        if FLine[Run + 1] = '/' then
+        if fLine[Run + 1] = '/' then
         begin
           Inc(Run, 2);
-          if FRange = rsAnsiCAsm then
-            FRange := rsAsm
-          else if FRange = rsAnsiCAsmBlock then
-            FRange := rsAsmBlock
-          else if FRange = rsDirectiveComment then
-            FRange := rsDirective
+          if fRange = rsAnsiCAsm then
+            fRange := rsAsm
+          else if fRange = rsAnsiCAsmBlock then
+            fRange := rsAsmBlock
+          else if fRange = rsDirectiveComment then
+            fRange := rsDirective
           else
-            FRange := rsUnknown;
+            fRange := rsUnKnown;
           Break;
         end else
           Inc(Run);
-      #10, #13:
-        Break;
+      #10: Break;
+      #13: Break;
     else Inc(Run);
     end;
 end;
 
 procedure TSynHaskellSyn.AndSymbolProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {and assign}
       begin
@@ -345,55 +339,55 @@ end;
 
 procedure TSynHaskellSyn.AsciiCharProc;
 begin
-  FTokenID := tkString;
+  fTokenID := tkString;
   repeat
-    if FLine[Run] = '\' then begin
-      if CharInSet(FLine[Run + 1], [#39, '\']) then
+    if fLine[Run] = '\' then begin
+      if CharInSet(fLine[Run + 1], [#39, '\']) then
         Inc(Run);
     end;
     Inc(Run);
-  until IsLineEnd(Run) or (FLine[Run] = #39);
-  if FLine[Run] = #39 then
+  until IsLineEnd(Run) or (fLine[Run] = #39);
+  if fLine[Run] = #39 then
     Inc(Run);
 end;
 
 procedure TSynHaskellSyn.AtSymbolProc;
 begin
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
   Inc(Run);
 end;
 
 procedure TSynHaskellSyn.BraceCloseProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   FExtTokenID := xtkBraceClose;
-  if FRange = rsAsmBlock then FRange := rsUnknown;
+  if fRange = rsAsmBlock then fRange := rsUnknown;
 end;
 
 procedure TSynHaskellSyn.BraceOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   FExtTokenID := xtkBraceOpen;
-  if FRange = rsAsm then
+  if fRange = rsAsm then
   begin
-    FRange := rsAsmBlock;
-    FAsmStart := True;
+    fRange := rsAsmBlock;
+    fAsmStart := True;
   end;
 end;
 
 procedure TSynHaskellSyn.CRProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
-  if FLine[Run + 1] = #10 then Inc(Run);
+  if fLine[Run + 1] = #10 then Inc(Run);
 end;
 
 procedure TSynHaskellSyn.ColonProc;
 begin
-  FTokenID := tkSymbol;
-  case FLine[Run + 1] of
+  fTokenID := tkSymbol;
+  Case FLine[Run + 1] of
     ':':                               {scope resolution operator}
       begin
         Inc(Run, 2);
@@ -410,13 +404,13 @@ end;
 procedure TSynHaskellSyn.CommaProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkComma;
 end;
 
 procedure TSynHaskellSyn.EqualProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {logical equal}
       begin
@@ -433,8 +427,8 @@ end;
 
 procedure TSynHaskellSyn.GreaterProc;
 begin
-  FTokenID := tkSymbol;
-  case FLine[Run + 1] of
+  fTokenID := tkSymbol;
+  Case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
         Inc(Run, 2);
@@ -463,27 +457,27 @@ end;
 
 procedure TSynHaskellSyn.QuestionProc;
 begin
-  FTokenID := tkSymbol;                {conditional}
+  fTokenID := tkSymbol;                {conditional}
   FExtTokenID := xtkQuestion;
   Inc(Run);
 end;
 
 procedure TSynHaskellSyn.IdentProc;
 begin
-  FTokenID := IdentKind((FLine + Run));
-  Inc(Run, FStringLen);
-  while IsIdentChar(FLine[Run]) do Inc(Run);
+  fTokenID := IdentKind((fLine + Run));
+  Inc(Run, fStringLen);
+  while IsIdentChar(fLine[Run]) do Inc(Run);
 end;
 
 procedure TSynHaskellSyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end;
 
 procedure TSynHaskellSyn.LowerProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {less than or equal to}
       begin
@@ -513,7 +507,7 @@ end;
 
 procedure TSynHaskellSyn.MinusProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {subtract assign}
       begin
@@ -522,7 +516,7 @@ begin
       end;
     '-':                               {decrement}
       begin
-        FTokenID := tkComment;
+        fTokenID := tkComment;
         Inc(Run, 2);
         while not IsLineEnd(Run) do Inc(Run);
       end;
@@ -541,7 +535,7 @@ end;
 
 procedure TSynHaskellSyn.ModSymbolProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {mod assign}
       begin
@@ -558,7 +552,7 @@ end;
 
 procedure TSynHaskellSyn.NotSymbolProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {not equal}
       begin
@@ -575,7 +569,7 @@ end;
 
 procedure TSynHaskellSyn.NullProc;
 begin
-  FTokenID := tkNull;
+  fTokenID := tkNull;
   Inc(Run);
 end;
 
@@ -583,7 +577,7 @@ procedure TSynHaskellSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case FLine[Run] of
+    case fLine[Run] of
       '0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X':
         Result := True;
       else
@@ -593,13 +587,12 @@ procedure TSynHaskellSyn.NumberProc;
 
 begin
   Inc(Run);
-  FTokenID := tkNumber;
+  fTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
-        if FLine[Run + 1] = '.' then
-          Break;
+        if FLine[Run + 1] = '.' then Break;
     end;
     Inc(Run);
   end;
@@ -607,7 +600,7 @@ end;
 
 procedure TSynHaskellSyn.OrSymbolProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {or assign}
       begin
@@ -629,7 +622,7 @@ end;
 
 procedure TSynHaskellSyn.PlusProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {add assign}
       begin
@@ -651,7 +644,7 @@ end;
 
 procedure TSynHaskellSyn.PointProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   if (FLine[Run + 1] = '.') and (FLine[Run + 2] = '.') then
     begin                              {ellipse}
       Inc(Run, 3);
@@ -667,7 +660,7 @@ end;
 procedure TSynHaskellSyn.RoundCloseProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkRoundClose;
 end;
 
@@ -681,9 +674,9 @@ end;
 procedure TSynHaskellSyn.SemiColonProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkSemiColon;
-  if FRange = rsAsm then FRange := rsUnknown;
+  if fRange = rsAsm then fRange := rsUnknown;
 end;
 
 procedure TSynHaskellSyn.SlashProc;
@@ -692,13 +685,13 @@ begin
     '=':                               {divide assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkDivideAssign;
       end;
   else                                 {divide}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkDivide;
     end;
   end;
@@ -707,27 +700,27 @@ end;
 procedure TSynHaskellSyn.SpaceProc;
 begin
   Inc(Run);
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynHaskellSyn.SquareCloseProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkSquareClose;
 end;
 
 procedure TSynHaskellSyn.SquareOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkSquareOpen;
 end;
 
 procedure TSynHaskellSyn.StarProc;
 begin
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {multiply assign}
       begin
@@ -744,14 +737,14 @@ end;
 
 procedure TSynHaskellSyn.StringProc;
 begin
-  FTokenID := tkString;
+  fTokenID := tkString;
   repeat
-    if FLine[Run] = '\' then begin
-      if CharInSet(FLine[Run + 1], [#34, '\']) then
+    if fLine[Run] = '\' then begin
+      if CharInSet(fLine[Run + 1], [#34, '\']) then
         Inc(Run);
     end;
     Inc(Run);
-  until IsLineEnd(Run) or (FLine[Run] = #34);
+  until IsLineEnd(Run) or (fLine[Run] = #34);
   if FLine[Run] = #34 then
     Inc(Run);
 end;
@@ -759,14 +752,14 @@ end;
 procedure TSynHaskellSyn.TildeProc;
 begin
   Inc(Run);                            {bitwise complement}
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   FExtTokenID := xtkBitComplement;
 end;
 
 procedure TSynHaskellSyn.XOrSymbolProc;
 begin
-  FTokenID := tkSymbol;
-  case FLine[Run + 1] of
+  fTokenID := tkSymbol;
+  Case FLine[Run + 1] of
     '=':                               {xor assign}
       begin
         Inc(Run, 2);
@@ -783,20 +776,20 @@ end;
 procedure TSynHaskellSyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
 end;
 
 procedure TSynHaskellSyn.Next;
 begin
-  FAsmStart := False;
-  FTokenPos := Run;
-  case FRange of
+  fAsmStart := False;
+  fTokenPos := Run;
+  case fRange of
     rsAnsiC, rsAnsiCAsm,
     rsAnsiCAsmBlock: AnsiCProc;
   else
     begin
-      FRange := rsUnknown;
-      case FLine[Run] of
+      fRange := rsUnknown;
+      case fLine[Run] of
         '&': AndSymbolProc;
         #39: AsciiCharProc;
         '@': AtSymbolProc;
@@ -840,28 +833,28 @@ end;
 function TSynHaskellSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := FCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := FKeyAttri;
-    SYN_ATTR_STRING: Result := FStringAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
     else Result := nil;
   end;
 end;
 
 function TSynHaskellSyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynHaskellSyn.GetRange: Pointer;
 begin
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 end;
 
 function TSynHaskellSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end;
 
 function TSynHaskellSyn.GetExtTokenID: TxtkTokenKind;
@@ -871,14 +864,14 @@ end;
 
 function TSynHaskellSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case FTokenID of
-    tkComment: Result := FCommentAttri;
-    tkIdentifier: Result := FIdentifierAttri;
-    tkKey: Result := FKeyAttri;
-    tkNumber: Result := FNumberAttri;
-    tkSpace: Result := FSpaceAttri;
-    tkString: Result := FStringAttri;
-    tkSymbol: Result := FSymbolAttri;
+  case fTokenID of
+    tkComment: Result := fCommentAttri;
+    tkIdentifier: Result := fIdentifierAttri;
+    tkKey: Result := fKeyAttri;
+    tkNumber: Result := fNumberAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkString: Result := fStringAttri;
+    tkSymbol: Result := fSymbolAttri;
     else Result := nil;
   end;
 end;
@@ -890,18 +883,18 @@ end;
 
 procedure TSynHaskellSyn.ResetRange;
 begin
-  FRange:= rsUnknown;
+  fRange:= rsUnknown;
 end;
 
 procedure TSynHaskellSyn.SetRange(Value: Pointer);
 begin
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 end;
 
 procedure TSynHaskellSyn.EnumUserSettings(settings: TStrings);
 begin
   { returns the user settings that exist in the registry }
-  with TBetterRegistry.Create do
+  with TRegistry.Create do
   begin
     try
       RootKey := HKEY_LOCAL_MACHINE;
@@ -921,7 +914,7 @@ end;
 
 function TSynHaskellSyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterHaskell;
+  Result := fDefaultFilter <> SYNS_FilterHaskell;
 end;
 
 function TSynHaskellSyn.IsIdentChar(AChar: WideChar): Boolean;
@@ -944,22 +937,19 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-function TSynHaskellSyn.GetSampleSource: UnicodeString;
+function TSynHaskellSyn.GetSampleSource: string;
 begin
-  Result :=
-    '-- Haskell Sample Source'#13#10 +
-    'tail :: [a] -> [a]'#13#10 +
-    'tail (x:xs) = xs'#13#10 +
-    '';
+  Result := '-- Haskell Sample Source'#13#10 +
+            'tail :: [a] -> [a]'#13#10 +
+            'tail (x:xs) = xs'#13#10 +
+            '';
 end;
 
-class function TSynHaskellSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynHaskellSyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangHaskell;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynHaskellSyn);
-{$ENDIF}
 end.

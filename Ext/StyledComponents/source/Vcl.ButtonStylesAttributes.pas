@@ -4,7 +4,7 @@
 {  for Styled Components                                                       }
 {  TNotificationBadgeAttributes: a set of Rendering attributes for Badge       }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -32,8 +32,10 @@ interface
 {$INCLUDE StyledComponents.inc}
 {$IFDEF D10_4+}
   {$R CommandLinkPNG.RES}
+  {$R StyledButtonsPNG.RES}
 {$ELSE}
   {$R CommandLinkBMP.RES}
+  {$R StyledButtonsBMP.RES}
 {$ENDIF}
 
 uses
@@ -53,8 +55,9 @@ uses
   ;
 
 const
+  StyledComponentsVersion = '3.7.6';
   DEFAULT_RADIUS = 6;
-  RESOURCE_SHIELD_ICON = 'BUTTON_SHIELD_ADMIN';
+  RESOURCE_SHIELD_ICON = 'STYLED_BUTTON_SHIELD_ADMIN';
   DEFAULT_MAX_BADGE_VALUE = 99;
   DEFAULT_BADGE_COLOR = clRed;
   DEFAULT_BADGE_FONT_COLOR = clWhite;
@@ -284,30 +287,32 @@ procedure CalcImageAndTextRect(const ASurfaceRect: TRect;
   const AImageWidth, AImageHeight: Integer;
   const AImageAlignment: TImageAlignment;
   const AImageMargins: TImageMargins;
+  const ABorderWidth: Integer;
   const AScale: Single); overload;
 
 //Calculate Image and Text Rect for Drawing using ButtonLayout, Margin and Spacing
 //For StyledSpeedButton and StyledBitBtn
 procedure CalcImageAndTextRect(const ACanvas: TCanvas;
-  const ACaption: string; const AClient: TRect;
+  const ACaption: string; const ASurfaceRect: TRect;
   const AOffset: TPoint;
-  var AGlyphPos: TPoint; var ATextBounds: TRect;
+  out AGlyphPos: TPoint; out ATextBounds: TRect;
   const AImageWidth, AImageHeight: Integer;
   const ALayout: TButtonLayout;
   const AMargin, ASpacing: Integer;
   const ABiDiFlags: Cardinal); overload;
 
 //draw of Glyph
-procedure DrawBitBtnGlyph(ACanvas: TCanvas; ARect: TRect;
-  Kind: Vcl.Buttons.TBitBtnKind;
-  AState: TButtonState; AEnabled: Boolean;
-  AOriginal: TBitmap; ANumGlyphs: Integer; const ATransparentColor: TColor);
+procedure DrawBitBtnGlyph(const ACanvas: TCanvas; const ARect: TRect;
+  const AKind: Vcl.Buttons.TBitBtnKind;
+  const AState: TButtonState; const AEnabled: Boolean;
+  const AOriginal: TBitmap; const ANumGlyphs: Integer; const ATransparentColor: TColor);
 
 //drawing a Text in a Canvas Using Alignment and Spacing
 procedure DrawButtonText(const ACanvas: TCanvas;
   const AText: string; const AAlignment: TAlignment;
-  const ASpacing: Integer;
-  var ARect: TRect; AFlags: Cardinal);
+  const ASpacing, ABorderWidth: Integer;
+  var ARect: TRect; ABidiFlags: Cardinal;
+  const PreserveBorders: Boolean = True);
 
 //drawing a Notification Badge on a Canvas
 procedure DrawButtonNotificationBadge(const ACanvas: TCanvas;
@@ -1585,10 +1590,10 @@ begin
 end;
 {$ifend}
 
-const //Same as Vcl.Buttons
+const //Similar to Vcl.Buttons
   BitBtnResNames: array[TBitBtnKind] of PChar = (
-    nil, 'BBOK', 'BBCANCEL', 'BBHELP', 'BBYES', 'BBNO', 'BBCLOSE',
-    'BBABORT', 'BBRETRY', 'BBIGNORE', 'BBALL');
+    nil, 'STYLED_BBOK', 'STYLED_BBCANCEL', 'STYLED_BBHELP', 'STYLED_BBYES', 'STYLED_BBNO', 'STYLED_BBCLOSE',
+    'STYLED_BBABORT', 'STYLED_BBRETRY', 'STYLED_BBIGNORE', 'STYLED_BBALL');
 
 procedure CalcImageAndTextRect(const ASurfaceRect: TRect;
   const ACaption: string;
@@ -1596,11 +1601,14 @@ procedure CalcImageAndTextRect(const ASurfaceRect: TRect;
   const AImageWidth, AImageHeight: Integer;
   const AImageAlignment: TImageAlignment;
   const AImageMargins: TImageMargins;
+  const ABorderWidth: Integer;
   const AScale: Single);
 var
   IW, IH, IX, IY: Integer;
   LImageAlignment: TImageAlignment;
 begin
+  //Calculate Image and Text Rect for Drawing using ImageAlignment and ImageMargins
+  //for StyledButton and StyledGraphicButton
   if ACaption = '' then
     LImageAlignment := iaCenter
   else
@@ -1670,12 +1678,41 @@ begin
 
   if ATextRect.IsEmpty then
     ATextRect := ASurfaceRect;
+
+  //Preserve Border Spacing for ATextRect
+  if (LImageAlignment = iaCenter) or (AImageWidth = 0) then
+  begin
+    if ATextRect.Right > (ASurfaceRect.Right - ABorderWidth) then
+      ATextRect.Right := ASurfaceRect.Right - ABorderWidth;
+    if ATextRect.Left < (ASurfaceRect.Left + ABorderWidth) then
+      ATextRect.Left := ASurfaceRect.Left + ABorderWidth;
+  end;
+  if LImageAlignment = iaLeft then
+  begin
+    if ATextRect.Right > (ASurfaceRect.Width - ABorderWidth) then
+      ATextRect.Right := ASurfaceRect.Width - ABorderWidth;
+  end;
+  if LImageAlignment = iaRight then
+  begin
+    if ATextRect.Left < (ASurfaceRect.Left + ABorderWidth) then
+      ATextRect.Left := ASurfaceRect.Left + ABorderWidth;
+  end;
+  if LImageAlignment = iaTop then
+  begin
+    if ATextRect.Bottom > (ASurfaceRect.Height - ABorderWidth) then
+      ATextRect.Bottom := ASurfaceRect.Height - ABorderWidth;
+  end;
+  if LImageAlignment = iaBottom then
+  begin
+    if ATextRect.Top < (ASurfaceRect.Top + ABorderWidth) then
+      ATextRect.Top := ASurfaceRect.Top + ABorderWidth;
+  end;
 end;
 
 procedure CalcImageAndTextRect(const ACanvas: TCanvas;
-  const ACaption: string; const AClient: TRect;
+  const ACaption: string; const ASurfaceRect: TRect;
   const AOffset: TPoint;
-  var AGlyphPos: TPoint; var ATextBounds: TRect;
+  out AGlyphPos: TPoint; out ATextBounds: TRect;
   const AImageWidth, AImageHeight: Integer;
   const ALayout: TButtonLayout;
   const AMargin, ASpacing: Integer;
@@ -1687,6 +1724,8 @@ var
   LLayout: TButtonLayout;
   LMargin, LSpacing: Integer;
 begin
+  //Calculate Image and Text Rect for Drawing using ButtonLayout, Margin and Spacing
+  //For StyledSpeedButton and StyledBitBtn
   LLayout := ALayout;
   if (ABiDiFlags and DT_RIGHT) = DT_RIGHT then
   begin
@@ -1696,14 +1735,14 @@ begin
 
   { calculate the item sizes }
   LClientSize := Point(
-    AClient.Right - AClient.Left,
-    AClient.Bottom - AClient.Top);
+    ASurfaceRect.Right - ASurfaceRect.Left,
+    ASurfaceRect.Bottom - ASurfaceRect.Top);
 
   LGlyphSize := Point(AImageWidth, AImageHeight);
 
   if Length(ACaption) > 0 then
   begin
-    ATextBounds := Rect(0, 0, AClient.Right - AClient.Left, 0);
+    ATextBounds := Rect(0, 0, ASurfaceRect.Right - ASurfaceRect.Left, 0);
     DrawText(ACanvas.Handle, ACaption, Length(ACaption), ATextBounds,
       DT_CALCRECT or ABiDiFlags);
     LTextSize := Point(
@@ -1797,10 +1836,11 @@ begin
   end;
 
   { fixup the result variables }
-  Inc(AGlyphPos.X, AClient.Left + AOffset.X);
-  Inc(AGlyphPos.Y, AClient.Top + AOffset.Y);
+  Inc(AGlyphPos.X, ASurfaceRect.Left + AOffset.X);
+  Inc(AGlyphPos.Y, ASurfaceRect.Top + AOffset.Y);
 
-  OffsetRect(ATextBounds, LTextPos.X + AClient.Left + AOffset.X, LTextPos.Y + AClient.Top + AOffset.Y);
+  OffsetRect(ATextBounds, LTextPos.X + ASurfaceRect.Left + AOffset.X,
+    LTextPos.Y + ASurfaceRect.Top + AOffset.Y);
 end;
 
 procedure DrawIconFromCommandLinkRes(ACanvas: TCanvas; ARect: TRect;
@@ -1821,30 +1861,35 @@ begin
   else if (AVCLStyleName = 'Windows') then
   begin
     //Load image from resources by Kind
-    LResName := 'CMD_LINK_ARROW_BLUE';
+    LResName := 'STYLED_CMD_LINK_ARROW_BLUE';
   end
   else
   begin
     if ACanvas.Font.Color = clWhite then
-      LResName := 'CMD_LINK_ARROW_WHITE'
+      LResName := 'STYLED_CMD_LINK_ARROW_WHITE'
     else if ACanvas.Font.Color = clBlack then
-      LResName := 'CMD_LINK_ARROW_BLACK'
+      LResName := 'STYLED_CMD_LINK_ARROW_BLACK'
     else
     begin
       GetStyleAttributes(AVCLStyleName, LThemeAttribute);
       if LThemeAttribute.ThemeType = ttLight then
-        LResName := 'CMD_LINK_ARROW_BLACK'
+        LResName := 'STYLED_CMD_LINK_ARROW_BLACK'
       else
-        LResName := 'CMD_LINK_ARROW_WHITE';
+        LResName := 'STYLED_CMD_LINK_ARROW_WHITE';
     end;
   end;
   {$IFDEF D10_4+}
   LImage := TWicImage.Create;
-  try
+  try try
     LImage.InterpolationMode := wipmHighQualityCubic;
     LImage.LoadFromResourceName(HInstance, LResName);
     ACanvas.StretchDraw(ARect, LImage);
     Exit;
+  except
+    on E: EResNotFound do ; //ignore Exception
+    else
+      raise;
+  end;  
   finally
     LImage.Free;
   end;
@@ -1999,24 +2044,66 @@ end;
 
 procedure DrawButtonText(const ACanvas: TCanvas;
   const AText: string; const AAlignment: TAlignment;
-  const ASpacing: Integer;
-  var ARect: TRect; AFlags: Cardinal);
+  const ASpacing, ABorderWidth: Integer;
+  var ARect: TRect; ABidiFlags: Cardinal;
+  const PreserveBorders: Boolean = True);
 var
   R: TRect;
-  OldBKMode: Integer;
+  LOldBKMode: Integer;
 begin
+(* for test
+  ACanvas.Brush.Color := clYellow;
+  ACanvas.FillRect(ARect);
+  ACanvas.Pen.Color := clRed;
+  ACanvas.Pen.Width := 1;
+  ACanvas.Pen.Style := psSolid;
+  ACanvas.Rectangle(ARect);
+*)
   R := ARect;
   Winapi.Windows.DrawText(ACanvas.Handle, PChar(AText), Length(AText),
-    R, AFlags or DT_CALCRECT);
+    R, ABidiFlags or DT_CALCRECT);
+  R.Width := ARect.Width;
+
   case AAlignment of
     taLeftJustify: OffsetRect(R, ASpacing, (ARect.Height - R.Height) div 2);
-    taRightJustify: OffsetRect(R, ARect.Width - R.Width - ASpacing, (ARect.Height - R.Height) div 2);
+    taRightJustify: OffsetRect(R, ARect.Width - R.Width - ASpacing , (ARect.Height - R.Height) div 2);
   else
     OffsetRect(R, (ARect.Width - R.Width) div 2, (ARect.Height - R.Height) div 2);
   end;
-  OldBKMode := SetBkMode(ACanvas.Handle, Winapi.Windows.TRANSPARENT);
-  CanvasDrawText(ACanvas, R, AText, AFlags);
-  SetBkMode(ACanvas.Handle, OldBKMode);
+  LOldBKMode := SetBkMode(ACanvas.Handle, Winapi.Windows.TRANSPARENT);
+  try
+    if PreserveBorders then
+    begin
+      if ((DT_WORDBREAK and ABiDiFlags) = DT_WORDBREAK) then
+      begin
+        if R.Top < ARect.Top + ABorderWidth + ASpacing then
+          R.Top := ARect.Top + ABorderWidth + ASpacing ;
+        if R.Bottom > ARect.Bottom - ABorderWidth - Aspacing then
+          R.Bottom := ARect.Bottom - ABorderWidth - Aspacing;
+        (* for test
+        ACanvas.Brush.Color := clRed;
+        ACanvas.FillRect(R);
+        ACanvas.Pen.Color := clBlue;
+        ACanvas.Pen.Width := 1;
+        ACanvas.Rectangle(R);
+        *)
+        Winapi.Windows.DrawText(ACanvas.Handle, PChar(AText),
+          Length(AText), R, ABidiFlags or DT_END_ELLIPSIS);
+      end
+      else
+      begin
+        Winapi.Windows.DrawText(ACanvas.Handle, PChar(AText),
+          Length(AText), R, ABidiFlags {or DT_END_ELLIPSIS});
+      end;
+    end
+    else
+    begin
+      Winapi.Windows.DrawText(ACanvas.Handle, PChar(AText),
+        Length(AText), R, ABidiFlags);
+    end;
+  finally
+    SetBkMode(ACanvas.Handle, LOldBKMode);
+  end;
 end;
 
 procedure DrawButtonNotificationBadge(const ACanvas: TCanvas;
@@ -2083,14 +2170,15 @@ begin
 
   //Draw Badge Content
   if ASizeType <> nbsSmallDot then
-    DrawButtonText(ACanvas, AValue, taCenter, 0, LRect,
+    DrawButtonText(ACanvas, AValue, taCenter, 0, 0, LRect,
       DT_NOCLIP or DT_CENTER or DT_VCENTER);
 end;
 
-procedure DrawBitBtnGlyph(ACanvas: TCanvas; ARect: TRect;
-  Kind: Vcl.Buttons.TBitBtnKind;
-  AState: TButtonState; AEnabled: Boolean;
-  AOriginal: TBitmap; ANumGlyphs: Integer; const ATransparentColor: TColor);
+procedure DrawBitBtnGlyph(const ACanvas: TCanvas; const ARect: TRect;
+  const AKind: Vcl.Buttons.TBitBtnKind;
+  const AState: TButtonState; const AEnabled: Boolean;
+  const AOriginal: TBitmap; const ANumGlyphs: Integer;
+  const ATransparentColor: TColor);
 var
   LResName: String;
   LOriginal: TBitmap;
@@ -2098,46 +2186,57 @@ var
   {$IFDEF D10_4+}
   LImage: TWicImage;
   {$ENDIF}
+  LState: TButtonState;
 begin
-  if not AEnabled then
-    AState := bsDisabled;
   LOriginal := nil;
   try
-    if Kind = bkCustom then
-    begin
-      if ANumGlyphs = 0 then
-        Exit;
-      LOriginal := AOriginal;
-      LNumGlyphs := ANumGlyphs;
-    end
-    else
-    begin
-      //Load image from resources by Kind
-      LResName := BitBtnResNames[Kind];
-      {$IFDEF D10_4+}
-      LImage := TWicImage.Create;
-      try
-        LImage.InterpolationMode := wipmHighQualityCubic;
-        LImage.LoadFromResourceName(HInstance, LResName);
-        ACanvas.StretchDraw(ARect, LImage);
-        Exit;
-      finally
-        LImage.Free;
+    try
+      if AKind = bkCustom then
+      begin
+        if ANumGlyphs = 0 then
+          Exit;
+        LOriginal := AOriginal;
+        LNumGlyphs := ANumGlyphs;
+      end
+      else
+      begin
+        //Load image from resources by Kind
+        LResName := BitBtnResNames[AKind];
+        {$IFDEF D10_4+}
+        if not AEnabled then
+          LResName := LResName+'_DISABLED';
+        LImage := TWicImage.Create;
+        try
+          LImage.InterpolationMode := wipmHighQualityCubic;
+          LImage.LoadFromResourceName(HInstance, LResName);
+          ACanvas.StretchDraw(ARect, LImage);
+          Exit;
+        finally
+          LImage.Free;
+        end;
+        {$ELSE}
+          LOriginal := TBitmap.Create;
+          LNumGlyphs := 2;
+          LOriginal.PixelFormat := pf32bit;
+          LOriginal.LoadFromResourceName(HInstance, LResName);
+        {$ENDIF}
       end;
-      {$ELSE}
-        LOriginal := TBitmap.Create;
-        LNumGlyphs := 2;
-        LOriginal.PixelFormat := pf32bit;
-        LOriginal.LoadFromResourceName(HInstance, LResName);
-      {$ENDIF}
+      if not Assigned(LOriginal) or ((LOriginal.Width = 0) or (LOriginal.Height = 0)) then
+        Exit;
+      if AEnabled then
+        LState := AState
+      else
+        LState := bsDisabled;
+      DrawBitmapTransparent(ACanvas, ARect, LOriginal.Width div LNumGlyphs, LOriginal.Height, LOriginal,
+        LState, LNumGlyphs, ATransparentColor);
+    finally
+      if AKind <> bkCustom then
+        LOriginal.Free;
     end;
-    if not Assigned(LOriginal) or ((LOriginal.Width = 0) or (LOriginal.Height = 0)) then
-      Exit;
-    DrawBitmapTransparent(ACanvas, ARect, LOriginal.Width div LNumGlyphs, LOriginal.Height, LOriginal,
-      AState, LNumGlyphs, ATransparentColor);
-  finally
-    if Kind <> bkCustom then
-      LOriginal.Free;
+  except
+    on E: EResNotFound do ; //ignore Exception
+    else
+      raise;
   end;
 end;
 
@@ -2357,7 +2456,8 @@ begin
     LRect := Winapi.GDIPAPI.MakeRect(X, Y, W, H);
     GPInflateRectF(LRect, LBorderWidth);
     //GDI+ equivalent of FillRect and Rectangle
-    LGraphics.FillRectangle(LBrush, X, Y, W, H);
+    if ACanvas.Brush.Style = bsSolid then
+      LGraphics.FillRectangle(LBrush, X, Y, W, H);
     LGraphics.DrawRectangle(LPen, LRect);
   finally
     LBrush.Free;
@@ -2402,7 +2502,6 @@ var
   LFontColor: TGPColor;
   LPointF: TGPPointF;
   X,Y: Single;
-  R: TRectF;
 begin
   LGraphics := nil;
   LFontFamily := nil;

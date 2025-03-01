@@ -26,17 +26,13 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditRegexSearch.pas,v 1.5.2.2 2008/09/14 16:24:59 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
 Known Issues:
+  - ssoWholeWords is not used
+  - backward search may not work as expected if you start the search within a
+    match (e.g.  search for 'aa' in 'aaa^a' where ^ is the current position)
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITREGEXSEARCH}
 unit SynEditRegexSearch;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -44,7 +40,8 @@ interface
 
 uses
   SynEditTypes,
-  SynRegExpr,
+  RegularExpressions,
+  RegularExpressionsCore,
   SynEditMiscClasses,
   SynUnicode,
   Classes;
@@ -52,104 +49,132 @@ uses
 type
   TSynEditRegexSearch = class(TSynEditSearchCustom)
   private
-    FRegex: TRegExpr;
-    FPositions: TList;
-    fLengths: TList;
+    RegEx: TRegEx;
+    fMatchCollection: TMatchCollection;
+    fOptions: TRegExOptions;
+    fPattern: string;
+    fResultCount: Integer;
   protected
-    function GetPattern: UnicodeString; override;
-    procedure SetPattern(const Value: UnicodeString); override;
+    function GetPattern: string; override;
+    procedure SetPattern(const Value: string); override;
     procedure SetOptions(const Value: TSynSearchOptions); override;
     function GetLength(Index: Integer): Integer; override;
     function GetResult(Index: Integer): Integer; override;
     function GetResultCount: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    function FindAll(const NewText: UnicodeString): Integer; override;
-    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; override;
+    function FindAll(const NewText: string; StartChar: Integer = 1;
+      EndChar: Integer = 0): Integer; override;
+    function PreprocessReplaceExpression(const AReplace: string): string; override;
+    function Replace(const aOccurrence, aReplacement: string): string; override;
   end;
+
+  ESynRegEx = ERegularExpressionError;
 
 implementation
 
 uses
+  RegularExpressionsAPI,
+  System.SysUtils,
   Consts;
+
+{$IF (CompilerVersion <= 35) and not Declared(RTLVersion112)}
+type
+  { TPerlRegExHelper }
+
+  TPerlRegExHelper = class helper for TPerlRegEx
+    procedure AddRawOptions(PCREOptions: Integer);
+  end;
+
+procedure TPerlRegExHelper.AddRawOptions(PCREOptions: Integer);
+begin
+  with Self do FPCREOptions := FPCREOptions or PCREOptions;
+end;
+
+type
+  TRegExHelper = record helper for TRegEx
+  public
+    procedure AddRawOptions(PCREOptions: Integer);
+  end;
+
+procedure TRegExHelper.AddRawOptions(PCREOptions: Integer);
+begin
+  with Self do FRegEx.AddRawOptions(PCREOptions);
+end;
+{$ENDIF}
 
 { TSynEditRegexSearch }
 
 constructor TSynEditRegexSearch.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FRegex := TRegExpr.Create;
-  FPositions := TList.Create;
-  fLengths := TList.Create;
+  fOptions := [];
 end;
 
-destructor TSynEditRegexSearch.Destroy;
+function TSynEditRegexSearch.FindAll(const NewText: string;
+  StartChar: Integer = 1; EndChar: Integer = 0): Integer;
 begin
-  inherited;
-  FRegex.Free;
-  FPositions.Free;
-  fLengths.Free;
+  if NewText = '' then
+    Exit(0);
+
+  fMatchCollection :=  RegEx.Matches(NewText, StartChar);
+
+  Result := fMatchCollection.Count;
+  if (EndChar > 0) and (EndChar < NewText.Length + 1) then
+    // Exclude results beyond EndChar
+    while (Result > 0) and ((fMatchCollection[Result - 1].Index + fMatchCollection[Result - 1].Length) > EndChar) do
+      Dec(Result);
+  fResultCount := Result;
 end;
 
-function TSynEditRegexSearch.FindAll(const NewText: UnicodeString): Integer;
-
-  procedure AddResult(const aPos, aLength: Integer);
-  begin
-    FPositions.Add(Pointer(aPos));
-    fLengths.Add(Pointer(aLength));
-  end;
-
+// replace new line and tab symbol to real chars
+function TSynEditRegexSearch.PreprocessReplaceExpression(
+  const AReplace: string): string;
 begin
-  FPositions.Clear;
-  fLengths.Clear;
-  if FRegex.Exec(NewText) then
-  begin
-    AddResult(FRegex.MatchPos[0], FRegex.MatchLen[0]);
-    Result := 1;
-    while FRegex.ExecNext do
-    begin
-      AddResult(FRegex.MatchPos[0], FRegex.MatchLen[0]);
-      Inc(Result);
-    end;
-  end
-  else
-    Result := 0;
+  Result := StringReplace(AReplace, '\n', WideCRLF, [rfReplaceAll]);
+  Result := StringReplace(Result, '\t', #9, [rfReplaceAll]);
 end;
 
-function TSynEditRegexSearch.Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString;
+function TSynEditRegexSearch.Replace(const aOccurrence, aReplacement: string): string;
 begin
-  Result := FRegex.Replace(aOccurrence, aReplacement, True);
-end;   
+  Result := RegEx.Replace(aOccurrence, aReplacement);
+end;
 
 function TSynEditRegexSearch.GetLength(Index: Integer): Integer;
 begin
-  Result := Integer(fLengths[Index]);
+  Result := fMatchCollection[Index].Length;
 end;
 
-function TSynEditRegexSearch.GetPattern: UnicodeString;
+function TSynEditRegexSearch.GetPattern: string;
 begin
-  Result := FRegex.Expression;
+  Result := fPattern;
 end;
 
 function TSynEditRegexSearch.GetResult(Index: Integer): Integer;
 begin
-  Result := Integer(FPositions[Index]);
+  Result := fMatchCollection[Index].Index;
 end;
 
 function TSynEditRegexSearch.GetResultCount: Integer;
 begin
-  Result := FPositions.Count;
+  Result := fResultCount;
 end;
 
 procedure TSynEditRegexSearch.SetOptions(const Value: TSynSearchOptions);
 begin
-  FRegex.ModifierI := not(ssoMatchCase in Value);
+  if ssoMatchCase in Value then
+    fOptions := []
+  else
+    fOptions := [roIgnoreCase];
+  RegEx := TRegEx.Create(fPattern, fOptions);
+  RegEx.AddRawOptions(PCRE_UCP);
 end;
 
-procedure TSynEditRegexSearch.SetPattern(const Value: UnicodeString);
+procedure TSynEditRegexSearch.SetPattern(const Value: string);
 begin
-  FRegex.Expression := Value;
+  fPattern := Value;
+  RegEx := TRegEx.Create(fPattern, fOptions);
+  RegEx.AddRawOptions(PCRE_UCP);
 end;
 
 end.

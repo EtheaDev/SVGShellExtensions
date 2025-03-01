@@ -2,7 +2,7 @@
 {                                                                              }
 {  StyledCmpMessages: Messages translated for Styled Component                 }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -59,6 +59,8 @@ resourcestring
     ERR_ACCES_VIOL_DESC = 'Si è verificato un errore inatteso nel programma.'+sLineBreak+sLineBreak+'%s'+sLineBreak+sLineBreak+
                           'Si consiglia di uscire dal programma e riavviarlo (i dati già registrati non andranno perduti)'+sLineBreak+
                           'Se l''errore dovesse persistere contattare il supporto tecnico';
+    ERR_DIALOG_FORM_NOT_REGISTERED = 'Errore: La TaskDialog Form con le animazioni non è disponibile.'+sLineBreak+
+                          'Aggiungere "%s" Unit al progetto';
 
     //Navigator buttons Captions
     CaptionFirstRecord = 'Primo';
@@ -89,6 +91,8 @@ resourcestring
     SApplyUpdates = 'Memorizza tutte le modifiche';
     SCancelUpdates = 'Annulla tutte le modifiche';
     SDeleteRecordQuestion = 'Vuoi cancellare il record?';
+    SShowDetails = 'Visualizza dettagli';
+    SHideDetails = 'Nascondi dettagli';
 
 {$ELSEIF Defined(FraMessages)}
     STR_YES = '&Oui';
@@ -116,6 +120,8 @@ resourcestring
     ERR_ACCES_VIOL_DESC = 'Une erreur non gérée a été detectée.'+sLineBreak+sLineBreak+'%s'+sLineBreak+sLineBreak+
                           'Il est recommandé de fermer et de relancer l''application.'+sLineBreak+
                           'Si le programme persiste, contactez le support technique.';
+    ERR_DIALOG_FORM_NOT_REGISTERED = 'Erreur : le formulaire TaskDialog avec animations n''est pas disponible.'+sLineBreak+
+                          'Ajouter l''unité "%s" au projet';
 
     //Navigator buttons Captions
     CaptionFirstRecord = 'Premier';
@@ -146,6 +152,8 @@ resourcestring
     SApplyUpdates = 'Appliquer les modifications';
     SCancelUpdates = 'Annuler les modifications';
     SDeleteRecordQuestion = 'Supprimer l''enregistrement?';
+    SShowDetails = 'Voir les détails';
+    SHideDetails = 'Masquer les détails';
 {$ELSE}
     STR_YES = '&Yes';
     STR_NO = '&No';
@@ -172,7 +180,8 @@ resourcestring
     ERR_ACCES_VIOL_DESC = 'Unexpected error.'+sLineBreak+sLineBreak+'%s'+sLineBreak+sLineBreak+
                           'It is recommended to exit and reexecute the program.'+sLineBreak+
                           'If this error persists, please contact our technical support.';
-
+    ERR_DIALOG_FORM_NOT_REGISTERED = 'Error: Animated TaskDialog Form not registered!'+sLineBreak+
+                          'Please add "%s" Unit to the project';
     //Navigator buttons Captions
     CaptionFirstRecord = 'First';
     CaptionPriorRecord = 'Prior';
@@ -202,6 +211,8 @@ resourcestring
     SApplyUpdates = 'Apply updates';
     SCancelUpdates = 'Revert updates';
     SDeleteRecordQuestion = 'Delete record?';
+    SShowDetails = 'Show details';
+    SHideDetails = 'Hide details';
 {$ENDIF}
 
 function GetMsgDlgTitle(const AMsgDlgType: TMsgDlgType): string;

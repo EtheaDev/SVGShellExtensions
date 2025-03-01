@@ -6,7 +6,11 @@ object PageSetupDlg: TPageSetupDlg
   ClientHeight = 419
   ClientWidth = 625
   Color = clBtnFace
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = True
   Position = poScreenCenter
   OnCreate = FormCreate
@@ -264,10 +268,6 @@ object PageSetupDlg: TPageSetupDlg
     object HeaderFooter: TTabSheet
       Caption = 'Header && Footer'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 5
         Top = 30
@@ -301,7 +301,7 @@ object PageSetupDlg: TPageSetupDlg
           Top = 30
           Width = 191
           Height = 56
-          Font.Charset = DEFAULT_CHARSET
+          Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
           Font.Name = 'Tahoma'
@@ -310,6 +310,7 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 0
           WordWrap = False
+          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -319,7 +320,7 @@ object PageSetupDlg: TPageSetupDlg
           Width = 191
           Height = 56
           Alignment = taCenter
-          Font.Charset = DEFAULT_CHARSET
+          Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
           Font.Name = 'Tahoma'
@@ -328,6 +329,7 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 1
           WordWrap = False
+          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -337,7 +339,7 @@ object PageSetupDlg: TPageSetupDlg
           Width = 191
           Height = 56
           Alignment = taRightJustify
-          Font.Charset = DEFAULT_CHARSET
+          Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
           Font.Name = 'Tahoma'
@@ -346,6 +348,7 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 2
           WordWrap = False
+          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -458,7 +461,7 @@ object PageSetupDlg: TPageSetupDlg
           Top = 30
           Width = 191
           Height = 56
-          Font.Charset = DEFAULT_CHARSET
+          Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
           Font.Name = 'Tahoma'
@@ -467,6 +470,7 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 0
           WordWrap = False
+          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -476,7 +480,7 @@ object PageSetupDlg: TPageSetupDlg
           Width = 191
           Height = 56
           Alignment = taCenter
-          Font.Charset = DEFAULT_CHARSET
+          Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
           Font.Name = 'Tahoma'
@@ -485,6 +489,7 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 1
           WordWrap = False
+          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -494,7 +499,7 @@ object PageSetupDlg: TPageSetupDlg
           Width = 191
           Height = 56
           Alignment = taRightJustify
-          Font.Charset = DEFAULT_CHARSET
+          Font.Charset = ANSI_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
           Font.Name = 'Tahoma'
@@ -503,6 +508,7 @@ object PageSetupDlg: TPageSetupDlg
           ScrollBars = ssBoth
           TabOrder = 2
           WordWrap = False
+          Zoom = 100
           OnEnter = REHeaderLeftEnter
           OnSelectionChange = REHeaderLeftSelectionChange
         end
@@ -593,7 +599,7 @@ object PageSetupDlg: TPageSetupDlg
         AutoSize = True
         Caption = 'ToolBar1'
         EdgeBorders = [ebBottom]
-        Images = ImageList1
+        Images = SVGIconImageList
         Indent = 5
         TabOrder = 2
         object ToolButton1: TToolButton
@@ -652,6 +658,7 @@ object PageSetupDlg: TPageSetupDlg
           Width = 8
           Caption = 'ToolButton10'
           ImageIndex = 8
+          ImageName = 'underline'
           Style = tbsSeparator
         end
         object ToolButton7: TToolButton
@@ -702,7 +709,7 @@ object PageSetupDlg: TPageSetupDlg
     Left = 269
     Top = 4
     Bitmap = {
-      494C010109000D00080010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010109000D00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1106,61 +1113,70 @@ object PageSetupDlg: TPageSetupDlg
       000000000000}
   end
   object ActionList1: TActionList
-    Images = ImageList1
+    Images = SVGIconImageList
     Left = 299
     Top = 4
     object PageNumCmd: TAction
       Caption = 'PageNumCmd'
       Hint = 'Page number'
       ImageIndex = 0
+      ImageName = 'file'
       OnExecute = PageNumCmdExecute
     end
     object PagesCmd: TAction
       Caption = 'PagesCmd'
       Hint = 'Num. pages'
       ImageIndex = 1
+      ImageName = 'file -new'
       OnExecute = PagesCmdExecute
     end
     object TimeCmd: TAction
       Caption = 'TimeCmd'
       Hint = 'Time'
       ImageIndex = 2
+      ImageName = 'clock'
       OnExecute = TimeCmdExecute
     end
     object DateCmd: TAction
       Caption = 'DateCmd'
       Hint = 'Date'
       ImageIndex = 3
+      ImageName = 'calendar'
       OnExecute = DateCmdExecute
     end
     object TitleCmd: TAction
       Caption = 'TitleCmd'
       Hint = 'Title'
       ImageIndex = 4
+      ImageName = 'title'
       OnExecute = TitleCmdExecute
     end
     object FontCmd: TAction
       Caption = 'FontCmd'
       Hint = 'Font'
       ImageIndex = 5
+      ImageName = 'font'
       OnExecute = FontCmdExecute
     end
     object BoldCmd: TAction
       Caption = 'BoldCmd'
       Hint = 'Bold'
       ImageIndex = 6
+      ImageName = 'bold'
       OnExecute = BoldCmdExecute
     end
     object ItalicCmd: TAction
       Caption = 'ItalicCmd'
       Hint = 'Italic'
       ImageIndex = 7
+      ImageName = 'italic'
       OnExecute = ItalicCmdExecute
     end
     object UnderlineCmd: TAction
       Caption = 'UnderlineCmd'
       Hint = 'Underline'
       ImageIndex = 8
+      ImageName = 'underline'
       OnExecute = UnderlineCmdExecute
     end
   end
@@ -1211,5 +1227,165 @@ object PageSetupDlg: TPageSetupDlg
     Color = clWhite
     Left = 428
     Top = 3
+  end
+  object SVGIconImageList: TSVGIconImageList
+    SVGIconItems = <
+      item
+        IconName = 'file'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">'#13#10 +
+          ' <path fill="#1976d2" d="M24 0C10.7 0 0 10.7 0 24v464c0 13.3 10.' +
+          '7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-2' +
+          '4V0H24zm232 0v128h128v-6.1c0-6.3-2.5-12.4-7-16.9L279 7c-4.5-4.5-' +
+          '10.6-7-17-7h-6zm-65.551 222.266c2.325 0 4.264.947 5.814 2.842 1.' +
+          '636 1.809 2.453 3.919 2.453 6.33 0 2.67-2.065 8.957-6.199 18.861' +
+          'l-10.594 24.932h62.783l18.73-41.855c3.273-7.406 7.967-11.109 14.' +
+          '082-11.109 6.459 0 9.688 2.67 9.688 8.01 0 4.995-5.899 19.98-17.' +
+          '697 44.955h25.191c7.837 0 11.756 2.499 11.756 7.494 0 10.507-5.5' +
+          '99 15.76-16.795 15.76l-12.143-.518h-18.861l-22.219 53.354h26.482' +
+          'c12.315 0 18.473 3.186 18.473 9.559 0 9.56-4.479 14.34-13.436 14' +
+          '.34h-41.467l-18.344 41.727c-3.789 8.526-9.346 12.789-16.666 12.7' +
+          '89-6.115 0-9.172-2.542-9.172-7.623 0-4.823 2.713-13.133 8.139-24' +
+          '.932l9.818-21.961h-64.592c-4.478 11.54-9.344 22.435-14.598 32.68' +
+          '4-5.167 10.162-8.87 16.148-11.109 17.957-2.153 1.809-5.125 2.713' +
+          '-8.914 2.713-6.029 0-9.043-2.499-9.043-7.494 0-3.531 1.68-8.827 ' +
+          '5.039-15.889l14.08-29.971H86.457c-5.942 0-8.914-2.884-8.914-8.65' +
+          '4s1.723-9.734 5.168-11.887c3.445-2.239 6.804-3.357 10.076-3.357H' +
+          '122.5l24.285-53.354h-34.621c-6.89 0-10.334-3.143-10.334-9.43 0-8' +
+          '.871 6.976-13.307 20.928-13.307h34.104c3.187-6.804 6.03-13.649 8' +
+          '.527-20.539 5.253-14.555 9.343-23.598 12.271-27.129s7.191-5.297 ' +
+          '12.789-5.297zm-18.99 75.701l-24.674 53.354h64.592l22.994-53.354h' +
+          '-62.912z"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'file -new'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">'#13#10 +
+          ' <path fill="#1976d2" d="M24 0C10.7 0 0 10.7 0 24v464c0 13.3 10.' +
+          '7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-2' +
+          '4V0H24zm232 0v128h128v-6.1c0-6.3-2.5-12.4-7-16.9L279 7c-4.5-4.5-' +
+          '10.6-7-17-7h-6zm-82.09 209.041h16.027a16.03 16.03 0 0 1 16.025 1' +
+          '6.027v72.121h72.123c8.85 0 16.027 7.177 16.027 16.027v16.027c0 8' +
+          '.85-7.177 16.027-16.027 16.027h-72.123v72.123a16.03 16.03 0 0 1-' +
+          '16.025 16.027H173.91c-8.85 0-16.027-7.177-16.027-16.027v-72.123H' +
+          '85.76c-8.85 0-16.027-7.177-16.027-16.027v-16.027c0-8.85 7.177-16' +
+          '.027 16.027-16.027h72.123v-72.121c0-8.85 7.177-16.027 16.027-16.' +
+          '027z"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'clock'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'#13#10 +
+          '    <path fill="#1976d2" d="M256 8C119 8 8 119 8 256s111 248 248' +
+          ' 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-20' +
+          '0S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l' +
+          '-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.' +
+          '6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6' +
+          ' 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'calendar'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" width="32.75" height="32' +
+          '.75">'#13#10' <path fill="#1976d2" d="M9.915 25.666h3.36v-14.16h-2.36c' +
+          '-.04.227-.117.47-.23.73s-.29.5-.53.72-.563.403-.97.55-.93.22-1.5' +
+          '7.22h-.42v2.12h2.72v9.82zm11.48.279c1.573 0 2.74-.394 3.5-1.18s1' +
+          '.141-2.08 1.141-3.881c0-1.72-.297-2.97-.891-3.75s-1.537-1.17-2.8' +
+          '3-1.17c-.227 0-.457.023-.689.07s-.457.12-.67.22a2.83 2.83 0 0 0-' +
+          '.58.36c-.173.14-.307.297-.4.47l-.039-.04.16-2.66h5.359v-2.6h-7.9' +
+          '39l-.44 7.66h3.12c.053-.413.197-.703.43-.87s.503-.25.811-.25a.98' +
+          '.98 0 0 1 .949.6c.193.4.29 1.021.29 1.86 0 .974-.083 1.724-.25 2' +
+          '.25s-.517.79-1.05.79c-.24 0-.439-.05-.6-.15a1.01 1.01 0 0 1-.371' +
+          '-.399c-.088-.168-.146-.355-.18-.569a4.45 4.45 0 0 1-.05-.681v-.5' +
+          '21h-3.239v.521c0 1.254.362 2.221 1.09 2.899s1.848 1.021 3.368 1.' +
+          '021zM17.01 5.502c-.048.036-.083.079-.104.129a.52.52 0 0 0-.033.2' +
+          'c0 .118.021.21.066.278s.107.102.192.102a.38.38 0 0 0 .25-.088c.0' +
+          '72-.059.106-.165.106-.319l.004-.308.002-.215c-.139.073-.245.12-.' +
+          '316.141s-.127.047-.167.08z"/>'#13#10' <path fill="#1976d2" d="M29.375 ' +
+          '1.25h-1.123c.029-.093.059-.186.059-.289 0-.53-.432-.961-.963-.96' +
+          '1a.96.96 0 0 0-.961.961c0 .104.028.196.059.289h-3.68c.029-.093.0' +
+          '59-.186.059-.289 0-.53-.432-.961-.963-.961S20.9.431 20.9.961c0 .' +
+          '104.029.196.06.289h-3.681c.029-.093.058-.186.058-.289a.96.96 0 1' +
+          ' 0-1.922 0c0 .104.028.196.058.289h-3.681c.029-.093.059-.186.059-' +
+          '.289A.96.96 0 0 0 10.89 0c-.531 0-.962.431-.962.961 0 .104.028.1' +
+          '96.058.289h-3.68a.93.93 0 0 0 .059-.289A.96.96 0 0 0 5.404 0c-.5' +
+          '31 0-.962.431-.962.961 0 .104.028.196.058.289H3.375C1.857 1.25.6' +
+          '25 2.483.625 4v26a2.75 2.75 0 0 0 2.75 2.75H26.27l5.855-5.855V4c' +
+          '0-1.517-1.232-2.75-2.75-2.75zm-9.878 2.524l.362 2.085h.012l.347-' +
+          '2.085h.892l-.803 2.998a3.08 3.08 0 0 1-.162.47c-.057.123-.125.21' +
+          '9-.209.289s-.181.118-.297.146-.262.041-.434.041h-.204c-.028 0-.0' +
+          '6-.001-.091-.003l-.09-.008V7.08l.109.017a1.01 1.01 0 0 0 .11.005' +
+          '.41.41 0 0 0 .231-.068c.069-.046.117-.133.143-.261l-.841-2.998.9' +
+          '25-.001zm-2.069.586c-.044-.053-.115-.08-.214-.08-.125 0-.209.036' +
+          '-.253.107a.61.61 0 0 0-.072.3h-.792c.003-.209.034-.376.091-.501s' +
+          '.138-.223.245-.297.225-.123.355-.151a2.38 2.38 0 0 1 .476-.041c.' +
+          '367 0 .635.067.803.201s.254.36.254.679v1.529l.014.357c.009.125.0' +
+          '4.22.091.286h-.858a.67.67 0 0 1-.035-.165l-.014-.176h-.013c-.063' +
+          '.132-.155.234-.28.308s-.265.11-.418.11c-.253 0-.449-.07-.585-.21' +
+          '2s-.207-.373-.207-.695c0-.177.033-.331.099-.465s.154-.232.264-.2' +
+          '95.239-.109.389-.143l.409-.099.162-.053c.042-.017.075-.036.099-.' +
+          '062s.039-.054.047-.091.012-.082.012-.138c-.003-.087-.024-.16-.06' +
+          '9-.213zm-5.527-1.537h1.353l.484 2.579h.011l.467-2.579h1.336V6.75' +
+          'h-.857V3.692h-.011l-.6 3.058h-.715l-.633-3.058h-.011V6.75H11.9l.' +
+          '001-3.927zm18.724 23.45l-.311.311h-2.355c-1.102 0-2 .898-2 2v2.3' +
+          '55l-.311.311H3.375A1.25 1.25 0 0 1 2.125 30V9h28.5v17.273z"/>'#13#10'<' +
+          '/svg>'
+      end
+      item
+        IconName = 'title'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="512"' +
+          '>'#13#10' <path d="M0 32.3v128.334h32.543C44.084 98.621 81.716 95.381 ' +
+          '128.703 96v277.839c.487 75.855-9.629 73.222-53.912 73.467V480.3h' +
+          '210.417v-32.995c-44.283-.245-54.399 2.387-53.912-73.467V96c46.98' +
+          '7-.619 84.619 2.621 96.161 64.634H360V32.3H179.379z" fill="#1976' +
+          'd2"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'font'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">'#13#10 +
+          ' <path fill="#1976d2" d="M432 416h-23.41L277.88 53.69A32 32 0 0 ' +
+          '0 247.58 32h-47.16a32 32 0 0 0-30.3 21.69L39.41 416H16a16 16 0 0' +
+          ' 0-16 16v32a16 16 0 0 0 16 16h128a16 16 0 0 0 16-16v-32a16 16 0 ' +
+          '0 0-16-16h-19.58l23.3-64h152.56l23.3 64H304a16 16 0 0 0-16 16v32' +
+          'a16 16 0 0 0 16 16h128a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zM' +
+          '176.85 272L224 142.51 271.15 272z"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'bold'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">'#13#10 +
+          ' <path fill="#1976d2" d="M333.49 238a122 122 0 0 0 27-65.21C367.' +
+          '87 96.49 308 32 233.42 32H34a16 16 0 0 0-16 16v48a16 16 0 0 0 16' +
+          ' 16h31.87v288H34a16 16 0 0 0-16 16v48a16 16 0 0 0 16 16h209.32c7' +
+          '0.8 0 134.14-51.75 141-122.4 4.74-48.45-16.39-92.06-50.83-119.6z' +
+          'M145.66 112h87.76a48 48 0 0 1 0 96h-87.76zm87.76 288h-87.76V288h' +
+          '87.76a56 56 0 0 1 0 112z"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'italic'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">'#13#10 +
+          ' <path fill="#1976d2" d="M320 48v32a16 16 0 0 1-16 16h-62.76l-80' +
+          ' 320H208a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16H16a16 16 0 0 1-1' +
+          '6-16v-32a16 16 0 0 1 16-16h62.76l80-320H112a16 16 0 0 1-16-16V48' +
+          'a16 16 0 0 1 16-16h192a16 16 0 0 1 16 16z"/>'#13#10'</svg>'
+      end
+      item
+        IconName = 'underline'
+        SVGText = 
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">'#13#10 +
+          ' <path fill="#1976d2" d="M32 64h32v160c0 88.22 71.78 160 160 160' +
+          's160-71.78 160-160V64h32a16 16 0 0 0 16-16V16a16 16 0 0 0-16-16H' +
+          '272a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h32v160a80 80 0 0 1-16' +
+          '0 0V64h32a16 16 0 0 0 16-16V16a16 16 0 0 0-16-16H32a16 16 0 0 0-' +
+          '16 16v32a16 16 0 0 0 16 16zm400 384H16a16 16 0 0 0-16 16v32a16 1' +
+          '6 0 0 0 16 16h416a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"/>'#13#10'<' +
+          '/svg>'
+      end>
+    Scaled = True
+    Left = 273
+    Top = 78
   end
 end

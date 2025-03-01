@@ -26,61 +26,21 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditPropertyReg.pas,v 1.17.2.6 2008/09/14 16:24:59 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITPROPERTYREG}
 unit SynEditPropertyReg;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_COMPILER_6_UP}
   DesignIntf,
   DesignEditors,
   VCLEditors,
-  StrEdit,
-{$ELSE}
-  DsgnIntf,
-  StrEdit,
-{$ENDIF}
-  SynUnicode,
-{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
-  TntClasses,
-  TntStrEdit_Design,
-{$ENDIF}
-  Classes;
+  System.Classes;
 
 type
-{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
-  // Wrapper around TUnicodeStringListProperty to enable the TNT property editor to
-  // handle TUnicodeStrings
-  TSynUnicodeStringListProperty = class(TWideStringListProperty)
-  private
-    FUnicodeStrings: TUnicodeStrings;
-    FTntStrings: TTntStrings;
-  protected
-    function GetStrings: TTntStrings; override;
-    procedure SetStrings(const Value: TTntStrings); override;
-  public
-{$IFDEF SYN_COMPILER_6_UP}
-    constructor Create(const ADesigner: IDesigner; APropCount: Integer); override;
-{$ELSE}
-    constructor Create(const ADesigner: IFormDesigner; APropCount: Integer); override;
-{$ENDIF}
-    destructor Destroy; override;
-  end;
-{$ENDIF}
-
   TSynEditFontProperty = class(TFontProperty)
   public
     procedure Edit; override;
@@ -111,10 +71,17 @@ type
   public
     procedure Edit; override;
     function GetAttributes: TPropertyAttributes; override;
-    function GetValue: string; override;
+    function GetValue:string; override;
   end;
 
   TSynAutoCorrectComponentEditor = class(TDefaultEditor)
+    procedure Edit; override;
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+  TSynOmniSynComponentEditor = class(TDefaultEditor)
     procedure Edit; override;
     procedure ExecuteVerb(Index: Integer); override;
     function GetVerb(Index: Integer): string; override;
@@ -126,10 +93,11 @@ procedure Register;
 implementation
 
 uses
-  Dialogs,
-  Forms,
-  Graphics,
-  Controls,
+  Vcl.Dialogs,
+  Vcl.Forms,
+  Vcl.Graphics,
+  Vcl.Controls,
+  SynEditTypes,
   SynEditKeyCmds,
   SynEditKeyCmdsEditor,
   SynEdit,
@@ -140,64 +108,9 @@ uses
   SynMacroRecorder,
   SynAutoCorrect,
   SynAutoCorrectEditor,
-  SysUtils;
-
-{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
-
-{ TSynUnicodeStringListProperty }
-
-{$IFDEF SYN_COMPILER_6_UP}
-constructor TSynUnicodeStringListProperty.Create(const ADesigner: IDesigner; APropCount: Integer);
-{$ELSE}
-constructor TSynUnicodeStringListProperty.Create(const ADesigner: IFormDesigner; APropCount: Integer);
-{$ENDIF}
-begin
-  inherited;
-  FUnicodeStrings := TUnicodeStringList.Create;
-  FTntStrings := TTntStringList.Create;
-end;
-
-destructor TSynUnicodeStringListProperty.Destroy;
-begin
-  FTntStrings.Free;
-  FUnicodeStrings.Free;
-  inherited;
-end;
-
-function TSynUnicodeStringListProperty.GetStrings: TTntStrings;
-var
-  UnicodeStrings: TUnicodeStrings;
-  i: Integer;
-begin
-  UnicodeStrings := TUnicodeStrings(GetOrdValue);
-  
-  FTntStrings.Clear;
-  FTntStrings.BeginUpdate;
-  try
-    for i := 0 to UnicodeStrings.Count - 1 do
-      FTntStrings.AddObject(UnicodeStrings[i], UnicodeStrings.Objects[i]);
-  finally
-    FTntStrings.EndUpdate;
-  end;
-  Result := FTntStrings;
-end;
-
-procedure TSynUnicodeStringListProperty.SetStrings(const Value: TTntStrings);
-var
-  i: Integer;
-begin
-  FUnicodeStrings.Clear;
-  FUnicodeStrings.BeginUpdate;
-  try
-    for i := 0 to Value.Count - 1 do
-      FUnicodeStrings.AddObject(Value[I], Value.Objects[I]);
-  finally
-    FUnicodeStrings.EndUpdate;
-  end;
-  SetOrdValue(Longint(FUnicodeStrings));
-end;
-{$ENDIF}
-
+  SynHighlighterOmni,
+  SynOmniSetupDialog,
+  System.SysUtils;
 
 { TSynEditFontProperty }
 
@@ -215,7 +128,7 @@ begin
     FontDialog.Options := FontDialog.Options + [fdShowHelp, fdForceFontExist,
        fdFixedPitchOnly];
     if FontDialog.Execute then
-      SetOrdValue(Longint(FontDialog.Font));
+      SetOrdValue(NativeInt(FontDialog.Font));
   finally
     FontDialog.Free;
   end;
@@ -246,7 +159,7 @@ end;
 
 procedure TSynEditCommandProperty.SetValue(const Value: string);
 var
-  NewValue: longint;
+  NewValue: Integer;
 begin
   if IdentToEditorCommand(Value, NewValue) then
     SetOrdValue(NewValue)
@@ -266,8 +179,8 @@ begin
     Dlg.Keystrokes := TSynEditKeystrokes(GetOrdValue);
     if Dlg.ShowModal = mrOk then
     begin
-      { SetOrdValue will operate on all selected propertiy values }
-      SetOrdValue(Longint(Dlg.Keystrokes));
+      { SetOrdValue will operate on all selected property values }
+      SetOrdValue(NativeInt(Dlg.Keystrokes));
       Modified;
     end;
   finally
@@ -358,27 +271,35 @@ begin
   GetValue := '(AutoCorrections)';
 end;                
 
+procedure TSynOmniSynComponentEditor.Edit;
+begin
+  if EditOmniHighlighter(TSynOmniSyn(Component)) then
+    Designer.Modified;
+end;
+
+procedure TSynOmniSynComponentEditor.ExecuteVerb(Index: Integer);
+begin
+  case Index of
+    0: Edit;
+  end;
+end;
+
+function TSynOmniSynComponentEditor.GetVerb(Index: Integer): string;
+begin
+  case Index of
+    0: Result := '&Edit Omni Highlighter...';
+  end;
+end;
+
+function TSynOmniSynComponentEditor.GetVerbCount: Integer;
+begin
+  Result := 1;
+end;
 
 { Register }
 
 procedure Register;
 begin
-// TODO: Delphi 2005 has native Unicode property editors, we should use them (but I don't have D2005 to test)
-{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
-  // Troy Wolbrink added my (Maël Hörz) WideChar property editor to
-  // TntUnicodeStringProperty_Design.pas.
-  // As it is registered there, no need to do it a second time here.
-  // However as he uses TTntStrings and we use TUnicodeStrings, we need
-  // a wrapper to do the "translation".
-  RegisterPropertyEditor(TypeInfo(TUnicodeStrings), nil,
-     '', TSynUnicodeStringListProperty);
-{$ELSE}
-  RegisterPropertyEditor(TypeInfo(WideChar), nil,
-     '', TCharProperty);
-  RegisterPropertyEditor(TypeInfo(TUnicodeStrings), nil,
-     '', TStringListProperty);
-{$ENDIF}
-
   RegisterPropertyEditor(TypeInfo(TFont), TCustomSynEdit,
      'Font', TSynEditFontProperty);
   RegisterPropertyEditor(TypeInfo(TSynEditorCommand), nil,
@@ -389,15 +310,16 @@ begin
     '', TSynEditPrintMarginsProperty);
   RegisterPropertyEditor(TypeInfo(TStrings), TSynAutoCorrect,
     'Items', TAutoCorrectionProperty);
-  RegisterComponentEditor(TSynAutoCorrect, TSynAutoCorrectComponentEditor);
-  {$IFDEF SYN_DELPHI_6_UP} // TODO: shouldn't that be COMPILER_6_UP instead?
   RegisterPropertyEditor(TypeInfo(TShortCut), TSynCompletionProposal, '',
     TShortCutProperty);
   RegisterPropertyEditor(TypeInfo(TShortCut), TSynAutoComplete, '',
     TShortCutProperty);
   RegisterPropertyEditor(TypeInfo(TShortCut), TSynMacroRecorder, '',
     TShortCutProperty);
-  {$ENDIF}
+
+  RegisterComponentEditor(TSynAutoCorrect, TSynAutoCorrectComponentEditor);
+  RegisterComponentEditor(TSynOmniSyn, TSynOmniSynComponentEditor);
+
 end;
 
 end.

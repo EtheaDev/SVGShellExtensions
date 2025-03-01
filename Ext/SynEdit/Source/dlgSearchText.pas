@@ -26,15 +26,14 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: dlgSearchText.pas,v 1.2 2002/11/05 17:04:02 giuseppem Exp $
+$Id: dlgSearchText.pas,v 1.3 2002/08/01 05:44:05 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
-Contributors: Carlo Barazzetta
-
 Known Issues:
 -------------------------------------------------------------------------------}
+
 unit dlgSearchText;
 
 {$I SynEdit.inc}
@@ -42,21 +41,22 @@ unit dlgSearchText;
 interface
 
 uses
-  SysUtils, Classes, Controls, Forms,
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls;
 
 type
   TTextSearchDialog = class(TForm)
     SearchForLabel: TLabel;
-    FSearchText: TComboBox;
+    cbSearchText: TComboBox;
     FSearchDirection: TRadioGroup;
     FSearchOptions: TGroupBox;
-    FSearchCaseSensitive: TCheckBox;
-    FSearchWholeWords: TCheckBox;
-    FSearchFromCursor: TCheckBox;
-    FSearchSelectedOnly: TCheckBox;
+    cbSearchCaseSensitive: TCheckBox;
+    cbSearchWholeWords: TCheckBox;
+    cbSearchFromCursor: TCheckBox;
+    cbSearchSelectedOnly: TCheckBox;
     btnOK: TButton;
     btnCancel: TButton;
+    cbRegularExpression: TCheckBox;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     function GetSearchBackwards: boolean;
@@ -73,6 +73,8 @@ type
     procedure SetSearchText(Value: string);
     procedure SetSearchTextHistory(Value: string);
     procedure SetSearchWholeWords(Value: boolean);
+    procedure SetSearchRegularExpression(const Value: boolean);
+    function GetSearchRegularExpression: boolean;
   public
     property SearchBackwards: boolean read GetSearchBackwards
       write SetSearchBackwards;
@@ -87,12 +89,27 @@ type
       write SetSearchTextHistory;
     property SearchWholeWords: boolean read GetSearchWholeWords
       write SetSearchWholeWords;
+    property SearchRegularExpression: boolean read GetSearchRegularExpression
+      write SetSearchRegularExpression;
   end;
 
 implementation
 
 {$R *.DFM}
 
+(*
+var
+  gbSearchBackwards: boolean;
+  gbSearchCaseSensitive: boolean;
+  gbSearchFromCaret: boolean;
+  gbSearchSelectionOnly: boolean;
+  gbSearchTextAtCaret: boolean;
+  gbSearchWholeWords: boolean;
+  gbSearchRegex: boolean;
+
+  gsSearchText: string;
+  gsReplaceText: string;
+*)
 { TTextSearchDialog }
 
 function TTextSearchDialog.GetSearchBackwards: boolean;
@@ -102,42 +119,46 @@ end;
 
 function TTextSearchDialog.GetSearchCaseSensitive: boolean;
 begin
-  Result := FSearchCaseSensitive.Checked;
+  Result := cbSearchCaseSensitive.Checked;
 end;
 
 function TTextSearchDialog.GetSearchFromCursor: boolean;
 begin
-  Result := FSearchFromCursor.Checked;
+  Result := cbSearchFromCursor.Checked;
 end;
 
 function TTextSearchDialog.GetSearchInSelection: boolean;
 begin
-  Result := FSearchSelectedOnly.Checked;
+  Result := cbSearchSelectedOnly.Checked;
+end;
+
+function TTextSearchDialog.GetSearchRegularExpression: boolean;
+begin
+  Result := cbRegularExpression.Checked;
 end;
 
 function TTextSearchDialog.GetSearchText: string;
 begin
-  Result := FSearchText.Text;
+  Result := cbSearchText.Text;
 end;
 
 function TTextSearchDialog.GetSearchTextHistory: string;
 var
-  i: Integer;
+  i: integer;
 begin
   Result := '';
-  for i := 0 to FSearchText.Items.Count - 1 do
-  begin
+  for i := 0 to cbSearchText.Items.Count - 1 do begin
     if i >= 10 then
       break;
     if i > 0 then
       Result := Result + #13#10;
-    Result := Result + FSearchText.Items[i];
+    Result := Result + cbSearchText.Items[i];
   end;
 end;
 
 function TTextSearchDialog.GetSearchWholeWords: boolean;
 begin
-  Result := FSearchWholeWords.Checked;
+  Result := cbSearchWholeWords.Checked;
 end;
 
 procedure TTextSearchDialog.SetSearchBackwards(Value: boolean);
@@ -147,32 +168,38 @@ end;
 
 procedure TTextSearchDialog.SetSearchCaseSensitive(Value: boolean);
 begin
-  FSearchCaseSensitive.Checked := Value;
+  cbSearchCaseSensitive.Checked := Value;
 end;
 
 procedure TTextSearchDialog.SetSearchFromCursor(Value: boolean);
 begin
-  FSearchFromCursor.Checked := Value;
+  cbSearchFromCursor.Checked := Value;
 end;
 
 procedure TTextSearchDialog.SetSearchInSelection(Value: boolean);
 begin
-  FSearchSelectedOnly.Checked := Value;
+  cbSearchSelectedOnly.Checked := Value;
 end;
 
 procedure TTextSearchDialog.SetSearchText(Value: string);
 begin
-  FSearchText.Text := Value;
+  cbSearchText.Text := Value;
 end;
 
 procedure TTextSearchDialog.SetSearchTextHistory(Value: string);
 begin
-  FSearchText.Items.Text := Value;
+  cbSearchText.Items.Text := Value;
 end;
 
 procedure TTextSearchDialog.SetSearchWholeWords(Value: boolean);
 begin
-  FSearchWholeWords.Checked := Value;
+  cbSearchWholeWords.Checked := Value;
+end;
+
+procedure TTextSearchDialog.SetSearchRegularExpression(
+  const Value: boolean);
+begin
+  cbRegularExpression.Checked := Value;
 end;
 
 { event handlers }
@@ -181,24 +208,22 @@ procedure TTextSearchDialog.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
   s: string;
-  i: Integer;
+  i: integer;
 begin
-  if ModalResult = mrOK then
-  begin
-    s := FSearchText.Text;
-    if s <> '' then
-    begin
-      i := FSearchText.Items.IndexOf(s);
-      if i > -1 then
-      begin
-        FSearchText.Items.Delete(i);
-        FSearchText.Items.Insert(0, s);
-        FSearchText.Text := s;
-      end
-      else
-        FSearchText.Items.Insert(0, s);
+  if ModalResult = mrOK then begin
+    s := cbSearchText.Text;
+    if s <> '' then begin
+      i := cbSearchText.Items.IndexOf(s);
+      if i > -1 then begin
+        cbSearchText.Items.Delete(i);
+        cbSearchText.Items.Insert(0, s);
+        cbSearchText.Text := s;
+      end else
+        cbSearchText.Items.Insert(0, s);
     end;
   end;
 end;
 
 end.
+
+ 

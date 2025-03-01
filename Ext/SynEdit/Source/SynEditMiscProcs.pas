@@ -1,183 +1,166 @@
-{-------------------------------------------------------------------------------
-The contents of this file are subject to the Mozilla Public License
-Version 1.1 (the "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at
-http://www.mozilla.org/MPL/
+ï»¿{ -------------------------------------------------------------------------------
+  The contents of this file are subject to the Mozilla Public License
+  Version 1.1 (the "License"); you may not use this file except in compliance
+  with the License. You may obtain a copy of the License at
+  http://www.mozilla.org/MPL/
 
-Software distributed under the License is distributed on an "AS IS" basis,
-WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
-the specific language governing rights and limitations under the License.
+  Software distributed under the License is distributed on an "AS IS" basis,
+  WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+  the specific language governing rights and limitations under the License.
 
-The Original Code is: SynEditMiscProcs.pas, released 2000-04-07.
-The Original Code is based on the mwSupportProcs.pas file from the
-mwEdit component suite by Martin Waldenburg and other developers, the Initial
-Author of this file is Michael Hieke.
-Unicode translation by Maël Hörz.
-All Rights Reserved.
+  The Original Code is: SynEditMiscProcs.pas, released 2000-04-07.
+  The Original Code is based on the mwSupportProcs.pas file from the
+  mwEdit component suite by Martin Waldenburg and other developers, the Initial
+  Author of this file is Michael Hieke.
+  Unicode translation by MaÃ«l HÃ¶rz.
+  All Rights Reserved.
 
-Contributors to the SynEdit and mwEdit projects are listed in the
-Contributors.txt file.
+  Contributors to the SynEdit and mwEdit projects are listed in the
+  Contributors.txt file.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU General Public License Version 2 or later (the "GPL"), in which case
-the provisions of the GPL are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the GPL and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting the provisions above and
-replace them with the notice and other provisions required by the GPL.
-If you do not delete the provisions above, a recipient may use your version
-of this file under either the MPL or the GPL.
+  Alternatively, the contents of this file may be used under the terms of the
+  GNU General Public License Version 2 or later (the "GPL"), in which case
+  the provisions of the GPL are applicable instead of those above.
+  If you wish to allow use of your version of this file only under the terms
+  of the GPL and not to allow others to use your version of this file
+  under the MPL, indicate your decision by deleting the provisions above and
+  replace them with the notice and other provisions required by the GPL.
+  If you do not delete the provisions above, a recipient may use your version
+  of this file under either the MPL or the GPL.
+  ------------------------------------------------------------------------------- }
 
-$Id: SynEditMiscProcs.pas,v 1.35.2.8 2009/09/28 17:54:20 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
--------------------------------------------------------------------------------}
-
-{$IFNDEF QSYNEDITMISCPROCS}
 unit SynEditMiscProcs;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  Windows,
-  Graphics,
+  Winapi.Windows,
+  System.Math,
+  System.Classes,
+  System.RegularExpressions,
+  Vcl.Graphics,
   SynEditTypes,
   SynEditHighlighter,
-  SynUnicode,
-{$IFDEF SYN_COMPILER_4_UP}
-  Math,
-{$ENDIF}
-  Classes;
+  SynUnicode;
 
 const
   MaxIntArraySize = MaxInt div 16;
 
 type
   PIntArray = ^TIntArray;
-  TIntArray = array[0..MaxIntArraySize - 1] of Integer;
+  TIntArray = array [0 .. MaxIntArraySize - 1] of Integer;
 
-{$IFNDEF SYN_COMPILER_4_UP}
-function Max(x, y: Integer): Integer;
-function Min(x, y: Integer): Integer;
-{$ENDIF}
-
+{ Similar to System.Math.EnsureRange but ma can be less than mi }
 function MinMax(x, mi, ma: Integer): Integer;
 procedure SwapInt(var l, r: Integer);
-function MaxPoint(const P1, P2: TPoint): TPoint;
-function MinPoint(const P1, P2: TPoint): TPoint;
 
-function GetIntArray(Count: Cardinal; InitialValue: Integer): PIntArray;
+// Expand tabs to spaces
+function ExpandTabs(const Line: string; TabWidth: Integer): string;
+function ExpandTabsEx(const Line: string; TabWidth: Integer;
+  var HasTabs: Boolean): string;
+function GetExpandedLength(const aStr: string; aTabWidth: Integer): Integer;
+function LeftSpaces(const Line: string; ExpandTabs: Boolean;
+  TabWidth: Integer = 2): Integer;
 
-procedure InternalFillRect(dc: HDC; const rcPaint: TRect);
-
-// Converting tabs to spaces: To use the function several times it's better
-// to use a function pointer that is set to the fastest conversion function.
-type
-  TConvertTabsProc = function(const Line: UnicodeString;
-    TabWidth: Integer): UnicodeString;
-
-function GetBestConvertTabsProc(TabWidth: Integer): TConvertTabsProc;
-// This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabs(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
-
-type
-  TConvertTabsProcEx = function(const Line: UnicodeString; TabWidth: Integer;
-    var HasTabs: Boolean): UnicodeString;
-
-function GetBestConvertTabsProcEx(TabWidth: Integer): TConvertTabsProcEx;
-// This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabsEx(const Line: UnicodeString; TabWidth: Integer;
-  var HasTabs: Boolean): UnicodeString;
-
-function GetExpandedLength(const aStr: UnicodeString; aTabWidth: Integer): Integer;
 
 function CharIndex2CaretPos(Index, TabWidth: Integer;
-  const Line: UnicodeString): Integer;
-function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: UnicodeString;
+  const Line: string): Integer;
+function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: string;
   var InsideTabChar: Boolean): Integer;
 
 // search for the first char of set AChars in Line, starting at index Start
-function StrScanForCharInCategory(const Line: UnicodeString; Start: Integer;
+function StrScanForCharInCategory(const Line: string; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 // the same, but searching backwards
-function StrRScanForCharInCategory(const Line: UnicodeString; Start: Integer;
+function StrRScanForCharInCategory(const Line: string; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 
-function GetEOL(Line: PWideChar): PWideChar;
+function GetEOL(P: PChar): PWideChar;
+function CountLines(const S: string): Integer;
+function StringToLines(const Value: string): TArray<string>;
 
 // Remove all '/' characters from string by changing them into '\.'.
 // Change all '\' characters into '\\' to allow for unique decoding.
-function EncodeString(s: UnicodeString): UnicodeString;
+function EncodeString(s: string): string;
 
 // Decodes string, encoded with EncodeString.
-function DecodeString(s: UnicodeString): UnicodeString;
-
-{$IFNDEF SYN_COMPILER_5_UP}
-procedure FreeAndNil(var Obj);
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_3_UP}
-procedure Assert(Expr: Boolean);  { stub for Delphi 2 }
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: UnicodeString): Integer;
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_4_UP}
-type
-  TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
-
-function StringReplace(const S, OldPattern, NewPattern: UnicodeString;
-  Flags: TReplaceFlags): UnicodeString;
-{$ENDIF}
+function DecodeString(s: string): string;
 
 type
-  THighlighterAttriProc = function (Highlighter: TSynCustomHighlighter;
+  THighlighterAttriProc = function(Highlighter: TSynCustomHighlighter;
     Attri: TSynHighlighterAttributes; UniqueAttriName: string;
     Params: array of Pointer): Boolean of object;
 
-// Enums all child highlighters and their attributes of a TSynMultiSyn through a
-// callback function.
-// This function also handles nested TSynMultiSyns including their MarkerAttri.
+  // Enums all child highlighters and their attributes of a TSynMultiSyn through a
+  // callback function.
+  // This function also handles nested TSynMultiSyns including their MarkerAttri.
 function EnumHighlighterAttris(Highlighter: TSynCustomHighlighter;
   SkipDuplicates: Boolean; HighlighterAttriProc: THighlighterAttriProc;
   Params: array of Pointer): Boolean;
+
+type
+  // Procedural type for adding keyword entries when enumerating keyword
+  // lists using the EnumerateKeywords procedure below.
+  TEnumerateKeywordEvent = procedure(AKeyword: string; AKind: Integer)
+    of object;
+
+  //  This procedure will call AKeywordProc for all keywords in KeywordList. A
+  //  keyword is considered any number of successive chars that are contained in
+  //  Identifiers, with chars not contained in Identifiers before and after them.
+  procedure EnumerateKeywords(AKind: Integer; KeywordList: string;
+    IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 
 {$IFDEF SYN_HEREDOC}
 // Calculates Frame Check Sequence (FCS) 16-bit Checksum (as defined in RFC 1171)
 function CalcFCS(const ABuf; ABufSize: Cardinal): Word;
 {$ENDIF}
+function DeleteTypePrefixAndSynSuffix(s: string): string;
+function CeilOfIntDiv(Dividend, Divisor: Cardinal): Integer;
 
-procedure SynDrawGradient(const ACanvas: TCanvas; const AStartColor,
-  AEndColor: TColor; ASteps: Integer; const ARect: TRect;
-  const AHorizontal: Boolean); overload;
+// In Windows Vista or later use the Consolas font
+function DefaultFontName: string;
 
-function DeleteTypePrefixAndSynSuffix(S: string): string;
+function GetCorrectFontWeight(Font: TFont): Integer;
+
+// Calculates the difference between two lines
+// Returns the starting point of the difference and the lengths of the change
+procedure LineDiff(const Line, OldLine: string; out StartPos, OldLen, NewLen:
+    Integer);
+
+// Tests whether a color is dark
+function IsColorDark(AColor: TColor): Boolean;
+
+// Substitutes control characters with Unicode control pictures
+procedure SubstituteControlChars(var Input: string);
+
+// Returns a compiled regular expression
+function CompiledRegEx(const Pattern: string; Options: TRegExOptions = []): TRegEx;
+
+// Converts TColor to an HTML color string
+function ColorToHTML(Color: TColor): string;
+
+// Bracket functions (Brackets have the form '()[]{}')
+function IsBracket(Chr: Char; const Brackets: string): Boolean;
+function IsOpeningBracket(Chr: Char; const Brackets: string): Boolean;
+function BracketAtPos(Idx: Integer; const Brackets, Line: string): Boolean;
+function MatchingBracket(Bracket: Char; const Brackets: string): Char;
+
+{$IF CompilerVersion <= 32}
+function GrowCollection(OldCapacity, NewCount: Integer): Integer;
+{$ENDIF}
 
 implementation
 
 uses
-  SysUtils,
-  SynHighlighterMulti;
-
-{$IFNDEF SYN_COMPILER_4_UP}
-function Max(x, y: Integer): Integer;
-begin
-  if x > y then Result := x else Result := y;
-end;
-
-function Min(x, y: Integer): Integer;
-begin
-  if x < y then Result := x else Result := y;
-end;
-{$ENDIF}
+  System.UITypes,
+  System.SysUtils,
+  System.RegularExpressionsCore,
+  SynHighlighterMulti,
+  Winapi.D2D1,
+  Vcl.Forms,
+  SynDWrite;
 
 function MinMax(x, mi, ma: Integer): Integer;
 begin
@@ -194,51 +177,13 @@ begin
   l := tmp;
 end;
 
-function MaxPoint(const P1, P2: TPoint): TPoint;
-begin
-  if (P2.y > P1.y) or ((P2.y = P1.y) and (P2.x > P1.x)) then
-    Result := P2
-  else
-    Result := P1;
-end;
-
-function MinPoint(const P1, P2: TPoint): TPoint;
-begin
-  if (P2.y < P1.y) or ((P2.y = P1.y) and (P2.x < P1.x)) then
-    Result := P2
-  else
-    Result := P1;
-end;
-
-function GetIntArray(Count: Cardinal; InitialValue: Integer): PIntArray;
-var
-  p: PInteger;
-begin
-  Result := AllocMem(Count * SizeOf(Integer));
-  if Assigned(Result) and (InitialValue <> 0) then
-  begin
-    p := PInteger(Result);
-    while (Count > 0) do
-    begin
-      p^ := InitialValue;
-      Inc(p);
-      Dec(Count);
-    end;
-  end;
-end;
-
-procedure InternalFillRect(dc: HDC; const rcPaint: TRect);
-begin
-  ExtTextOut(dc, 0, 0, ETO_OPAQUE, @rcPaint, nil, 0, nil);
-end;
-
 // Please don't change this function; no stack frame and efficient register use.
 function GetHasTabs(pLine: PWideChar; var CharsBefore: Integer): Boolean;
 begin
   CharsBefore := 0;
   if Assigned(pLine) then
   begin
-    while pLine^ <> #0 do 
+    while pLine^ <> #0 do
     begin
       if pLine^ = #9 then
         Break;
@@ -251,118 +196,13 @@ begin
     Result := False;
 end;
 
-
-function ConvertTabs1Ex(const Line: UnicodeString; TabWidth: Integer;
-  var HasTabs: Boolean): UnicodeString;
-var
-  pDest: PWideChar;
-  nBeforeTab: Integer;
-begin
-  Result := Line;  // increment reference count only
-  if GetHasTabs(Pointer(Line), nBeforeTab) then
-  begin
-    HasTabs := True;
-    pDest := @Result[nBeforeTab + 1]; // this will make a copy of Line
-    // We have at least one tab in the string, and the tab width is 1.
-    // pDest points to the first tab char. We overwrite all tabs with spaces.
-    repeat
-      if (pDest^ = #9) then pDest^ := ' ';
-      Inc(pDest);
-    until (pDest^ = #0);
-  end
-  else
-    HasTabs := False;
-end;
-
-function ConvertTabs1(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
-var
-  HasTabs: Boolean;
-begin
-  Result := ConvertTabs1Ex(Line, TabWidth, HasTabs);
-end;
-
-function ConvertTabs2nEx(const Line: UnicodeString; TabWidth: Integer;
-  var HasTabs: Boolean): UnicodeString;
-var
-  i, DestLen, TabCount, TabMask: Integer;
-  pSrc, pDest: PWideChar;
-begin
-  Result := Line;  // increment reference count only
-  if GetHasTabs(Pointer(Line), DestLen) then
-  begin
-    HasTabs := True;
-    pSrc := @Line[1 + DestLen];
-    // We have at least one tab in the string, and the tab width equals 2^n.
-    // pSrc points to the first tab char in Line. We get the number of tabs
-    // and the length of the expanded string now.
-    TabCount := 0;
-    TabMask := (TabWidth - 1) xor $7FFFFFFF;
-    repeat
-      if pSrc^ = #9 then
-      begin
-        DestLen := (DestLen + TabWidth) and TabMask;
-        Inc(TabCount);
-      end
-      else
-        Inc(DestLen);
-      Inc(pSrc);
-    until (pSrc^ = #0);
-    // Set the length of the expanded string.
-    SetLength(Result, DestLen);
-    DestLen := 0;
-    pSrc := PWideChar(Line);
-    pDest := PWideChar(Result);
-    // We use another TabMask here to get the difference to 2^n.
-    TabMask := TabWidth - 1;
-    repeat
-      if pSrc^ = #9 then
-      begin
-        i := TabWidth - (DestLen and TabMask);
-        Inc(DestLen, i);
-        //This is used for both drawing and other stuff and is meant to be #9 and not #32
-        repeat
-          pDest^ := #9;
-          Inc(pDest);
-          Dec(i);
-        until (i = 0);
-        Dec(TabCount);
-        if TabCount = 0 then
-        begin
-          repeat
-            Inc(pSrc);
-            pDest^ := pSrc^;
-            Inc(pDest);
-          until (pSrc^ = #0);
-          Exit;
-        end;
-      end
-      else
-      begin
-        pDest^ := pSrc^;
-        Inc(pDest);
-        Inc(DestLen);
-      end;
-      Inc(pSrc);
-    until (pSrc^ = #0);
-  end
-  else
-    HasTabs := False;
-end;
-
-function ConvertTabs2n(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
-var
-  HasTabs: Boolean;
-begin
-  Result := ConvertTabs2nEx(Line, TabWidth, HasTabs);
-end;
-
-function ConvertTabsEx(const Line: UnicodeString; TabWidth: Integer;
-  var HasTabs: Boolean): UnicodeString;
+function ExpandTabsEx(const Line: string; TabWidth: Integer;
+  var HasTabs: Boolean): string;
 var
   i, DestLen, TabCount: Integer;
   pSrc, pDest: PWideChar;
 begin
-  Result := Line;  // increment reference count only
+  Result := Line; // increment reference count only
   if GetHasTabs(Pointer(Line), DestLen) then
   begin
     HasTabs := True;
@@ -392,7 +232,7 @@ begin
         i := TabWidth - (DestLen mod TabWidth);
         Inc(DestLen, i);
         repeat
-          pDest^ := #9;
+          pDest^ := ' ';
           Inc(pDest);
           Dec(i);
         until (i = 0);
@@ -420,45 +260,14 @@ begin
     HasTabs := False;
 end;
 
-function ConvertTabs(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
+function ExpandTabs(const Line: string; TabWidth: Integer): string;
 var
   HasTabs: Boolean;
 begin
-  Result := ConvertTabsEx(Line, TabWidth, HasTabs);
+  Result := ExpandTabsEx(Line, TabWidth, HasTabs);
 end;
 
-function IsPowerOfTwo(TabWidth: Integer): Boolean;
-var
-  nW: Integer;
-begin
-  nW := 2;
-  repeat
-    if (nW >= TabWidth) then
-      Break;
-    Inc(nW, nW);
-  until (nW >= $10000);  // we don't want 64 kByte spaces...
-  Result := (nW = TabWidth);
-end;
-
-function GetBestConvertTabsProc(TabWidth: Integer): TConvertTabsProc;
-begin
-  if (TabWidth < 2) then Result := TConvertTabsProc(@ConvertTabs1)
-    else if IsPowerOfTwo(TabWidth) then
-      Result := TConvertTabsProc(@ConvertTabs2n)
-    else
-      Result := TConvertTabsProc(@ConvertTabs);
-end;
-
-function GetBestConvertTabsProcEx(TabWidth: Integer): TConvertTabsProcEx;
-begin
-  if (TabWidth < 2) then Result := ConvertTabs1Ex
-    else if IsPowerOfTwo(TabWidth) then
-      Result := ConvertTabs2nEx
-    else
-      Result := ConvertTabsEx;
-end;
-
-function GetExpandedLength(const aStr: UnicodeString; aTabWidth: Integer): Integer;
+function GetExpandedLength(const aStr: string; aTabWidth: Integer): Integer;
 var
   iRun: PWideChar;
 begin
@@ -474,13 +283,30 @@ begin
   end;
 end;
 
+function LeftSpaces(const Line: string; ExpandTabs: Boolean;
+  TabWidth: Integer = 2): Integer;
+var
+  P: PChar;
+begin
+  Result := 0;
+  P := PChar(Line);
+  while (P^ >= #1) and ((P^ <= #32) or (P^ = #$00A0)) do
+  begin
+    if (P^ = #9) and ExpandTabs then
+      Inc(Result, TabWidth - (Result mod TabWidth))
+    else
+      Inc(Result);
+    Inc(P);
+  end;
+end;
+
 function CharIndex2CaretPos(Index, TabWidth: Integer;
-  const Line: UnicodeString): Integer;
+  const Line: string): Integer;
 var
   iChar: Integer;
   pNext: PWideChar;
 begin
-// possible sanity check here: Index := Max(Index, Length(Line));
+  // possible sanity check here: Index := Max(Index, Length(Line));
   if Index > 1 then
   begin
     if (TabWidth <= 1) or not GetHasTabs(Pointer(Line), iChar) then
@@ -511,8 +337,8 @@ begin
                 Inc(Result, TabWidth);
                 Dec(Result, Result mod TabWidth);
               end;
-            else
-              Inc(Result);
+          else
+            Inc(Result);
           end;
           Dec(Index);
           Inc(pNext);
@@ -526,7 +352,7 @@ begin
     Result := 1;
 end;
 
-function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: UnicodeString;
+function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: string;
   var InsideTabChar: Boolean): Integer;
 var
   iPos: Integer;
@@ -563,8 +389,8 @@ begin
                   Break;
                 end;
               end;
-            else
-              Inc(iPos);
+          else
+            Inc(iPos);
           end;
           Inc(Result);
           Inc(pNext);
@@ -576,7 +402,7 @@ begin
     Result := Position;
 end;
 
-function StrScanForCharInCategory(const Line: UnicodeString; Start: Integer;
+function StrScanForCharInCategory(const Line: string; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 var
   p: PWideChar;
@@ -597,34 +423,85 @@ begin
   Result := 0;
 end;
 
-function StrRScanForCharInCategory(const Line: UnicodeString; Start: Integer;
+function StrRScanForCharInCategory(const Line: string; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 var
-  I: Integer;
+  i: Integer;
 begin
   Result := 0;
   if (Start > 0) and (Start <= Length(Line)) then
   begin
-    for I := Start downto 1 do
-      if IsOfCategory(Line[I]) then
+    for i := Start downto 1 do
+      if IsOfCategory(Line[i]) then
       begin
-        Result := I;
+        Result := i;
         Exit;
       end;
   end;
 end;
 
-function GetEOL(Line: PWideChar): PWideChar;
+function GetEOL(P: PChar): PWideChar;
 begin
-  Result := Line;
+  Result := P;
   if Assigned(Result) then
-    while (Result^ <> #0) and (Result^ <> #10) and (Result^ <> #13) do
+    while (Word(Result^) > 13) or not (Word(Result^) in [0, 10, 13]) do
       Inc(Result);
+end;
+
+function CountLines(const S: string): Integer;
+// At least one line possibly empty
+var
+  P, PEnd: PChar;
+begin
+  Result := 0;
+  P := PChar(S);
+  PEnd := P + Length(S);
+  while P < PEnd do
+  begin
+    //  We do it that way instead of checking for $0 as well
+    //  so the we properly deal with strings containing #0  (who knows)
+    while (P < PEnd) and ((Word(P^) > 13) or not (Word(P^) in [10, 13])) do
+      Inc(P);
+    Inc(Result);
+    if P^ = #13 then Inc(P);
+    if P^ = #10 then Inc(P);
+  end;
+  // Include Empty line at the end?
+  if (S <> '') and (Word(S[S.Length]) in [10, 13]) then
+    Inc(Result);
+end;
+
+function StringToLines(const Value: string): TArray<string>;
+var
+  Count: Integer;
+  P, PStart, PEnd: PChar;
+  S: string;
+begin
+  P := PChar(Value);
+  Count := CountLines(Value);
+  SetLength(Result, Count);
+
+  Count := 0;
+  PEnd := P + Length(Value);
+  while P < PEnd do
+  begin
+    PStart := P;
+    //  We do it that way instead of checking for $0 as well
+    //  so the we properly deal with strings containing #0  (who knows)
+    while (P < PEnd) and ((Word(P^) > 13) or not (Word(P^) in [10, 13])) do
+      Inc(P);
+    SetString(S, PStart, P - PStart);
+    Result[Count] := S;
+    Inc(Count);
+    if P^ = #13 then Inc(P);
+    if P^ = #10 then Inc(P);
+  end;
 end;
 
 {$IFOPT R+}{$DEFINE RestoreRangeChecking}{$ELSE}{$UNDEF RestoreRangeChecking}{$ENDIF}
 {$R-}
-function EncodeString(s: UnicodeString): UnicodeString;
+
+function EncodeString(s: string): string;
 var
   i, j: Integer;
 begin
@@ -647,11 +524,11 @@ begin
     end
     else
       Result[j] := s[i];
-  end; //for
+  end; // for
   SetLength(Result, j);
 end; { EncodeString }
 
-function DecodeString(s: UnicodeString): UnicodeString;
+function DecodeString(s: string): string;
 var
   i, j: Integer;
 begin
@@ -672,87 +549,16 @@ begin
     else
       Result[j] := s[i];
     Inc(i);
-  end; //for
-  SetLength(Result,j);
+  end; // for
+  SetLength(Result, j);
 end; { DecodeString }
 {$IFDEF RestoreRangeChecking}{$R+}{$ENDIF}
 
-{$IFNDEF SYN_COMPILER_5_UP}
-procedure FreeAndNil(var Obj);
-var
-  P: TObject;
+function DeleteTypePrefixAndSynSuffix(s: string): string;
 begin
-  P := TObject(Obj);
-  TObject(Obj) := nil;
-  P.Free;
-end;
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_3_UP}
-procedure Assert(Expr: Boolean);  { stub for Delphi 2 }
-begin
-end;
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: UnicodeString): Integer;
-var
-  P: PWideChar;
-begin
-  Result := Length(S);
-  P := PWideChar(Delimiters);
-  while Result > 0 do
-  begin
-    if (S[Result] <> #0) and (StrScan(P, S[Result]) <> nil) then
-      Exit;
-    Dec(Result);
-  end;
-end;
-{$ENDIF}
-
-{$IFNDEF SYN_COMPILER_4_UP}
-function StringReplace(const S, OldPattern, NewPattern: UnicodeString;
-  Flags: TReplaceFlags): UnicodeString;
-var
-  SearchStr, Patt, NewStr: UnicodeString;
-  Offset: Integer;
-begin
-  if rfIgnoreCase in Flags then
-  begin
-    SearchStr := SynWideUpperCase(S);
-    Patt := SynWideUpperCase(OldPattern);
-  end
-  else
-  begin
-    SearchStr := S;
-    Patt := OldPattern;
-  end;
-  NewStr := S;
-  Result := '';
-  while SearchStr <> '' do
-  begin
-    Offset := Pos(Patt, SearchStr);
-    if Offset = 0 then
-    begin
-      Result := Result + NewStr;
-      Break;
-    end;
-    Result := Result + Copy(NewStr, 1, Offset - 1) + NewPattern;
-    NewStr := Copy(NewStr, Offset + Length(OldPattern), MaxInt);
-    if not (rfReplaceAll in Flags) then
-    begin
-      Result := Result + NewStr;
-      Break;
-    end;
-    SearchStr := Copy(SearchStr, Offset + Length(Patt), MaxInt);
-  end;
-end;
-{$ENDIF}
-
-function DeleteTypePrefixAndSynSuffix(S: string): string;
-begin
-  Result := S;
-  if CharInSet(Result[1], ['T', 't']) then //ClassName is never empty so no AV possible
+  Result := s;
+  if CharInSet(Result[1], ['T', 't']) then
+  // ClassName is never empty so no AV possible
     if Pos('tsyn', LowerCase(Result)) = 1 then
       Delete(Result, 1, 4)
     else
@@ -771,7 +577,8 @@ begin
   for i := 0 to HighlighterList.Count - 1 do
     if HighlighterList[i] = Highlighter then
       Exit
-    else if Assigned(HighlighterList[i]) and (TObject(HighlighterList[i]).ClassType = Highlighter.ClassType) then
+    else if Assigned(HighlighterList[i]) and
+      (TObject(HighlighterList[i]).ClassType = Highlighter.ClassType) then
       Inc(Result);
 end;
 
@@ -786,7 +593,8 @@ begin
 
   if (HighlighterList.IndexOf(Highlighter) >= 0) then
   begin
-    if SkipDuplicates then Exit;
+    if SkipDuplicates then
+      Exit;
   end
   else
     HighlighterList.Add(Highlighter);
@@ -794,9 +602,10 @@ begin
   if Highlighter is TSynMultiSyn then
     with TSynMultiSyn(Highlighter) do
     begin
-      Result := InternalEnumHighlighterAttris(DefaultHighlighter, SkipDuplicates,
-        HighlighterAttriProc, Params, HighlighterList);
-      if not Result then Exit;
+      Result := InternalEnumHighlighterAttris(DefaultHighlighter,
+        SkipDuplicates, HighlighterAttriProc, Params, HighlighterList);
+      if not Result then
+        Exit;
 
       for i := 0 to Schemes.Count - 1 do
       begin
@@ -806,11 +615,13 @@ begin
 
         Result := HighlighterAttriProc(Highlighter, Schemes[i].MarkerAttri,
           UniqueAttriName, Params);
-        if not Result then Exit;
+        if not Result then
+          Exit;
 
         Result := InternalEnumHighlighterAttris(Schemes[i].Highlighter,
           SkipDuplicates, HighlighterAttriProc, Params, HighlighterList);
-        if not Result then Exit
+        if not Result then
+          Exit
       end
     end
   else if Assigned(Highlighter) then
@@ -822,7 +633,8 @@ begin
 
       Result := HighlighterAttriProc(Highlighter, Highlighter.Attribute[i],
         UniqueAttriName, Params);
-      if not Result then Exit
+      if not Result then
+        Exit
     end
 end;
 
@@ -847,117 +659,250 @@ begin
   end
 end;
 
+procedure EnumerateKeywords(AKind: Integer; KeywordList: string;
+  IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
+var
+  pStart, pEnd: PWideChar;
+  Keyword: string;
+begin
+  if Assigned(AKeywordProc) and (KeywordList <> '') then
+  begin
+    pEnd := PWideChar(KeywordList);
+    pStart := pEnd;
+    repeat
+      // skip over chars that are not in Identifiers
+      while (pStart^ <> #0) and not IsIdentChar(pStart^) do
+        Inc(pStart);
+      if pStart^ = #0 then Break;
+      // find the last char that is in Identifiers
+      pEnd := pStart + 1;
+      while (pEnd^ <> #0) and IsIdentChar(pEnd^) do
+        Inc(pEnd);
+      // call the AKeywordProc with the keyword
+      SetString(Keyword, pStart, pEnd - pStart);
+      AKeywordProc(Keyword, AKind);
+      Keyword := '';
+      // pEnd points to a char not in Identifiers, restart after that
+      if pEnd^ <> #0 then
+        pStart := pEnd + 1;
+    until (pStart^ = #0) or (pEnd^ = #0);
+  end;
+end;
+
 {$IFDEF SYN_HEREDOC}
 // Fast Frame Check Sequence (FCS) Implementation
 // Translated from sample code given with RFC 1171 by Marko Njezic
 
 const
-  fcstab : array[Byte] of Word = (
-    $0000, $1189, $2312, $329b, $4624, $57ad, $6536, $74bf,
-    $8c48, $9dc1, $af5a, $bed3, $ca6c, $dbe5, $e97e, $f8f7,
-    $1081, $0108, $3393, $221a, $56a5, $472c, $75b7, $643e,
-    $9cc9, $8d40, $bfdb, $ae52, $daed, $cb64, $f9ff, $e876,
-    $2102, $308b, $0210, $1399, $6726, $76af, $4434, $55bd,
-    $ad4a, $bcc3, $8e58, $9fd1, $eb6e, $fae7, $c87c, $d9f5,
-    $3183, $200a, $1291, $0318, $77a7, $662e, $54b5, $453c,
-    $bdcb, $ac42, $9ed9, $8f50, $fbef, $ea66, $d8fd, $c974,
-    $4204, $538d, $6116, $709f, $0420, $15a9, $2732, $36bb,
-    $ce4c, $dfc5, $ed5e, $fcd7, $8868, $99e1, $ab7a, $baf3,
-    $5285, $430c, $7197, $601e, $14a1, $0528, $37b3, $263a,
-    $decd, $cf44, $fddf, $ec56, $98e9, $8960, $bbfb, $aa72,
-    $6306, $728f, $4014, $519d, $2522, $34ab, $0630, $17b9,
-    $ef4e, $fec7, $cc5c, $ddd5, $a96a, $b8e3, $8a78, $9bf1,
-    $7387, $620e, $5095, $411c, $35a3, $242a, $16b1, $0738,
-    $ffcf, $ee46, $dcdd, $cd54, $b9eb, $a862, $9af9, $8b70,
-    $8408, $9581, $a71a, $b693, $c22c, $d3a5, $e13e, $f0b7,
-    $0840, $19c9, $2b52, $3adb, $4e64, $5fed, $6d76, $7cff,
-    $9489, $8500, $b79b, $a612, $d2ad, $c324, $f1bf, $e036,
-    $18c1, $0948, $3bd3, $2a5a, $5ee5, $4f6c, $7df7, $6c7e,
-    $a50a, $b483, $8618, $9791, $e32e, $f2a7, $c03c, $d1b5,
-    $2942, $38cb, $0a50, $1bd9, $6f66, $7eef, $4c74, $5dfd,
-    $b58b, $a402, $9699, $8710, $f3af, $e226, $d0bd, $c134,
-    $39c3, $284a, $1ad1, $0b58, $7fe7, $6e6e, $5cf5, $4d7c,
-    $c60c, $d785, $e51e, $f497, $8028, $91a1, $a33a, $b2b3,
-    $4a44, $5bcd, $6956, $78df, $0c60, $1de9, $2f72, $3efb,
-    $d68d, $c704, $f59f, $e416, $90a9, $8120, $b3bb, $a232,
-    $5ac5, $4b4c, $79d7, $685e, $1ce1, $0d68, $3ff3, $2e7a,
-    $e70e, $f687, $c41c, $d595, $a12a, $b0a3, $8238, $93b1,
-    $6b46, $7acf, $4854, $59dd, $2d62, $3ceb, $0e70, $1ff9,
-    $f78f, $e606, $d49d, $c514, $b1ab, $a022, $92b9, $8330,
-    $7bc7, $6a4e, $58d5, $495c, $3de3, $2c6a, $1ef1, $0f78
-  );
+  fcstab: array [Byte] of Word = ($0000, $1189, $2312, $329B, $4624, $57AD,
+    $6536, $74BF, $8C48, $9DC1, $AF5A, $BED3, $CA6C, $DBE5, $E97E, $F8F7, $1081,
+    $0108, $3393, $221A, $56A5, $472C, $75B7, $643E, $9CC9, $8D40, $BFDB, $AE52,
+    $DAED, $CB64, $F9FF, $E876, $2102, $308B, $0210, $1399, $6726, $76AF, $4434,
+    $55BD, $AD4A, $BCC3, $8E58, $9FD1, $EB6E, $FAE7, $C87C, $D9F5, $3183, $200A,
+    $1291, $0318, $77A7, $662E, $54B5, $453C, $BDCB, $AC42, $9ED9, $8F50, $FBEF,
+    $EA66, $D8FD, $C974, $4204, $538D, $6116, $709F, $0420, $15A9, $2732, $36BB,
+    $CE4C, $DFC5, $ED5E, $FCD7, $8868, $99E1, $AB7A, $BAF3, $5285, $430C, $7197,
+    $601E, $14A1, $0528, $37B3, $263A, $DECD, $CF44, $FDDF, $EC56, $98E9, $8960,
+    $BBFB, $AA72, $6306, $728F, $4014, $519D, $2522, $34AB, $0630, $17B9, $EF4E,
+    $FEC7, $CC5C, $DDD5, $A96A, $B8E3, $8A78, $9BF1, $7387, $620E, $5095, $411C,
+    $35A3, $242A, $16B1, $0738, $FFCF, $EE46, $DCDD, $CD54, $B9EB, $A862, $9AF9,
+    $8B70, $8408, $9581, $A71A, $B693, $C22C, $D3A5, $E13E, $F0B7, $0840, $19C9,
+    $2B52, $3ADB, $4E64, $5FED, $6D76, $7CFF, $9489, $8500, $B79B, $A612, $D2AD,
+    $C324, $F1BF, $E036, $18C1, $0948, $3BD3, $2A5A, $5EE5, $4F6C, $7DF7, $6C7E,
+    $A50A, $B483, $8618, $9791, $E32E, $F2A7, $C03C, $D1B5, $2942, $38CB, $0A50,
+    $1BD9, $6F66, $7EEF, $4C74, $5DFD, $B58B, $A402, $9699, $8710, $F3AF, $E226,
+    $D0BD, $C134, $39C3, $284A, $1AD1, $0B58, $7FE7, $6E6E, $5CF5, $4D7C, $C60C,
+    $D785, $E51E, $F497, $8028, $91A1, $A33A, $B2B3, $4A44, $5BCD, $6956, $78DF,
+    $0C60, $1DE9, $2F72, $3EFB, $D68D, $C704, $F59F, $E416, $90A9, $8120, $B3BB,
+    $A232, $5AC5, $4B4C, $79D7, $685E, $1CE1, $0D68, $3FF3, $2E7A, $E70E, $F687,
+    $C41C, $D595, $A12A, $B0A3, $8238, $93B1, $6B46, $7ACF, $4854, $59DD, $2D62,
+    $3CEB, $0E70, $1FF9, $F78F, $E606, $D49D, $C514, $B1AB, $A022, $92B9, $8330,
+    $7BC7, $6A4E, $58D5, $495C, $3DE3, $2C6A, $1EF1, $0F78);
 
 function CalcFCS(const ABuf; ABufSize: Cardinal): Word;
 var
   CurFCS: Word;
-  P: ^Byte;
+  p: ^Byte;
 begin
-  CurFCS := $ffff;
-  P := @ABuf;
+  CurFCS := $FFFF;
+  p := @ABuf;
   while ABufSize <> 0 do
   begin
-    CurFCS := (CurFCS shr 8) xor fcstab[(CurFCS xor P^) and $ff];
+    CurFCS := (CurFCS shr 8) xor fcstab[(CurFCS xor p^) and $FF];
     Dec(ABufSize);
-    Inc(P);
+    Inc(p);
   end;
   Result := CurFCS;
 end;
 {$ENDIF}
 
-procedure SynDrawGradient(const ACanvas: TCanvas; const AStartColor, AEndColor: TColor;
-  ASteps: Integer; const ARect: TRect; const AHorizontal: Boolean);
+function CeilOfIntDiv(Dividend, Divisor: Cardinal): Integer;
 var
-  StartColorR, StartColorG, StartColorB: Byte;
-  DiffColorR, DiffColorG, DiffColorB: Integer;
-  i, Size: Integer;
-  PaintRect: TRect;
+  Res: UInt64;
+  Remainder: UInt64;
 begin
-  StartColorR := GetRValue(ColorToRGB(AStartColor));
-  StartColorG := GetGValue(ColorToRGB(AStartColor));
-  StartColorB := GetBValue(ColorToRGB(AStartColor));
+  DivMod(Dividend,  Divisor, Res, Remainder);
+  if Remainder > 0 then
+    Inc(Res);
+  Result := Integer(Res);
+end;
 
-  DiffColorR := GetRValue(ColorToRGB(AEndColor)) - StartColorR;
-  DiffColorG := GetGValue(ColorToRGB(AEndColor)) - StartColorG;
-  DiffColorB := GetBValue(ColorToRGB(AEndColor)) - StartColorB;
-
-  ASteps := MinMax(ASteps, 2, 256);
-
-  if AHorizontal then
+function DefaultFontName: string;
+begin
+  if CheckWin32Version(6) then
   begin
-    Size := ARect.Right - ARect.Left;
-    PaintRect.Top := ARect.Top;
-    PaintRect.Bottom := ARect.Bottom;
+    Result := 'Consolas';
+    if Screen.Fonts.IndexOf(Result) >= 0 then
+      Exit;
+  end;
 
-    for i := 0 to ASteps - 1 do
-    begin
-      PaintRect.Left := ARect.Left + MulDiv(i, Size, ASteps);
-      PaintRect.Right := ARect.Left + MulDiv(i + 1, Size, ASteps);
+  Result := 'Lucida Console';
+  if Screen.Fonts.IndexOf(Result) >= 0 then
+    Exit;
 
-      ACanvas.Brush.Color := RGB(StartColorR + MulDiv(i, DiffColorR, ASteps - 1),
-                                 StartColorG + MulDiv(i, DiffColorG, ASteps - 1),
-                                 StartColorB + MulDiv(i, DiffColorB, ASteps - 1));
+  Result := 'Courier New';
+  if Screen.Fonts.IndexOf(Result) < 0 then
+    Result := 'Courier';
+end;
 
-      ACanvas.FillRect(PaintRect);
-    end;
-  end
+function WeightEnumFontsProc(EnumLogFontExDV: PEnumLogFontExDV;
+  EnumTextMetric: PEnumTextMetric;
+  FontType: DWORD; LParam: LPARAM): Integer; stdcall;
+begin;
+  PInteger(LPARAM)^ :=  EnumLogFontExDV.elfEnumLogfontEx.elfLogFont.lfWeight;
+  Result := 0;
+end;
+
+function GetCorrectFontWeight(Font: TFont): Integer;
+var
+  DC: HDC;
+  LogFont: TLogFont;
+begin
+  if TFontStyle.fsBold in Font.Style then
+    Result := FW_BOLD
   else
   begin
-    Size := ARect.Bottom - ARect.Top;
-    PaintRect.Left := ARect.Left;
-    PaintRect.Right := ARect.Right;
-
-    for i := 0 to ASteps - 1 do
-    begin
-      PaintRect.Top := ARect.Top + MulDiv(i, Size, ASteps);
-      PaintRect.Bottom := ARect.Top + MulDiv(i + 1, Size, ASteps);
-
-      ACanvas.Brush.Color := RGB(StartColorR + MulDiv(i, DiffColorR, ASteps - 1),
-                                 StartColorG + MulDiv(i, DiffColorG, ASteps - 1),
-                                 StartColorB + MulDiv(i, DiffColorB, ASteps - 1));
-
-      ACanvas.FillRect(PaintRect);
-    end;
+    Result := FW_NORMAL;
+    DC := GetDC(0);
+    FillChar(LogFont, SizeOf(LogFont), 0);
+    LogFont.lfCharSet := DEFAULT_CHARSET;
+    StrPLCopy(LogFont.lfFaceName, Font.Name, Length(LogFont.lfFaceName) - 1);
+    EnumFontFamiliesEx(DC, LogFont, @WeightEnumFontsProc, LPARAM(@Result), 0);
+    ReleaseDC(0, DC);
   end;
+end;
+
+{$IF CompilerVersion <= 32}
+function GrowCollection(OldCapacity, NewCount: Integer): Integer;
+begin
+  Result := OldCapacity;
+  repeat
+    if Result > 64 then
+      Result := (Result * 3) div 2
+    else
+      if Result > 8 then
+        Result := Result + 16
+      else
+        Result := Result + 4;
+    if Result < 0 then
+      OutOfMemoryError;
+  until Result >= NewCount;
+end;
+{$ENDIF}
+
+procedure LineDiff(const Line, OldLine: string; out StartPos, OldLen, NewLen: Integer);
+begin
+  OldLen := OldLine.Length;
+  NewLen := Line.Length;
+  // Compare from start
+  StartPos := 1;
+  while (OldLen > 0) and (NewLen > 0) and (OldLine[StartPos] = Line[StartPos]) do
+  begin
+    Dec(OldLen);
+    Dec(NewLen);
+    Inc(StartPos);
+  end;
+  // Compare from end
+  while (OldLen > 0) and (NewLen > 0) and
+    (OldLine[OldLen + StartPos - 1] = Line[NewLen + StartPos - 1]) do
+  begin
+    Dec(OldLen);
+    Dec(NewLen);
+  end;
+end;
+
+function IsColorDark(AColor: TColor): Boolean;
+var
+  ACol: Longint;
+begin
+  ACol := ColorToRGB(AColor) and $00FFFFFF;
+  Result := ((2.99 * GetRValue(ACol) + 5.87 * GetGValue(ACol) +
+                 1.14 * GetBValue(ACol)) < $400);
+end;
+
+procedure SubstituteControlChars(var Input: string);
+const
+  ControlChars: set of Byte = [1..31, 127];
+  GraphicChars: array[1..31] of Char = (
+      #$02401, #$02402, #$02403, #$02404, #$02405, #$02406, #$02407, #$02408,
+      #$02409, #$0240A, #$0240B, #$0240C, #$0240D, #$0240E, #$0240F, #$02410,
+      #$02411, #$02412, #$02413, #$02414, #$02415, #$02416, #$02417, #$02418,
+      #$02419, #$0241A, #$0241B, #$0241C, #$0241D, #$0241E, #$0241F);
+  DeleteChar  = #$02421;
+var
+  I: Integer;
+begin
+  UniqueString(Input);
+  for I := 1 to Input.Length do
+    case Ord(Input[I]) of
+      1..8, 10..31: Input[I] := GraphicChars[Byte(Ord(Input[I]))];
+      127: Input[I] := DeleteChar;
+    end;
+end;
+
+function CompiledRegEx(const Pattern: string; Options: TRegExOptions): TRegEx;
+begin
+  Result := TRegEx.Create(Pattern, Options + [roCompiled]);
+  {$IF (CompilerVersion > 35) or Declared(RTLVersion112)}
+  Result.Study([preJIT]);
+  {$ENDIF}
+end;
+
+function ColorToHTML(Color: TColor): string;
+var
+  R: TColorRef;
+begin
+  R := ColorToRGB(Color);
+  Result := Format('#%.2x%.2x%.2x', [GetRValue(R), GetGValue(R), GetBValue(R)]);
+end;
+
+function IsBracket(Chr: Char; const Brackets: string): Boolean;
+begin
+  Result := Brackets.IndexOf(Chr) >= 0;
+end;
+
+function IsOpeningBracket(Chr: Char; const Brackets: string): Boolean;
+var
+  Idx: Integer;
+begin
+  Idx := Brackets.IndexOf(Chr);
+  Result := (Idx >= 0) and not Odd(Idx);
+end;
+
+function BracketAtPos(Idx: Integer; const Brackets, Line: string): Boolean;
+begin
+  Result := InRange(Idx, 1, Line.Length) and IsBracket(Line[Idx], Brackets);
+end;
+
+function MatchingBracket(Bracket: Char; const Brackets: string): Char;
+var
+  Idx: Integer; // zero based char index
+begin
+  Idx := Brackets.IndexOf(Bracket);
+  if Idx < 0 then
+    Result := #0
+  else
+    Result := Brackets.Chars[Idx xor 1];
 end;
 
 end.

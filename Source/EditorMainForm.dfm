@@ -32,13 +32,14 @@ object frmMain: TfrmMain
     588)
   TextHeight = 15
   object RightSplitter: TSplitter
-    Left = 643
+    Left = 434
     Top = 69
     Width = 6
     Height = 500
     Align = alRight
     AutoSnap = False
     MinSize = 240
+    ExplicitLeft = 643
     ExplicitTop = 38
     ExplicitHeight = 531
   end
@@ -85,9 +86,9 @@ object frmMain: TfrmMain
       end>
   end
   object ImagePanel: TPanel
-    Left = 649
+    Left = 440
     Top = 69
-    Width = 250
+    Width = 459
     Height = 500
     Align = alRight
     BevelOuter = bvNone
@@ -98,31 +99,32 @@ object frmMain: TfrmMain
     object StatusSplitter: TSplitter
       Left = 0
       Top = 462
-      Width = 250
+      Width = 459
       Height = 4
       Cursor = crVSplit
       Align = alBottom
       AutoSnap = False
       ExplicitTop = 493
+      ExplicitWidth = 250
     end
     object SVGIconImage: TSVGIconImage
       Left = 0
-      Top = 172
-      Width = 250
-      Height = 290
+      Top = 202
+      Width = 459
+      Height = 260
       AutoSize = False
       Align = alClient
       OnMouseMove = SVGIconImageMouseMove
     end
     object panelPreview: TPanel
       Left = 0
-      Top = 24
-      Width = 250
+      Top = 54
+      Width = 459
       Height = 40
       Align = alTop
       ParentBackground = False
       ShowCaption = False
-      TabOrder = 0
+      TabOrder = 2
       object BackgroundGrayScaleLabel: TLabel
         Left = 10
         Top = 6
@@ -136,7 +138,7 @@ object frmMain: TfrmMain
         AlignWithMargins = True
         Left = 81
         Top = 4
-        Width = 165
+        Width = 374
         Height = 32
         Cursor = crHandPoint
         Margins.Left = 80
@@ -152,14 +154,14 @@ object frmMain: TfrmMain
     object FlowPanel: TFlowPanel
       AlignWithMargins = True
       Left = 3
-      Top = 67
-      Width = 244
+      Top = 97
+      Width = 453
       Height = 102
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
       ParentColor = True
-      TabOrder = 1
+      TabOrder = 3
       object SVGIconImage16: TSVGIconImage
         AlignWithMargins = True
         Left = 3
@@ -200,21 +202,21 @@ object frmMain: TfrmMain
     object ImagePreviewPanel: TPanel
       Left = 0
       Top = 0
-      Width = 250
+      Width = 459
       Height = 24
       Align = alTop
       Caption = 'IMAGE PREVIEW'
       ParentBackground = False
-      TabOrder = 3
+      TabOrder = 0
     end
     object StatusPanel: TPanel
       Left = 0
       Top = 466
-      Width = 250
+      Width = 459
       Height = 34
       Align = alBottom
       ParentBackground = False
-      TabOrder = 2
+      TabOrder = 4
       object StatusImage: TSVGIconImage
         Left = 1
         Top = 1
@@ -230,11 +232,70 @@ object frmMain: TfrmMain
         AlignWithMargins = True
         Left = 36
         Top = 4
-        Width = 210
+        Width = 419
         Height = 26
         Align = alClient
         Alignment = taCenter
         TabOrder = 0
+      end
+    end
+    object ColorPanel: TPanel
+      Left = 0
+      Top = 24
+      Width = 459
+      Height = 30
+      Align = alTop
+      ParentBackground = False
+      TabOrder = 1
+      object GrayscaleCheckBox: TCheckBox
+        AlignWithMargins = True
+        Left = 4
+        Top = 3
+        Width = 76
+        Height = 23
+        Margins.Top = 2
+        Align = alLeft
+        Caption = 'Grayscale'
+        TabOrder = 0
+        OnClick = GrayscaleCheckBoxClick
+      end
+      object ApplyToRootCheckBox: TCheckBox
+        AlignWithMargins = True
+        Left = 325
+        Top = 3
+        Width = 121
+        Height = 23
+        Margins.Top = 2
+        Align = alLeft
+        Caption = 'Apply to root only'
+        TabOrder = 3
+        OnClick = ApplyToRootCheckBoxClick
+      end
+      object FixedColorBox: TColorBox
+        AlignWithMargins = True
+        Left = 174
+        Top = 4
+        Width = 145
+        Height = 22
+        Align = alLeft
+        DefaultColorColor = clDefault
+        NoneColorColor = clNone
+        Selected = clNone
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeDefault, cbCustomColor, cbPrettyNames, cbCustomColors]
+        TabOrder = 2
+        OnSelect = FixedColorBoxSelect
+      end
+      object FixedColorCheckBox: TCheckBox
+        AlignWithMargins = True
+        Left = 86
+        Top = 3
+        Width = 82
+        Height = 23
+        Margins.Top = 2
+        Align = alLeft
+        Caption = 'Fixed Color'
+        TabOrder = 1
+        OnClick = FixedColorCheckBoxClick
       end
     end
   end
@@ -256,6 +317,7 @@ object frmMain: TfrmMain
     OnClosing = SVClosing
     OnOpened = SVOpened
     OnOpening = SVOpening
+    OnResize = SVResize
     object catMenuItems: TStyledCategoryButtons
       Left = 0
       Top = 0

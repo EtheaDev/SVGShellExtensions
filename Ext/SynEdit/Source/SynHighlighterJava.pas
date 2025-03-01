@@ -12,7 +12,7 @@ The Original Code is: SynHighlighterJava.pas, released 2000-04-10.
 The Original Code is based on the DcjSynJava.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Trier.
-Unicode translation by MaÃ«l HÃ¶rz.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,13 +27,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynHighlighterJava.pas,v 1.18.2.10 2008/09/14 16:25:00 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides a Java highlighter for SynEdit)
@@ -53,12 +46,17 @@ uses
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  Windows,
+  SysUtils,
   SynUnicode,
-  SysUtils, Classes;
+  Classes,
+//++ CodeFolding
+  SynEditCodeFolding;
+//++ CodeFolding
 
 type
-  TtkTokenKind = (tkComment, tkDocument, tkIdentifier, tkInvalid, tkKey,
-    tkNull, tkNumber, tkSpace, tkString, tkSymbol, tkUnknown);
+  TtkTokenKind = (tkSymbol, tkKey, tkComment, tkDocument, tkIdentifier, tkInvalid,
+    tkNull, tkNumber, tkSpace, tkString, tkUnknown);
 
   TxtkTokenKind = (
     xtkAdd, xtkAddAssign, xtkAnd, xtkAndAssign, xtkAssign, xtkBitComplement,
@@ -77,23 +75,26 @@ type
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
-  TSynJavaSyn = class(TSynCustomHighlighter)
+//  TSynJavaSyn = class(TSynCustomHighlighter)
+//++ CodeFolding
+  TSynJavaSyn = class(TSynCustomCodeFoldingHighlighter)
+//-- CodeFolding
   private
-    FRange: TRangeState;
+    fRange: TRangeState;
     FRoundCount: Integer;
     FSquareCount: Integer;
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
-    FIdentFuncTable: array[0..112] of TIdentFuncTableFunc;
-    FCommentAttri: TSynHighlighterAttributes;
-    FDocumentAttri: TSynHighlighterAttributes;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FInvalidAttri: TSynHighlighterAttributes;
-    FKeyAttri: TSynHighlighterAttributes;
-    FNumberAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FStringAttri: TSynHighlighterAttributes;
-    FSymbolAttri: TSynHighlighterAttributes;
+    fIdentFuncTable: array[0..112] of TIdentFuncTableFunc;
+    fCommentAttri: TSynHighlighterAttributes;
+    fDocumentAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fInvalidAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fStringAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function KeyWordFunc(Index: Integer): TtkTokenKind;
     function HashKey(Str: PWideChar): Cardinal;
@@ -136,12 +137,12 @@ type
     procedure XOrSymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: UnicodeString; override;
+    function GetSampleSource: string; override;
     function GetExtTokenID: TxtkTokenKind;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
@@ -156,24 +157,28 @@ type
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
     property ExtTokenID: TxtkTokenKind read GetExtTokenID;
+//++ CodeFolding
+    procedure ScanForFoldRanges(FoldRanges: TSynFoldRanges;
+      LinesToScan: TStrings; FromLine: Integer; ToLine: Integer); override;
+//-- CodeFolding
   published
-    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
-      write FCommentAttri;
-    property DocumentAttri: TSynHighlighterAttributes read FDocumentAttri
-      write FDocumentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
-      write FIdentifierAttri;
-    property InvalidAttri: TSynHighlighterAttributes read FInvalidAttri
-      write FInvalidAttri;
-    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
-      write FNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
-      write FSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read FStringAttri
-      write FStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
-      write FSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
+      write fCommentAttri;
+    property DocumentAttri: TSynHighlighterAttributes read fDocumentAttri
+      write fDocumentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
+      write fIdentifierAttri;
+    property InvalidAttri: TSynHighlighterAttributes read fInvalidAttri
+      write fInvalidAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
+      write fNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
+      write fSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri
+      write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
+      write fSymbolAttri;
   end;
 
 implementation
@@ -182,7 +187,7 @@ uses
   SynEditStrConst;
 
 const
-  KeyWords: array[0..51] of UnicodeString = (
+  KeyWords: array[0..51] of string = (
     'abstract', 'assert', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 
     'class', 'const', 'continue', 'default', 'do', 'double', 'else', 'extends', 
     'false', 'final', 'finally', 'float', 'for', 'goto', 'if', 'implements', 
@@ -211,7 +216,7 @@ begin
     Inc(Str);
   end;
   Result := Result mod 113;
-  FStringLen := Str - FToIdent;
+  fStringLen := Str - fToIdent;
 end;
 {$Q+}
 
@@ -219,10 +224,10 @@ function TSynJavaSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  FToIdent := MayBe;
+  fToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(FIdentFuncTable) then
-    Result := FIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -231,13 +236,13 @@ procedure TSynJavaSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      FIdentFuncTable[i] := AltFunc;
+      fIdentFuncTable[i] := AltFunc;
 
-  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
-    if @FIdentFuncTable[i] = nil then
-      FIdentFuncTable[i] := KeyWordFunc;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if @fIdentFuncTable[i] = nil then
+      fIdentFuncTable[i] := KeyWordFunc;
 end;
 
 function TSynJavaSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -257,42 +262,43 @@ constructor TSynJavaSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FCaseSensitive := True;
+  fCaseSensitive := True;
 
-  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  FCommentAttri.Style := [fsItalic];
-  AddAttribute(FCommentAttri);
-  FDocumentAttri := TSynHighlighterAttributes.Create(SYNS_AttrDocumentation, SYNS_FriendlyAttrDocumentation);
-  FDocumentAttri.Style := [fsItalic];
-  AddAttribute(FDocumentAttri);
-  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
-  FInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrInvalidSymbol, SYNS_FriendlyAttrInvalidSymbol);
-  AddAttribute(FInvalidAttri);
-  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  FKeyAttri.Style := [fsBold];
-  AddAttribute(FKeyAttri);
-  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(FNumberAttri);
-  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
-  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(FStringAttri);
-  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(FSymbolAttri);
-  FRange := rsUnknown;
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  fCommentAttri.Style := [fsItalic];
+  AddAttribute(fCommentAttri);
+  fDocumentAttri := TSynHighlighterAttributes.Create(SYNS_AttrDocumentation, SYNS_FriendlyAttrDocumentation);
+  fDocumentAttri.Style := [fsItalic];
+  AddAttribute(fDocumentAttri);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(fIdentifierAttri);
+  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrInvalidSymbol, SYNS_FriendlyAttrInvalidSymbol);
+  AddAttribute(fInvalidAttri);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  fKeyAttri.Style := [fsBold];
+  AddAttribute(fKeyAttri);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(fNumberAttri);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  fSpaceAttri.Foreground := clWindow;
+  AddAttribute(fSpaceAttri);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(fStringAttri);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(fSymbolAttri);
+  fRange := rsUnknown;
   SetAttributesOnChange(DefHighlightChange);
 
   InitIdent;
-  FDefaultFilter := SYNS_FilterJava;
+  fDefaultFilter := SYNS_FilterJava;
 end; { Create }
 
 procedure TSynJavaSyn.CommentProc;
 begin
-  if FRange = rsComment then
-    FTokenID := tkComment
+  if fRange = rsComment then
+    fTokenID := tkComment
   else
-    FTokenID := tkDocument;
+    fTokenID := tkDocument;
   case FLine[Run] of
     #0:
       begin
@@ -314,10 +320,10 @@ begin
   while not IsLineEnd(Run) do
     case FLine[Run] of
       '*':
-        if FLine[Run + 1] = '/' then
+        if fLine[Run + 1] = '/' then
         begin
           Inc(Run, 2);
-          FRange := rsUnknown;
+          fRange := rsUnknown;
           Break;
         end
         else Inc(Run);
@@ -331,19 +337,19 @@ begin
     '=':                               {and assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkAndAssign;
       end;
     '&':                               {conditional and}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkCondAnd;
       end;
   else                                 {and}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkAnd;
     end;
   end;
@@ -351,10 +357,10 @@ end;
 
 procedure TSynJavaSyn.AsciiCharProc;
 begin
-  FTokenID := tkString;
+  fTokenID := tkString;
   repeat
     if IsLineEnd(Run) then Break;
-    if FLine[Run] = #92 then
+    if fLine[Run] = #92 then
       Inc(Run); // backslash, if we have an escaped single character, skip to the next
     if not IsLineEnd(Run) then Inc(Run); //Add check here to prevent overrun from backslash being last char
   until FLine[Run] = #39;
@@ -363,46 +369,45 @@ end;
 
 procedure TSynJavaSyn.AtSymbolProc;
 begin
-  FTokenID := tkInvalid;
+  fTokenID := tkInvalid;
   Inc(Run);
 end;
 
 procedure TSynJavaSyn.BraceCloseProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   FExtTokenID := xtkBraceClose;
 end;
 
 procedure TSynJavaSyn.BraceOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   FExtTokenID := xtkBraceOpen;
 end;
 
 procedure TSynJavaSyn.CRProc;
 begin
-  FTokenID := tkSpace;
-  case FLine[Run + 1] of
+  fTokenID := tkSpace;
+  Case FLine[Run + 1] of
     #10: Inc(Run, 2);
-  else
-    Inc(Run);
+  else Inc(Run);
   end;
 end;
 
 procedure TSynJavaSyn.ColonProc;
 begin
   Inc(Run);                            {colon - conditional}
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkColon;
 end;
 
 procedure TSynJavaSyn.CommaProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
-  FExtTokenID := xtkComma;
+  fTokenID := tkSymbol;
+  fExtTokenID := xtkComma;
 end;
 
 procedure TSynJavaSyn.EqualProc;
@@ -411,13 +416,13 @@ begin
     '=':                               {logical equal}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkLogEqual;
       end;
   else                                 {assign}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkAssign;
     end;
   end;
@@ -425,16 +430,16 @@ end;
 
 procedure TSynJavaSyn.GreaterProc;
 begin
-  case FLine[Run + 1] of
+  Case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkGreaterThanEqual;
       end;
     '>':
       begin
-        case FLine[Run + 2] of
+        Case FLine[Run + 2] of
           '=':                         {shift right assign}
             begin
             Inc(Run, 3);
@@ -457,12 +462,12 @@ begin
             FExtTokenID := xtkShiftRight;
           end;
         end;
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
       end;
   else                                 {greater than}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkGreaterThan;
     end;
   end;
@@ -470,14 +475,14 @@ end;
 
 procedure TSynJavaSyn.IdentProc;
 begin
-  FTokenID := IdentKind((FLine + Run));
-  Inc(Run, FStringLen);
-  while IsIdentChar(FLine[Run]) do Inc(Run);
+  fTokenID := IdentKind((fLine + Run));
+  Inc(Run, fStringLen);
+  while IsIdentChar(fLine[Run]) do Inc(Run);
 end;
 
 procedure TSynJavaSyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end;
 
@@ -487,7 +492,7 @@ begin
     '=':                               {less than or equal to}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkLessThanEqual;
       end;
     '<':
@@ -502,12 +507,12 @@ begin
           Inc(Run, 2);
           FExtTokenID := xtkShiftLeft;
         end;
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
       end;
   else                                 {less than}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkLessThan;
     end;
   end;
@@ -519,19 +524,19 @@ begin
     '=':                               {subtract assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkSubtractAssign;
       end;
     '-':                               {decrement}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkDecrement;
       end;
   else                                 {subtract}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkSubtract;
     end;
   end;
@@ -543,13 +548,13 @@ begin
     '=':                               {multiply assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkMultiplyAssign;
       end;
   else                                 {multiply}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkMultiply;
     end;
   end;
@@ -561,13 +566,13 @@ begin
     '=':                               {not equal}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkNotEqual;
       end;
   else                                 {logical complement}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkLogComplement;
     end;
   end;
@@ -575,7 +580,7 @@ end;
 
 procedure TSynJavaSyn.NullProc;
 begin
-  FTokenID := tkNull;
+  fTokenID := tkNull;
   Inc(Run);
 end;
 
@@ -583,8 +588,8 @@ procedure TSynJavaSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case FLine[Run] of
-      '0'..'9', '.', '-', 'l', 'L', 'x', 'X', 'A'..'F', 'a'..'f':
+    case fLine[Run] of
+      '0'..'9', '.', 'l', 'L', 'x', 'X', 'A'..'F', 'a'..'f':                    //Fiala
         Result := True;
       else
         Result := False;
@@ -593,7 +598,7 @@ procedure TSynJavaSyn.NumberProc;
 
 begin
   Inc(Run);
-  FTokenID := tkNumber;
+  fTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
@@ -610,19 +615,19 @@ begin
     '=':                               {inclusive or assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkIncOrAssign;
       end;
     '|':                               {conditional or}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkCondOr;
       end;
   else                                 {inclusive or}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkIncOr;
     end;
   end;
@@ -634,19 +639,19 @@ begin
     '=':                               {add assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkAddAssign;
       end;
     '+':                               {increment}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkIncrement;
       end;
   else                                 {add}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkAdd;
     end;
   end;
@@ -660,19 +665,19 @@ begin
     NumberProc;
     Exit;
   end;
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkPoint;
 end;
 
 procedure TSynJavaSyn.PoundProc;
 begin
   Inc(Run);
-  FTokenID := tkInvalid;
+  fTokenID := tkInvalid;
 end;
 
 procedure TSynJavaSyn.QuestionProc;
 begin
-  FTokenID := tkSymbol;                {question mark - conditional}
+  fTokenID := tkSymbol;                {question mark - conditional}
   FExtTokenID := xtkQuestion;
   Inc(Run);
 end;
@@ -683,13 +688,13 @@ begin
     '=':                               {remainder assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkRemainderAssign;
       end;
   else                                 {remainder}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkRemainder;
     end;
   end;
@@ -698,7 +703,7 @@ end;
 procedure TSynJavaSyn.RoundCloseProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkRoundClose;
   Dec(FRoundCount);
 end;
@@ -711,10 +716,127 @@ begin
   Inc(FRoundCount);
 end;
 
+//++ CodeFolding
+procedure TSynJavaSyn.ScanForFoldRanges(FoldRanges: TSynFoldRanges;
+  LinesToScan: TStrings; FromLine, ToLine: Integer);
+var
+  CurLine: string;
+  Line: Integer;
+
+  function LineHasChar(Line: Integer; character: char;
+  StartCol: Integer): Boolean; // faster than Pos!
+  var
+    I: Integer;
+  begin
+    Result := False;
+    for I := StartCol to Length(CurLine) do begin
+      if CurLine[I] = character then begin
+        // Char must have proper highlighting (ignore stuff inside comments...)
+        if GetHighlighterAttriAtRowCol(LinesToScan, Line, I) <> fCommentAttri then begin
+          Result := True;
+          Break;
+        end;
+      end;
+    end;
+  end;
+
+  function FindBraces(Line: Integer): Boolean;
+  var
+    Col: Integer;
+  begin
+    Result := False;
+
+    for Col := 1 to Length(CurLine) do
+    begin
+      // We've found a starting character
+      if CurLine[col] = '{' then
+      begin
+        // Char must have proper highlighting (ignore stuff inside comments...)
+        if GetHighlighterAttriAtRowCol(LinesToScan, Line, Col) <> fCommentAttri then
+        begin
+          // And ignore lines with both opening and closing chars in them
+          if not LineHasChar(Line, '}', col + 1) then begin
+            FoldRanges.StartFoldRange(Line + 1, 1);
+            Result := True;
+          end;
+          // Skip until a newline
+          Break;
+        end;
+      end else if CurLine[col] = '}' then
+      begin
+        if GetHighlighterAttriAtRowCol(LinesToScan, Line, Col) <> fCommentAttri then
+        begin
+          // And ignore lines with both opening and closing chars in them
+          if not LineHasChar(Line, '{', col + 1) then begin
+            FoldRanges.StopFoldRange(Line + 1, 1);
+            Result := True;
+          end;
+          // Skip until a newline
+          Break;
+        end;
+      end;
+    end; // for Col
+  end;
+
+  function FoldRegion(Line: Integer): Boolean;
+  var
+    S: string;
+  begin
+    Result := False;
+    S := TrimLeft(CurLine);
+    if Uppercase(Copy(S, 1, 9)) = '//#REGION' then
+    begin
+      FoldRanges.StartFoldRange(Line + 1, FoldRegionType);
+      Result := True;
+    end
+    else if Uppercase(Copy(S, 1, 12)) = '//#ENDREGION' then
+    begin
+      FoldRanges.StopFoldRange(Line + 1, FoldRegionType);
+      Result := True;
+    end;
+  end;
+
+begin
+  for Line := FromLine to ToLine do
+  begin
+    // Deal first with Multiline comments (Fold Type 2)
+    if TRangeState(GetLineRange(LinesToScan, Line)) in [rsComment, rsDocument] then
+    begin
+      if not (TRangeState(GetLineRange(LinesToScan, Line - 1)) in [rsComment, rsDocument]) then
+        FoldRanges.StartFoldRange(Line + 1, 2)
+      else
+        FoldRanges.NoFoldInfo(Line + 1);
+      Continue;
+    end
+    else if TRangeState(GetLineRange(LinesToScan, Line - 1)) in [rsComment, rsDocument] then
+    begin
+      FoldRanges.StopFoldRange(Line + 1, 2);
+      Continue;
+    end;
+
+    CurLine := LinesToScan[Line];
+
+    // Skip empty lines
+    if CurLine = '' then begin
+      FoldRanges.NoFoldInfo(Line + 1);
+      Continue;
+    end;
+
+    // Find Fold regions
+    if FoldRegion(Line) then
+      Continue;
+
+    // Find an braces on this line  (Fold Type 1)
+    if not FindBraces(Line) then
+      FoldRanges.NoFoldInfo(Line + 1);
+  end; // while Line
+end;
+//-- CodeFolding
+
 procedure TSynJavaSyn.SemiColonProc;
 begin
   Inc(Run);                            {semicolon}
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkSemiColon;
 end;
 
@@ -724,7 +846,7 @@ begin
     '/':                               {c++ style comments}
       begin
         Inc(Run, 2);
-        FTokenID := tkComment;
+        fTokenID := tkComment;
         while not IsLineEnd(Run) do
         begin
           Inc(Run);
@@ -732,42 +854,42 @@ begin
       end;
     '*':
       begin
-        if (FLine[Run+2] = '*') and (FLine[Run+3] <> '/')then     {documentation comment}
+        if (fLine[Run+2] = '*') and (fLine[Run+3] <> '/')then     {documentation comment}
         begin
-          FRange := rsDocument;
-          FTokenID := tkDocument;
+          fRange := rsDocument;
+          fTokenID := tkDocument;
           Inc(Run);
         end
         else                           {c style comment}
         begin
-          FRange := rsComment;
-          FTokenID := tkComment;
+          fRange := rsComment;
+          fTokenID := tkComment;
         end;
 
         Inc(Run, 2);
         while not IsLineEnd(Run) do
-          case FLine[Run] of
+          case fLine[Run] of
             '*':
-              if FLine[Run + 1] = '/' then
+              if fLine[Run + 1] = '/' then
               begin
                 Inc(Run, 2);
-                FRange := rsUnknown;
+                fRange := rsUnknown;
                 Break;
               end else Inc(Run);
-          else
+            else
             Inc(Run);
           end;
       end;
     '=':                               {division assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkDivideAssign;
       end;
   else                                 {division}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkDivide;
     end;
   end;
@@ -776,14 +898,14 @@ end;
 procedure TSynJavaSyn.SpaceProc;
 begin
   Inc(Run);
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynJavaSyn.SquareCloseProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkSquareClose;
   Dec(FSquareCount);
 end;
@@ -791,14 +913,14 @@ end;
 procedure TSynJavaSyn.SquareOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
   FExtTokenID := xtkSquareOpen;
   Inc(FSquareCount);
 end;
 
 procedure TSynJavaSyn.StringProc;
 begin
-  FTokenID := tkString;
+  fTokenID := tkString;
   if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then Inc(Run, 2);
   repeat
     if IsLineEnd(Run) then Break;
@@ -813,23 +935,23 @@ end;
 procedure TSynJavaSyn.TildeProc;
 begin
   Inc(Run);                            {bitwise complement}
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
   FExtTokenID := xtkBitComplement;
 end;
 
 procedure TSynJavaSyn.XOrSymbolProc;
 begin
-  case FLine[Run + 1] of
+  Case FLine[Run + 1] of
     '=':                               {xor assign}
       begin
         Inc(Run, 2);
-        FTokenID := tkSymbol;
+        fTokenID := tkSymbol;
         FExtTokenID := xtkXorAssign;
       end;
   else                                 {xor}
     begin
       Inc(Run);
-      FTokenID := tkSymbol;
+      fTokenID := tkSymbol;
       FExtTokenID := xtkXor;
     end;
   end;
@@ -838,19 +960,22 @@ end;
 procedure TSynJavaSyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
 end;
 
 procedure TSynJavaSyn.Next;
 begin
-  FTokenPos := Run;
-  case FRange of
+  fTokenPos := Run;
+  case fRange of
     rsComment: CommentProc;
     rsDocument: CommentProc;
     else
+    if IsCharAlphaNumeric(fLine[Run]) and not CharInSet(fLine[Run], ['0'..'9']) then //Fiala
+      IdentProc
+    else
     begin
-      FRange := rsUnknown;
-      case FLine[Run] of
+      fRange := rsUnknown;
+      case fLine[Run] of
         '&': AndSymbolProc;
         #39: AsciiCharProc;
         '@': AtSymbolProc;
@@ -861,10 +986,8 @@ begin
         ',': CommaProc;
         '=': EqualProc;
         '>': GreaterProc;
-        'A'..'Z', 'a'..'z', '_', '$',
-        WideChar(#$00C0)..WideChar(#$00D6),
-        WideChar(#$00D8)..WideChar(#$00F6),
-        WideChar(#$00F8)..WideChar(#$00FF): IdentProc;
+//        'A'..'Z', 'a'..'z', '_', '$', 'L'..'Ö', 'Ø'..'ö', 'ø'..'ÿ': IdentProc;  //Fiala
+        '_': IdentProc;                                                         //Fiala
         #10: LFProc;
         '<': LowerProc;
         '-': MinusProc;
@@ -899,39 +1022,39 @@ end;
 function TSynJavaSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := FCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := FKeyAttri;
-    SYN_ATTR_STRING: Result := FStringAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
     else Result := nil;
   end;
 end;
 
 function TSynJavaSyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynJavaSyn.GetRange: Pointer;
 begin
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 end;
 
 procedure TSynJavaSyn.ResetRange;
 begin
-  FRange := rsUnknown;
+  fRange := rsUnknown;
 end;
 
 procedure TSynJavaSyn.SetRange(Value: Pointer);
 begin
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 end;
 
 function TSynJavaSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end;
 
 function TSynJavaSyn.GetExtTokenID: TxtkTokenKind;
@@ -941,40 +1064,42 @@ end;
 
 function TSynJavaSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case FTokenID of
-    tkComment: Result := FCommentAttri;
-    tkDocument: Result := FDocumentAttri;
-    tkIdentifier: Result := FIdentifierAttri;
-    tkInvalid: Result := FInvalidAttri;
-    tkKey: Result := FKeyAttri;
-    tkNumber: Result := FNumberAttri;
-    tkSpace: Result := FSpaceAttri;
-    tkString: Result := FStringAttri;
-    tkSymbol: Result := FSymbolAttri;
-    tkUnknown: Result := FInvalidAttri;
+  case fTokenID of
+    tkComment: Result := fCommentAttri;
+    tkDocument: Result := fDocumentAttri;
+    tkIdentifier: Result := fIdentifierAttri;
+    tkInvalid: Result := fInvalidAttri;
+    tkKey: Result := fKeyAttri;
+    tkNumber: Result := fNumberAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkString: Result := fStringAttri;
+    tkSymbol: Result := fSymbolAttri;
+    tkUnknown: Result := fInvalidAttri;
     else Result := nil;
   end;
 end;
 
 function TSynJavaSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTokenID);
+  Result := Ord(fTokenId);
 end;
 
 function TSynJavaSyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterJava;
+  Result := fDefaultFilter <> SYNS_FilterJava;
 end;
 
 function TSynJavaSyn.IsIdentChar(AChar: WideChar): Boolean;
 begin
+  Result := IsCharAlphaNumeric(AChar) or CharInSet(AChar, ['_', '$']);       //Fiala
+(*
   case AChar of
-    '_', '$', '0'..'9', 'a'..'z', 'A'..'Z', WideChar(#$00C0)..WideChar(#$00D6),
-      WideChar(#$00D8)..WideChar(#$00F6), WideChar(#$00F8)..WideChar(#$00FF):
+    '_', '$', '0'..'9', 'a'..'z', 'A'..'Z', 'L'..'Ö', 'Ø'..'ö', 'ø'..'ÿ':
       Result := True;
     else
       Result := False;
   end;
+*)
 end;
 
 class function TSynJavaSyn.GetLanguageName: string;
@@ -982,29 +1107,26 @@ begin
   Result := SYNS_LangJava;
 end;
 
-function TSynJavaSyn.GetSampleSource: UnicodeString;
+function TSynJavaSyn.GetSampleSource: string;
 begin
-  Result :=
-    '/* Java syntax highlighting */'#13#10 +
-    'import java.util.*;'#13#10 +
-    #13#10 +
-    '/** Example class */'#13#10 +
-    'public class Sample {'#13#10 +
-    '  public static void main(String[] args) {'#13#10 +
-    '    int i = 0;'#13#10 +
-    '    for(i = 0; i < 10; i++)'#13#10 +
-    '      System.out.println("Hello world");'#13#10 +
-    '  }'#13#10 +
-    '}';
+  Result := '/* Java syntax highlighting */'#13#10 +
+            'import java.util.*;'#13#10 +
+            #13#10 +
+            '/** Example class */'#13#10 +
+            'public class Sample {'#13#10 +
+            '  public static void main(String[] args) {'#13#10 +
+            '    int i = 0;'#13#10 +
+            '    for(i = 0; i < 10; i++)'#13#10 +
+            '      System.out.println("Hello world");'#13#10 +
+            '  }'#13#10 +
+            '}';
 end;
 
-class function TSynJavaSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynJavaSyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangJava;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynJavaSyn);
-{$ENDIF}
 end.

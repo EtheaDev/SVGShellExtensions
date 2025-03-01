@@ -3,7 +3,7 @@
 {  BootstrapButtonStyles: Button Styles inspired to Bootstrap                  }
 {  https://getbootstrap.com/docs/4.0/components/buttons/                       }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -196,6 +196,8 @@ begin
     mrTryAgain : begin AStyleClass := btn_warning; AStyleAppearance := BOOTSTRAP_NORMAL; end;
     mrContinue : begin AStyleClass := btn_secondary; AStyleAppearance := BOOTSTRAP_NORMAL; end;
     mrHelp     : begin AStyleClass := btn_info; AStyleAppearance := BOOTSTRAP_NORMAL; end;
+  else
+    GetStyleByModalResult(mrNone, AStyleClass, AStyleAppearance);
   end;
 end;
 

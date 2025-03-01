@@ -26,28 +26,15 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditOptionsDialog.pas,v 1.21.2.5 2005/07/20 13:37:18 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
-
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITOPTIONSDIALOG}
 unit SynEditOptionsDialog;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  {$IFDEF SYN_COMPILER_17_UP}
-  Types,
-  {$ENDIF}
   Windows,
   Messages,
   Graphics,
@@ -60,23 +47,16 @@ uses
   Registry,
   ExtCtrls,
   Buttons,
-  {$IFDEF SYN_DELPHI_4_UP}
   ImgList,
-  {$ENDIF}
   Menus,
   SynEdit,
   SynEditHighlighter,
   SynEditMiscClasses,
   SynEditKeyCmds,
   Classes,
-  SysUtils;
+  SysUtils, System.ImageList;
 
 type
-{$IFNDEF SYN_DELPHI_4_UP}
-  TLVSelectItemEvent = procedure(Sender: TObject; Item: TListItem;
-    Selected: Boolean) of object;
-{$ENDIF}
-
   TColorPopup = (cpGutter, cpRightEdge);
   
   TSynEditorOptionsUserCommand = procedure(AUserCommand: Integer;
@@ -95,121 +75,124 @@ type
   TSynEditorOptionsContainer = class;
 
   TfmEditorOptionsDialog = class(TForm)
-    btnAddKey: TButton;
-    btnCancel: TButton;
-    btnFont: TButton;
-    btnGutterColor: TPanel;
-    btnGutterFont: TButton;
+    PageControl1: TPageControl;
     btnOk: TButton;
-    btnRemKey: TButton;
-    btnRightEdge: TPanel;
-    btnUpdateKey: TButton;
-    cbGutterFont: TCheckBox;
-    cInsertCaret: TComboBox;
-    ckAltSetsColumnMode: TCheckBox;
-    ckAutoIndent: TCheckBox;
-    ckAutoSizeMaxWidth: TCheckBox;
-    ckBookmarkKeys: TCheckBox;
-    ckBookmarkVisible: TCheckBox;
-    ckDisableScrollArrows: TCheckBox;
-    ckDragAndDropEditing: TCheckBox;
-    ckEnhanceEndKey: TCheckBox;
-    ckEnhanceHomeKey: TCheckBox;
-    cKeyCommand: TComboBox;
-    ckGroupUndo: TCheckBox;
+    btnCancel: TButton;
+    Display: TTabSheet;
+    ColorDialog: TColorDialog;
+    ColorPopup: TPopupMenu;
+    None1: TMenuItem;
+    Scrollbar1: TMenuItem;
+    ActiveCaption1: TMenuItem;
+    Background1: TMenuItem;
+    InactiveCaption1: TMenuItem;
+    Menu1: TMenuItem;
+    Window1: TMenuItem;
+    WindowFrame1: TMenuItem;
+    MEnu2: TMenuItem;
+    WindowText1: TMenuItem;
+    CaptionText1: TMenuItem;
+    ActiveBorder1: TMenuItem;
+    InactiveBorder1: TMenuItem;
+    ApplicationWorkspace1: TMenuItem;
+    Highlight1: TMenuItem;
+    HighlightText1: TMenuItem;
+    ButtonFace1: TMenuItem;
+    ButtonShadow1: TMenuItem;
+    GrayText1: TMenuItem;
+    ButtonText1: TMenuItem;
+    InactiveCaptionText1: TMenuItem;
+    Highlight2: TMenuItem;
+    N3dDarkShadow1: TMenuItem;
+    N3DLight1: TMenuItem;
+    InfoTipText1: TMenuItem;
+    InfoTipBackground1: TMenuItem;
+    ImageList1: TImageList;
+    Options: TTabSheet;
+    Keystrokes: TTabSheet;
+    gbGutter: TGroupBox;
+    Label1: TLabel;
     ckGutterAutosize: TCheckBox;
-    ckGutterShowLeaderZeros: TCheckBox;
     ckGutterShowLineNumbers: TCheckBox;
+    ckGutterShowLeaderZeros: TCheckBox;
     ckGutterStartAtZero: TCheckBox;
     ckGutterVisible: TCheckBox;
+    gbOptions: TGroupBox;
+    ckAutoIndent: TCheckBox;
+    ckDragAndDropEditing: TCheckBox;
     ckHalfPageScroll: TCheckBox;
-    ckHideShowScrollbars: TCheckBox;
-    ckKeepCaretX: TCheckBox;
-    ckRightMouseMoves: TCheckBox;
+    ckEnhanceEndKey: TCheckBox;
     ckScrollByOneLess: TCheckBox;
-    ckScrollHintFollows: TCheckBox;
     ckScrollPastEOF: TCheckBox;
     ckScrollPastEOL: TCheckBox;
     ckShowScrollHint: TCheckBox;
-    ckShowSpecialChars: TCheckBox;
-    ckSmartTabDelete: TCheckBox;
     ckSmartTabs: TCheckBox;
-    ckTabIndent: TCheckBox;
     ckTabsToSpaces: TCheckBox;
     ckTrimTrailingSpaces: TCheckBox;
     ckWantTabs: TCheckBox;
-    ColorDialog: TColorDialog;
-    ColorPopup: TPopupMenu;
-    cOverwriteCaret: TComboBox;
-    Display: TTabSheet;
-    eLineSpacing: TEdit;
-    eRightEdge: TEdit;
-    eTabWidth: TEdit;
-    FontDialog: TFontDialog;
-    gbBookmarks: TGroupBox;
     gbCaret: TGroupBox;
-    gbEditorFont: TGroupBox;
-    gbGutter: TGroupBox;
+    cInsertCaret: TComboBox;
+    Label2: TLabel;
+    Label4: TLabel;
+    cOverwriteCaret: TComboBox;
+    FontDialog: TFontDialog;
     gbKeyStrokes: TGroupBox;
-    gbLineSpacing: TGroupBox;
-    gbOptions: TGroupBox;
-    gbRightEdge: TGroupBox;
-    Image1: TImage;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    cKeyCommand: TComboBox;
+    ckBracketsHiglight: TCheckBox;
+    ckKeepCaretX: TCheckBox;
+    cbGutterFont: TCheckBox;
+    btnGutterFont: TButton;
+    pGutterBack: TPanel;
+    pGutterColor: TPanel;
+    btnGutterColor: TPanel;
     Image2: TImage;
-    ImageList: TImageList;
-    KeyList: TListView;
-    Keystrokes: TTabSheet;
-    lblCommand: TLabel;
-    lblEdgeColor: TLabel;
-    lblEdgeColumn: TLabel;
-    lblExtraLines: TLabel;
-    lblFont: TLabel;
-    lblGutterColor: TLabel;
-    lblGutterFont: TLabel;
-    lblInsertCaret: TLabel;
-    lblKeystroke: TLabel;
-    lblKeystroke2: TLabel;
-    lblOverwriteCaret: TLabel;
-    lblTabWidth: TLabel;
-    Menu2: TMenuItem;
-    mnu3dDarkShadow: TMenuItem;
-    mnu3DLight: TMenuItem;
-    mnuActiveBorder: TMenuItem;
-    mnuActiveCaption: TMenuItem;
-    mnuApplicationWorkspace: TMenuItem;
-    mnuBackground: TMenuItem;
-    mnuButtonFace: TMenuItem;
-    mnuButtonShadow: TMenuItem;
-    mnuButtonText: TMenuItem;
-    mnuCaptionText: TMenuItem;
-    mnuGrayText: TMenuItem;
-    mnuHighlight: TMenuItem;
-    mnuHighlight2: TMenuItem;
-    mnuHighlightText: TMenuItem;
-    mnuInactiveBorder: TMenuItem;
-    mnuInactiveCaption: TMenuItem;
-    mnuInactiveCaptionText: TMenuItem;
-    mnuInfoTipBackground: TMenuItem;
-    mnuInfoTipText: TMenuItem;
-    mnuMenu: TMenuItem;
-    mnuNone: TMenuItem;
-    mnuScrollBar: TMenuItem;
-    mnuWindow: TMenuItem;
-    mnuWindowFrame: TMenuItem;
-    mnuWindowText: TMenuItem;
-    Options: TTabSheet;
-    PageControl: TPageControl;
-    pnlGutterBack: TPanel;
-    pnlGutterColor: TPanel;
-    pnlCommands: TPanel;
-    pnlEditorFont: TPanel;
+    ckScrollHintFollows: TCheckBox;
+    ckGroupUndo: TCheckBox;
+    ckSmartTabDelete: TCheckBox;
+    ckRightMouseMoves: TCheckBox;
     pnlGutterFontDisplay: TPanel;
-    pnlRightEdgeBack: TPanel;
-    pnlRightEdgeColor: TPanel;
+    lblGutterFont: TLabel;
+    ckEnhanceHomeKey: TCheckBox;
+    pnlCommands: TPanel;
+    KeyList: TListView;
+    ckHideShowScrollbars: TCheckBox;
+    ckDisableScrollArrows: TCheckBox;
+    ckShowSpecialChars: TCheckBox;
+    Panel1: TPanel;
+    btnRemKey: TButton;
+    btnAddKey: TButton;
+    btnUpdateKey: TButton;
+    Panel2: TPanel;
+    gbRightEdge: TGroupBox;
+    Label3: TLabel;
+    Label10: TLabel;
+    pRightEdgeBack: TPanel;
+    pRightEdgeColor: TPanel;
+    btnRightEdge: TPanel;
+    Image1: TImage;
+    eRightEdge: TEdit;
+    gbLineSpacing: TGroupBox;
+    Label8: TLabel;
+    Label9: TLabel;
+    eLineSpacing: TEdit;
+    eTabWidth: TEdit;
+    Panel4: TPanel;
+    gbBookmarks: TGroupBox;
+    ckBookmarkKeys: TCheckBox;
+    ckBookmarkVisible: TCheckBox;
+    gbEditorFont: TGroupBox;
+    btnFont: TButton;
+    Panel3: TPanel;
+    labFont: TLabel;
+    ckCompleteBrackets: TCheckBox;
+    ckCompleteQuotes: TCheckBox;
     procedure PopupMenuClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure pnlGutterColorClick(Sender: TObject);
-    procedure pnlRightEdgeColorClick(Sender: TObject);
+    procedure pGutterColorClick(Sender: TObject);
+    procedure pRightEdgeColorClick(Sender: TObject);
     procedure btnFontClick(Sender: TObject);
     procedure KeyListSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
@@ -226,28 +209,21 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure btnGutterColorMouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure cKeyCommandExit(Sender: TObject);
-    procedure cKeyCommandKeyPress(Sender: TObject; var Key: Char);
     procedure cKeyCommandKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure KeyListChanging(Sender: TObject; Item: TListItem;
       Change: TItemChange; var AllowChange: Boolean);
   private
     FSynEdit: TSynEditorOptionsContainer;
-    FPoppedFrom : TColorPopup;
+    FPoppedFrom: TColorPopup;
     FUserCommand: TSynEditorOptionsUserCommand;
     FAllUserCommands: TSynEditorOptionsAllUserCommands;
 
-    FOldSelected: TListItem;
-    FInChanging: Boolean;
+    OldSelected: TListItem;
+    InChanging: Boolean;
     FExtended: Boolean;
 
-    {$IFNDEF SYN_COMPILER_4_UP}
-    FOldWndProc: TWndMethod;
-    procedure OverridingWndProc(var Message: TMessage);
-    {$ENDIF}
-
-    function GetColor(Item : TMenuItem) : TColor;
+    function GetColor(Item: TMenuItem): TColor;
     procedure GetData;
     procedure PutData;
     procedure EditStrCallback(const S: string);
@@ -255,11 +231,8 @@ type
   public
     eKeyShort2: TSynHotKey;
     eKeyShort1: TSynHotKey;
-    {$IFNDEF SYN_DELPHI_4_UP}
-    FOnSelectItem: TLVSelectItemEvent;
-    {$ENDIF}
 
-    function Execute(EditOptions : TSynEditorOptionsContainer) : Boolean;
+    function Execute(EditOptions: TSynEditorOptionsContainer): Boolean;
     property GetUserCommandNames: TSynEditorOptionsUserCommand read FUserCommand
       write FUserCommand;
     property GetAllUserCommands: TSynEditorOptionsAllUserCommands
@@ -282,7 +255,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Execute(EditOptions : TSynEditorOptionsContainer) : Boolean;
+    function Execute(EditOptions: TSynEditorOptionsContainer): Boolean;
     property Form: TfmEditorOptionsDialog read FForm;
   published
     property GetUserCommand: TSynEditorOptionsUserCommand
@@ -299,12 +272,14 @@ type
   private
     FHideSelection: Boolean;
     FWantTabs: Boolean;
+    FWordWrap: Boolean;
     FMaxUndo: Integer;
     FExtraLineSpacing: Integer;
     FTabWidth: Integer;
-    FMaxScrollWidth: Integer;
     FRightEdge: Integer;
     FSelectedColor: TSynSelectedColor;
+    FIndentGuides: TSynIndentGuides;
+    FDisplayFlowControl: TSynDisplayFlowControl;
     FRightEdgeColor: TColor;
     FFont: TFont;
     FBookmarks: TSynBookMarkOpt;
@@ -312,36 +287,53 @@ type
     FInsertCaret: TSynEditCaretType;
     FKeystrokes: TSynEditKeyStrokes;
     FOptions: TSynEditorOptions;
+    FScrollOptions: TSynEditorScrollOptions;
     FSynGutter: TSynGutter;
     FColor: TColor;
+    FActiveLineColor: TColor;
+    FVisibleSpecialChars: TSynVisibleSpecialChars;
     procedure SetBookMarks(const Value: TSynBookMarkOpt);
     procedure SetFont(const Value: TFont);
     procedure SetKeystrokes(const Value: TSynEditKeyStrokes);
-    procedure SetOptions(const Value: TSynEditorOptions);
     procedure SetSynGutter(const Value: TSynGutter);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Assign(Source : TPersistent); override;
-    procedure AssignTo(Dest : TPersistent); override;
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignTo(Dest: TPersistent); override;
   published
-    property Options : TSynEditorOptions read FOptions write SetOptions;
-    property BookMarkOptions : TSynBookMarkOpt read FBookmarks write SetBookMarks;
-    property Color : TColor read FColor write FColor;
-    property Font : TFont read FFont write SetFont;
-    property ExtraLineSpacing : Integer read FExtraLineSpacing write FExtraLineSpacing;
-    property Gutter : TSynGutter read FSynGutter write SetSynGutter;
-    property RightEdge : Integer read FRightEdge write FRightEdge;
-    property RightEdgeColor : TColor read FRightEdgeColor write FRightEdgeColor;
-    property WantTabs : Boolean read FWantTabs write FWantTabs;
-    property InsertCaret : TSynEditCaretType read FInsertCaret write FInsertCaret;
-    property OverwriteCaret : TSynEditCaretType read FOverwriteCaret write FOverwriteCaret;
-    property HideSelection : Boolean read FHideSelection write FHideSelection;
-    property MaxScrollWidth : Integer read FMaxScrollWidth write FMaxScrollWidth;
-    property MaxUndo : Integer read FMaxUndo write FMaxUndo;
-    property SelectedColor : TSynSelectedColor read FSelectedColor write FSelectedColor;
-    property TabWidth : Integer read FTabWidth write FTabWidth;
-    property Keystrokes : TSynEditKeyStrokes read FKeystrokes write SetKeystrokes;
+    property Options: TSynEditorOptions read FOptions write FOptions
+      default SYNEDIT_DEFAULT_OPTIONS;
+    property ScrollOptions: TSynEditorScrollOptions read FScrollOptions
+      write FScrollOptions default SYNEDIT_DEFAULT_SCROLLOPTIONS;
+    property BookMarkOptions: TSynBookMarkOpt read FBookmarks write SetBookMarks;
+    property Color: TColor read FColor write FColor default clWindow;
+    property Font: TFont read FFont write SetFont;
+    property ExtraLineSpacing: Integer read FExtraLineSpacing
+      write FExtraLineSpacing default 2;
+    property Gutter: TSynGutter read FSynGutter write SetSynGutter;
+    property RightEdge: Integer read FRightEdge write FRightEdge
+      default 80;
+    property RightEdgeColor: TColor read FRightEdgeColor write FRightEdgeColor
+      default clSilver;
+    property WantTabs: Boolean read FWantTabs write FWantTabs default True;
+    property WordWrap: Boolean read FWordWrap write FWordWrap default False;
+    property InsertCaret: TSynEditCaretType read FInsertCaret
+      write FInsertCaret default ctVerticalLine;
+    property OverwriteCaret: TSynEditCaretType read FOverwriteCaret
+      write FOverwriteCaret default ctBlock;
+    property HideSelection: Boolean read FHideSelection write FHideSelection
+      default False;
+    property MaxUndo: Integer read FMaxUndo write FMaxUndo default 0;
+    property SelectedColor: TSynSelectedColor read FSelectedColor;
+    property IndentGuides: TSynIndentGuides read FIndentGuides;
+    property DisplayFlowControl: TSynDisplayFlowControl read FDisplayFlowControl;
+    property TabWidth: Integer read FTabWidth write FTabWidth default 8;
+    property Keystrokes: TSynEditKeyStrokes read FKeystrokes write SetKeystrokes;
+    property ActiveLineColor: TColor read FActiveLineColor
+      write FActiveLineColor default clNone;
+    property VisibleSpecialChars: TSynVisibleSpecialChars
+      read FVisibleSpecialChars write FVisibleSpecialChars default [];
   end;
 
 implementation
@@ -349,25 +341,27 @@ implementation
 {$R *.dfm}
 
 uses
-  SynEditKeyConst;
+  Types,
+  SynEditKeyConst,
+  SynEditMiscProcs;
 
 { TSynEditOptionsDialog }
 
 constructor TSynEditOptionsDialog.create(AOwner: TComponent);
 begin
   inherited;
-  FForm := TfmEditorOptionsDialog.Create(Self);
+  FForm:= TfmEditorOptionsDialog.Create(Self);
 end;
 
-destructor TSynEditOptionsDialog.destroy;
+destructor TSynEditOptionsDialog.Destroy;
 begin
   FForm.Free;
   inherited;
 end;
 
-function TSynEditOptionsDialog.Execute(EditOptions : TSynEditorOptionsContainer) : Boolean;
+function TSynEditOptionsDialog.Execute(EditOptions: TSynEditorOptionsContainer): Boolean;
 begin
-  Result := FForm.Execute(EditOptions);
+  Result:= FForm.Execute(EditOptions);
 end;
 
 function TSynEditOptionsDialog.GetUserCommands: TSynEditorOptionsAllUserCommands;
@@ -405,91 +399,148 @@ end;
 { TSynEditorOptionsContainer }
 
 procedure TSynEditorOptionsContainer.Assign(Source: TPersistent);
+var
+  PPI: Integer;
 begin
-  if Assigned(Source) and (Source is TCustomSynEdit) then
+  if Source is TCustomSynEdit then
   begin
     Self.Font.Assign(TCustomSynEdit(Source).Font);
     Self.BookmarkOptions.Assign(TCustomSynEdit(Source).BookmarkOptions);
     Self.Gutter.Assign(TCustomSynEdit(Source).Gutter);
     Self.Keystrokes.Assign(TCustomSynEdit(Source).Keystrokes);
     Self.SelectedColor.Assign(TCustomSynEdit(Source).SelectedColor);
+    Self.IndentGuides.Assign(TCustomSynEdit(Source).IndentGuides);
+    Self.DisplayFlowControl.Assign(TCustomSynEdit(Source).DisplayFlowControl);
 
     Self.Color := TCustomSynEdit(Source).Color;
     Self.Options := TCustomSynEdit(Source).Options;
+    Self.ScrollOptions := TCustomSynEdit(Source).ScrollOptions;
     Self.ExtraLineSpacing := TCustomSynEdit(Source).ExtraLineSpacing;
     Self.HideSelection := TCustomSynEdit(Source).HideSelection;
     Self.InsertCaret := TCustomSynEdit(Source).InsertCaret;
     Self.OverwriteCaret := TCustomSynEdit(Source).OverwriteCaret;
-    Self.MaxScrollWidth := TCustomSynEdit(Source).MaxScrollWidth;
     Self.MaxUndo := TCustomSynEdit(Source).MaxUndo;
     Self.RightEdge := TCustomSynEdit(Source).RightEdge;
     Self.RightEdgeColor := TCustomSynEdit(Source).RightEdgeColor;
     Self.TabWidth := TCustomSynEdit(Source).TabWidth;
     Self.WantTabs := TCustomSynEdit(Source).WantTabs;
+    Self.WordWrap := TCustomSynEdit(Source).WordWrap;
+    Self.ActiveLineColor := TCustomSynEdit(Source).ActiveLineColor;
+    Self.VisibleSpecialChars := TCustomSynEdit(Source).VisibleSpecialChars;
+    // store unscaled
+    PPI := TCustomSynEdit(Source).CurrentPPI;
+    Self.BookMarkOptions.ChangeScale(96, PPI);
+    Self.ExtraLineSpacing := MulDiv(Self.ExtraLineSpacing, 96, PPI);
+  end else if Source is TSynEditorOptionsContainer then
+  begin
+    Self.Font.Assign(TSynEditorOptionsContainer(Source).Font);
+    Self.BookmarkOptions.Assign(TSynEditorOptionsContainer(Source).BookmarkOptions);
+    Self.Gutter.Assign(TSynEditorOptionsContainer(Source).Gutter);
+    Self.Keystrokes.Assign(TSynEditorOptionsContainer(Source).Keystrokes);
+    Self.SelectedColor.Assign(TSynEditorOptionsContainer(Source).SelectedColor);
+    Self.IndentGuides.Assign(TSynEditorOptionsContainer(Source).IndentGuides);
+    Self.DisplayFlowControl.Assign(TSynEditorOptionsContainer(Source).DisplayFlowControl);
+    Self.Color := TSynEditorOptionsContainer(Source).Color;
+    Self.Options := TSynEditorOptionsContainer(Source).Options;
+    Self.ScrollOptions := TSynEditorOptionsContainer(Source).ScrollOptions;
+    Self.ExtraLineSpacing := TSynEditorOptionsContainer(Source).ExtraLineSpacing;
+    Self.HideSelection := TSynEditorOptionsContainer(Source).HideSelection;
+    Self.InsertCaret := TSynEditorOptionsContainer(Source).InsertCaret;
+    Self.OverwriteCaret := TSynEditorOptionsContainer(Source).OverwriteCaret;
+    Self.MaxUndo := TSynEditorOptionsContainer(Source).MaxUndo;
+    Self.RightEdge := TSynEditorOptionsContainer(Source).RightEdge;
+    Self.RightEdgeColor := TSynEditorOptionsContainer(Source).RightEdgeColor;
+    Self.TabWidth := TSynEditorOptionsContainer(Source).TabWidth;
+    Self.WantTabs := TSynEditorOptionsContainer(Source).WantTabs;
+    Self.WordWrap := TSynEditorOptionsContainer(Source).WordWrap;
+    Self.ActiveLineColor := TSynEditorOptionsContainer(Source).ActiveLineColor;
+    Self.VisibleSpecialChars := TSynEditorOptionsContainer(Source).VisibleSpecialChars;
   end else
     inherited;
 end;
 
 procedure TSynEditorOptionsContainer.AssignTo(Dest: TPersistent);
+var
+  PPI: Integer;
 begin
-  if Assigned(Dest) and (Dest is TCustomSynEdit) then
+  if Dest is TCustomSynEdit then
   begin
-    TCustomSynEdit(Dest).Font.Assign(Self.Font);
-    TCustomSynEdit(Dest).BookmarkOptions.Assign(Self.BookmarkOptions);
-    TCustomSynEdit(Dest).Gutter.Assign(Self.Gutter);
-    TCustomSynEdit(Dest).Keystrokes.Assign(Self.Keystrokes);
-    TCustomSynEdit(Dest).SelectedColor.Assign(Self.SelectedColor);
-
-    TCustomSynEdit(Dest).Color := Self.Color;
-    TCustomSynEdit(Dest).Options := Self.Options;
-    TCustomSynEdit(Dest).ExtraLineSpacing := Self.ExtraLineSpacing;
-    TCustomSynEdit(Dest).HideSelection := Self.HideSelection;
-    TCustomSynEdit(Dest).InsertCaret := Self.InsertCaret;
-    TCustomSynEdit(Dest).OverwriteCaret := Self.OverwriteCaret;
-    TCustomSynEdit(Dest).MaxScrollWidth := Self.MaxScrollWidth;
-    TCustomSynEdit(Dest).MaxUndo := Self.MaxUndo;
-    TCustomSynEdit(Dest).RightEdge := Self.RightEdge;
-    TCustomSynEdit(Dest).RightEdgeColor := Self.RightEdgeColor;
-    TCustomSynEdit(Dest).TabWidth := Self.TabWidth;
-    TCustomSynEdit(Dest).WantTabs := Self.WantTabs;
+    TCustomSynEdit(Dest).BeginUpdate;
+    try
+      TCustomSynEdit(Dest).Font := Self.Font;
+      TCustomSynEdit(Dest).BookmarkOptions.Assign(Self.BookmarkOptions);
+      TCustomSynEdit(Dest).Gutter.Assign(Self.Gutter);
+      TCustomSynEdit(Dest).Keystrokes.Assign(Self.Keystrokes);
+      TCustomSynEdit(Dest).SelectedColor.Assign(Self.SelectedColor);
+      TCustomSynEdit(Dest).IndentGuides.Assign(Self.IndentGuides);
+      TCustomSynEdit(Dest).DisplayFlowControl.Assign(Self.DisplayFlowControl);
+      TCustomSynEdit(Dest).Color := Self.Color;
+      TCustomSynEdit(Dest).Options := Self.Options;
+      TCustomSynEdit(Dest).ScrollOptions := Self.ScrollOptions;
+      TCustomSynEdit(Dest).ExtraLineSpacing := Self.ExtraLineSpacing;
+      TCustomSynEdit(Dest).HideSelection := Self.HideSelection;
+      TCustomSynEdit(Dest).InsertCaret := Self.InsertCaret;
+      TCustomSynEdit(Dest).OverwriteCaret := Self.OverwriteCaret;
+      TCustomSynEdit(Dest).MaxUndo := Self.MaxUndo;
+      TCustomSynEdit(Dest).RightEdge := Self.RightEdge;
+      TCustomSynEdit(Dest).RightEdgeColor := Self.RightEdgeColor;
+      TCustomSynEdit(Dest).TabWidth := Self.TabWidth;
+      TCustomSynEdit(Dest).WantTabs := Self.WantTabs;
+      TCustomSynEdit(Dest).WordWrap := Self.WordWrap;
+      TCustomSynEdit(Dest).ActiveLineColor := Self.ActiveLineColor;
+      TCustomSynEdit(Dest).VisibleSpecialChars := Self.VisibleSpecialChars;
+      // scale for editor PPI
+      PPI := TCustomSynEdit(Dest).CurrentPPI;
+      TCustomSynEdit(Dest).BookMarkOptions.ChangeScale(PPI, 96);
+      TCustomSynEdit(Dest).ExtraLineSpacing :=
+        MulDiv(TCustomSynEdit(Dest).ExtraLineSpacing, PPI, 96);
+    finally
+      TCustomSynEdit(Dest).EndUpdate;
+    end;
   end else
     inherited;
 end;
 
-constructor TSynEditorOptionsContainer.create(AOwner: TComponent);
+
+constructor TSynEditorOptionsContainer.Create(AOwner: TComponent);
 begin
   inherited;
   FBookmarks := TSynBookMarkOpt.Create(Self);
   FKeystrokes := TSynEditKeyStrokes.Create(Self);
   FSynGutter := TSynGutter.Create;
+  FSynGutter.AssignableBands := False;
   FSelectedColor := TSynSelectedColor.Create;
-  FSelectedColor.Foreground := clHighlightText;
-  FSelectedColor.Background := clHighlight;
+  FIndentGuides := TSynIndentGuides.Create;
+  FDisplayFlowControl := TSynDisplayFlowControl.Create;
   FFont := TFont.Create;
-  FFont.Name := 'Courier New';
-  FFont.Size := 8;
-  Color := clWindow;
-  Keystrokes.ResetDefaults;
-  Options := [eoAutoIndent,eoDragDropEditing,eoDropFiles,eoScrollPastEol,
-    eoShowScrollHint,eoSmartTabs,eoAltSetsColumnMode, eoTabsToSpaces,eoTrimTrailingSpaces, eoKeepCaretX];
-  ExtraLineSpacing := 0;
-  HideSelection := False;
-  InsertCaret := ctVerticalLine;
-  OverwriteCaret := ctBlock;
-  MaxScrollWidth := 1024;
-  MaxUndo := 1024;
-  RightEdge := 80;
-  RightEdgeColor := clSilver;
-  TabWidth := 8;
-  WantTabs := True;
+  FFont.Name := DefaultFontName;
+  FFont.Size := 10;
+  {$if CompilerVersion >= 36}
+  FFont.IsScreenFont := True;
+  {$endif}
+  FColor:= clWindow;
+  FKeystrokes.ResetDefaults;
+  FOptions := SYNEDIT_DEFAULT_OPTIONS;
+  FScrollOptions := SYNEDIT_DEFAULT_SCROLLOPTIONS;
+  FExtraLineSpacing := 2;
+  FHideSelection := False;
+  FInsertCaret := ctVerticalLine;
+  FOverwriteCaret := ctBlock;
+  FMaxUndo := 0;
+  FRightEdge := 80;
+  FRightEdgeColor := clSilver;
+  FTabWidth := 8;
+  FWantTabs := True;
 end;
 
-destructor TSynEditorOptionsContainer.destroy;
+destructor TSynEditorOptionsContainer.Destroy;
 begin
   FBookMarks.Free;
   FKeyStrokes.Free;
   FSynGutter.Free;
   FSelectedColor.Free;
+  FIndentGuides.Free;
+  FDisplayFlowControl.Free;
   FFont.Free;
   inherited;
 end;
@@ -511,12 +562,6 @@ begin
   FKeystrokes.Assign(Value);
 end;
 
-procedure TSynEditorOptionsContainer.SetOptions(
-  const Value: TSynEditorOptions);
-begin
-  FOptions := Value;
-end;
-
 procedure TSynEditorOptionsContainer.SetSynGutter(const Value: TSynGutter);
 begin
   FSynGutter.Assign(Value);
@@ -524,90 +569,89 @@ end;
 
 { TfmEditorOptionsDialog }
 
-function TfmEditorOptionsDialog.Execute(EditOptions : TSynEditorOptionsContainer) : Boolean;
+function TfmEditorOptionsDialog.Execute(EditOptions: TSynEditorOptionsContainer): Boolean;
 begin
   if (EditOptions = nil) then
   begin
-    Result := False;
+    Result:= False;
     Exit;
   end;
   //Assign the Containers
-  FSynEdit := EditOptions;
+  FSynEdit:= EditOptions;
   //Get Data
   GetData;
   //Show the form
-  Result := Showmodal = mrOk;
+  Result:= Showmodal = mrOk;
   //PutData
   if Result then PutData;
 end;
 
 
 procedure TfmEditorOptionsDialog.GetData;
-var I : Integer;
-    Item : TListItem;
+var I: Integer;
+    Item: TListItem;
 begin
   //Gutter
-  ckGutterVisible.Checked := FSynEdit.Gutter.Visible;
-  ckGutterAutosize.Checked := FSynEdit.Gutter.AutoSize;
-  ckGutterShowLineNumbers.Checked := FSynEdit.Gutter.ShowLineNumbers;
-  ckGutterShowLeaderZeros.Checked := FSynEdit.Gutter.LeadingZeros;
-  ckGutterStartAtZero.Checked := FSynEdit.Gutter.ZeroStart;
+  ckGutterVisible.Checked:= FSynEdit.Gutter.Visible;
+  ckGutterAutosize.Checked:= FSynEdit.Gutter.AutoSize;
+  ckGutterShowLineNumbers.Checked:= FSynEdit.Gutter.ShowLineNumbers;
+  ckGutterShowLeaderZeros.Checked:= FSynEdit.Gutter.LeadingZeros;
+  ckGutterStartAtZero.Checked:= FSynEdit.Gutter.ZeroStart;
   cbGutterFont.Checked := FSynEdit.Gutter.UseFontStyle;
-  pnlGutterColor.Color := FSynEdit.Gutter.Color;
+  pGutterColor.Color:= FSynEdit.Gutter.Color;
   lblGutterFont.Font.Assign(FSynEdit.Gutter.Font);
-  lblGutterFont.Caption := lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';
+  lblGutterFont.Caption:= lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';  
   //Right Edge
-  eRightEdge.Text := IntToStr(FSynEdit.RightEdge);
-  pnlRightEdgeColor.Color := FSynEdit.RightEdgeColor;
+  eRightEdge.Text:= IntToStr(FSynEdit.RightEdge);
+  pRightEdgeColor.Color:= FSynEdit.RightEdgeColor;
   //Line Spacing
-  eLineSpacing.Text := IntToStr(FSynEdit.ExtraLineSpacing);
-  eTabWidth.Text := IntToStr(FSynEdit.TabWidth);
+  eLineSpacing.Text:= IntToStr(FSynEdit.ExtraLineSpacing);
+  eTabWidth.Text:= IntToStr(FSynEdit.TabWidth);
   //Bookmarks
-  ckBookmarkKeys.Checked := FSynEdit.BookMarkOptions.EnableKeys;
-  ckBookmarkVisible.Checked := FSynEdit.BookMarkOptions.GlyphsVisible;
+  ckBookmarkKeys.Checked:= FSynEdit.BookMarkOptions.EnableKeys;
+  ckBookmarkVisible.Checked:= FSynEdit.BookMarkOptions.GlyphsVisible;
   //Font
-  lblFont.Font.Assign(FSynEdit.Font);
-  lblFont.Caption := lblFont.Font.Name + ' ' + IntToStr(lblFont.Font.Size) + 'pt';
+  labFont.Font.Assign(FSynEdit.Font);
+  labFont.Caption:= labFont.Font.Name + ' ' + IntToStr(labFont.Font.Size) + 'pt';
   //Options
-  ckAutoIndent.Checked := eoAutoIndent in FSynEdit.Options;
-  ckAutoSizeMaxWidth.Checked := eoAutoSizeMaxScrollWidth in FSynEdit.Options;
-  ckDragAndDropEditing.Checked := eoDragDropEditing in FSynEdit.Options;
-  ckWantTabs.Checked := FSynEdit.WantTabs;
-  ckSmartTabs.Checked := eoSmartTabs in FSynEdit.Options;
-  ckAltSetsColumnMode.Checked := eoAltSetsColumnMode in FSynEdit.Options;
-  ckHalfPageScroll.Checked := eoHalfPageScroll in FSynEdit.Options;
-  ckScrollByOneLess.Checked := eoScrollByOneLess in FSynEdit.Options;
-  ckScrollPastEOF.Checked := eoScrollPastEof in FSynEdit.Options;
-  ckScrollPastEOL.Checked := eoScrollPastEol in FSynEdit.Options;
-  ckShowScrollHint.Checked := eoShowScrollHint in FSynEdit.Options;
-  ckTabsToSpaces.Checked := eoTabsToSpaces in FSynEdit.Options;
-  ckTrimTrailingSpaces.Checked := eoTrimTrailingSpaces in FSynEdit.Options;
-  ckKeepCaretX.Checked := eoKeepCaretX in FSynEdit.Options;
+  ckAutoIndent.Checked:= eoAutoIndent in FSynEdit.Options;
+  ckDragAndDropEditing.Checked:= eoDragDropEditing in FSynEdit.Options;
+  ckWantTabs.Checked:= FSynEdit.WantTabs;
+  ckSmartTabs.Checked:= eoSmartTabs in FSynEdit.Options;
+  ckBracketsHiglight.Checked:= eoBracketsHighlight in FSynEdit.Options;
+  ckHalfPageScroll.Checked:= eoHalfPageScroll in FSynEdit.ScrollOptions;
+  ckScrollByOneLess.Checked:= eoScrollByOneLess in FSynEdit.ScrollOptions;
+  ckScrollPastEOF.Checked:= eoScrollPastEof in FSynEdit.ScrollOptions;
+  ckScrollPastEOL.Checked:= eoScrollPastEol in FSynEdit.ScrollOptions;
+  ckShowScrollHint.Checked:= eoShowScrollHint in FSynEdit.ScrollOptions;
+  ckTabsToSpaces.Checked:= eoTabsToSpaces in FSynEdit.Options;
+  ckTrimTrailingSpaces.Checked:= eoTrimTrailingSpaces in FSynEdit.Options;
+  ckKeepCaretX.Checked:= eoKeepCaretX in FSynEdit.Options;
   ckSmartTabDelete.Checked := eoSmartTabDelete in FSynEdit.Options;
   ckRightMouseMoves.Checked := eoRightMouseMovesCursor in FSynEdit.Options;
   ckEnhanceHomeKey.Checked := eoEnhanceHomeKey in FSynEdit.Options;
   ckEnhanceEndKey.Checked := eoEnhanceEndKey in FSynEdit.Options;
   ckGroupUndo.Checked := eoGroupUndo in FSynEdit.Options;
-  ckTabIndent.Checked := eoTabIndent in FSynEdit.Options;
-  ckDisableScrollArrows.Checked := eoDisableScrollArrows in FSynEdit.Options;
-  ckHideShowScrollbars.Checked := eoHideShowScrollbars in FSynEdit.Options;
-  ckShowSpecialChars.Checked := eoShowSpecialChars in FSynEdit.Options;
-
+  ckDisableScrollArrows.Checked := eoDisableScrollArrows in FSynEdit.ScrollOptions;
+  ckHideShowScrollbars.Checked := eoHideShowScrollbars in FSynEdit.ScrollOptions;
+  ckShowSpecialChars.Checked := FSynEdit.VisibleSpecialChars <> [];
+  ckCompleteBrackets.checked := eoCompleteBrackets in FSynEdit.Options;
+  ckCompleteQuotes.checked := eoCompleteQuotes in FSynEdit.Options;
   //Caret
-  cInsertCaret.ItemIndex := ord(FSynEdit.InsertCaret);
-  cOverwriteCaret.ItemIndex := ord(FSynEdit.OverwriteCaret);
+  cInsertCaret.ItemIndex:= ord(FSynEdit.InsertCaret);
+  cOverwriteCaret.ItemIndex:= ord(FSynEdit.OverwriteCaret);
 
 
   KeyList.Items.BeginUpdate;
   try
     KeyList.Items.Clear;
-    for I := 0 to FSynEdit.Keystrokes.Count-1 do
+    for I:= 0 to FSynEdit.Keystrokes.Count-1 do
     begin
-      Item := KeyList.Items.Add;
+      Item:= KeyList.Items.Add;
       FillInKeystrokeInfo(FSynEdit.Keystrokes.Items[I], Item);
-      Item.Data := FSynEdit.Keystrokes.Items[I];
+      Item.Data:= FSynEdit.Keystrokes.Items[I];
     end;
-    if (KeyList.Items.Count > 0) then KeyList.Items[0].Selected := True;
+    if (KeyList.Items.Count > 0) then KeyList.Items[0].Selected:= True;
   finally
     KeyList.Items.EndUpdate;
   end;
@@ -615,51 +659,53 @@ end;
 
 procedure TfmEditorOptionsDialog.PutData;
 var
-  vOptions: TSynEditorOptions;
+  EdOptions: TSynEditorOptions;
+  EdScrollOptions: TSynEditorScrollOptions;
 
-  procedure SetFlag(aOption: TSynEditorOption; aValue: Boolean);
+  procedure SetFlag(Option: TSynEditorOption; Value: Boolean);
   begin
-    if aValue then
-      Include(vOptions, aOption)
+    if Value then
+      Include(EdOptions, Option)
     else
-      Exclude(vOptions, aOption);
+      Exclude(EdOptions, Option);
+  end;
+
+  procedure SetScrollFlag(Option: TSynEditorScrollOption; Value: Boolean);
+  begin
+    if Value then
+      Include(EdScrollOptions, Option)
+    else
+      Exclude(EdScrollOptions, Option);
   end;
 
 begin
   //Gutter
-  FSynEdit.Gutter.Visible := ckGutterVisible.Checked;
+  FSynEdit.Gutter.Visible:= ckGutterVisible.Checked;
   FSynEdit.Gutter.AutoSize := ckGutterAutosize.Checked;
-  FSynEdit.Gutter.ShowLineNumbers := ckGutterShowLineNumbers.Checked;
-  FSynEdit.Gutter.LeadingZeros := ckGutterShowLeaderZeros.Checked;
-  FSynEdit.Gutter.ZeroStart := ckGutterStartAtZero.Checked;
-  FSynEdit.Gutter.Color := pnlGutterColor.Color;
+  FSynEdit.Gutter.ShowLineNumbers:= ckGutterShowLineNumbers.Checked;
+  FSynEdit.Gutter.LeadingZeros:= ckGutterShowLeaderZeros.Checked;
+  FSynEdit.Gutter.ZeroStart:= ckGutterStartAtZero.Checked;
+  FSynEdit.Gutter.Color:= pGutterColor.Color;
   FSynEdit.Gutter.UseFontStyle := cbGutterFont.Checked;
   FSynEdit.Gutter.Font.Assign(lblGutterFont.Font);
   //Right Edge
-  FSynEdit.RightEdge := StrToIntDef(eRightEdge.Text, 80);
-  FSynEdit.RightEdgeColor := pnlRightEdgeColor.Color;
+  FSynEdit.RightEdge:= StrToIntDef(eRightEdge.Text, 80);
+  FSynEdit.RightEdgeColor:= pRightEdgeColor.Color;
   //Line Spacing
-  FSynEdit.ExtraLineSpacing := StrToIntDef(eLineSpacing.Text, 0);
-  FSynEdit.TabWidth := StrToIntDef(eTabWidth.Text, 8);
+  FSynEdit.ExtraLineSpacing:= StrToIntDef(eLineSpacing.Text, 0);
+  FSynEdit.TabWidth:= StrToIntDef(eTabWidth.Text, 8);
   //Bookmarks
-  FSynEdit.BookMarkOptions.EnableKeys := ckBookmarkKeys.Checked;
-  FSynEdit.BookMarkOptions.GlyphsVisible := ckBookmarkVisible.Checked;
+  FSynEdit.BookMarkOptions.EnableKeys:= ckBookmarkKeys.Checked;
+  FSynEdit.BookMarkOptions.GlyphsVisible:= ckBookmarkVisible.Checked;
   //Font
-  FSynEdit.Font.Assign(lblFont.Font);
+  FSynEdit.Font.Assign(labFont.Font);
   //Options
-  FSynEdit.WantTabs := ckWantTabs.Checked;
-  vOptions := FSynEdit.Options; //Keep old values for unsupported options
+  FSynEdit.WantTabs:= ckWantTabs.Checked;
+  EdOptions := FSynEdit.Options; //Keep old values for unsupported options
   SetFlag(eoAutoIndent, ckAutoIndent.Checked);
-  SetFlag(eoAutoSizeMaxScrollWidth, ckAutoSizeMaxWidth.Checked);
   SetFlag(eoDragDropEditing, ckDragAndDropEditing.Checked);
   SetFlag(eoSmartTabs, ckSmartTabs.Checked);
-  SetFlag(eoAltSetsColumnMode, ckAltSetsColumnMode.Checked);
-  SetFlag(eoHalfPageScroll, ckHalfPageScroll.Checked);
-  SetFlag(eoScrollByOneLess, ckScrollByOneLess.Checked);
-  SetFlag(eoScrollPastEof, ckScrollPastEOF.Checked);
-  SetFlag(eoScrollPastEol, ckScrollPastEOL.Checked);
-  SetFlag(eoShowScrollHint, ckShowScrollHint.Checked);
-  SetFlag(eoTabIndent, ckTabIndent.Checked);
+  SetFlag(eoBracketsHighlight, ckBracketsHiglight.Checked);
   SetFlag(eoTabsToSpaces, ckTabsToSpaces.Checked);
   SetFlag(eoTrimTrailingSpaces, ckTrimTrailingSpaces.Checked);
   SetFlag(eoKeepCaretX, ckKeepCaretX.Checked);
@@ -668,93 +714,96 @@ begin
   SetFlag(eoEnhanceHomeKey, ckEnhanceHomeKey.Checked);
   SetFlag(eoEnhanceEndKey, ckEnhanceEndKey.Checked);
   SetFlag(eoGroupUndo, ckGroupUndo.Checked);
-  SetFlag(eoDisableScrollArrows, ckDisableScrollArrows.Checked);
-  SetFlag(eoHideShowScrollbars, ckHideShowScrollbars.Checked);
-  SetFlag(eoShowSpecialChars, ckShowSpecialChars.Checked);
-  FSynEdit.Options := vOptions;
+  SetFlag(eoCompleteBrackets, ckCompleteBrackets.checked);
+  SetFlag(eoCompleteQuotes, ckCompleteQuotes.checked);
+  FSynEdit.Options := EdOptions;
+  SetScrollFlag(eoHalfPageScroll, ckHalfPageScroll.Checked);
+  SetScrollFlag(eoScrollByOneLess, ckScrollByOneLess.Checked);
+  SetScrollFlag(eoScrollPastEof, ckScrollPastEOF.Checked);
+  SetScrollFlag(eoScrollPastEol, ckScrollPastEOL.Checked);
+  SetScrollFlag(eoShowScrollHint, ckShowScrollHint.Checked);
+  SetScrollFlag(eoDisableScrollArrows, ckDisableScrollArrows.Checked);
+  SetScrollFlag(eoHideShowScrollbars, ckHideShowScrollbars.Checked);
+  FSynEdit.ScrollOptions := EdScrollOptions;
+  if ckShowSpecialChars.Checked then
+    FSynEdit.VisibleSpecialChars := [scWhitespace, scControlChars, scEOL]
+  else
+    FSynEdit.VisibleSpecialChars := [];
   //Caret
-  FSynEdit.InsertCaret := TSynEditCaretType(cInsertCaret.ItemIndex);
-  FSynEdit.OverwriteCaret := TSynEditCaretType(cOverwriteCaret.ItemIndex);
+  FSynEdit.InsertCaret:= TSynEditCaretType(cInsertCaret.ItemIndex);
+  FSynEdit.OverwriteCaret:= TSynEditCaretType(cOverwriteCaret.ItemIndex);
 end;
 
 function TfmEditorOptionsDialog.GetColor(Item: TMenuItem): TColor;
 begin
  if (Item.Tag = -1) or (Item.Tag > 24) then
-  Result := clNone
+  Result:= clNone
  else
-  Result := TColor(Byte(Item.Tag) or $80000000);
+  Result:= TColor(Byte(Item.Tag) or $80000000);
 end;
 
 procedure TfmEditorOptionsDialog.PopupMenuClick(Sender: TObject);
-var C : TColor;
+var C: TColor;
 begin
-  C := GetColor(TMenuItem(Sender));
+  C:= GetColor(TMenuItem(Sender));
   //Set the color based on where it was "popped from"
   if (FPoppedFrom = cpGutter) then
-    pnlGutterColor.Color := C
+    pGutterColor.Color:= C
   else if (FPoppedFrom = cpRightEdge) then
-    pnlRightEdgeColor.Color := C;
+    pRightEdgeColor.Color:= C;
 end;
 
 procedure TfmEditorOptionsDialog.FormCreate(Sender: TObject);
-var I : Integer;
-    C : TColor;
-    B : TBitmap;
+var I: Integer;
+    C: TColor;
+    B: TBitmap;
 begin
-  {$IFDEF SYN_COMPILER_4_UP}
   KeyList.OnSelectItem := KeyListSelectItem;
-  {$ELSE}
-  FOldWndProc := KeyList.WindowProc;
-  KeyList.WindowProc := OverridingWndProc;
-  FOnSelectItem := KeyListSelectItem;
-  {$ENDIF}
 
-  FInChanging := False;
-  B := TBitmap.Create;
+  InChanging := False;
+  B:= TBitmap.Create;
   try
-    B.Width := 16;
-    B.Height := 16;
+    B.Width:= 16;
+    B.Height:= 16;
     //Loop through and create colored images
-    for I := 0 to ColorPopup.Items.Count-1 do
+    for I:= 0 to ColorPopup.Items.Count-1 do
     begin
       if ColorPopup.Items[I].Tag = -1 then Continue;
-      C := GetColor(ColorPopup.Items[I]);
-      B.Canvas.Brush.Color := C;
-      B.Canvas.Brush.Style := bsSolid;
-      B.Canvas.Pen.Style := psSolid;
-      B.Canvas.Pen.Color := clBlack;
+      C:= GetColor(ColorPopup.Items[I]);
+      B.Canvas.Brush.Color:= C;
+      B.Canvas.Brush.Style:= bsSolid;
+      B.Canvas.Pen.Style:= psSolid;
+      B.Canvas.Pen.Color:= clBlack;
       B.Canvas.Rectangle(0,0,16,16);
-      ImageList.Add(B, nil);
-{$IFDEF SYN_COMPILER_4_UP}
-      ColorPopup.Items[I].ImageIndex := ColorPopup.Items[I].Tag;
-{$ENDIF}
+      ImageList1.Add(B, nil);
+      ColorPopup.Items[I].ImageIndex:= ColorPopup.Items[I].Tag;
     end;
   finally
     B.Free;
   end;
 
-  eKeyShort1 := TSynHotKey.Create(Self);
+  eKeyShort1:= TSynHotKey.Create(Self);
   with eKeyShort1 do
   begin
     Parent := gbKeystrokes;
-    Left := 120;
-    Top := 55;
-    Width := 185;
-    Height := 21;
+    Left := Muldiv(120, FCurrentPPI, Screen.DefaultPixelsPerInch);
+    Top := Muldiv(55, FCurrentPPI, Screen.DefaultPixelsPerInch);
+    Width := Muldiv(185, FCurrentPPI, Screen.DefaultPixelsPerInch);
+    Height := Muldiv(21, FCurrentPPI, Screen.DefaultPixelsPerInch);
     HotKey := 0;
     InvalidKeys := [];
     Modifiers := [];
     TabOrder := 1;
   end;
 
-  eKeyShort2 := TSynHotKey.Create(Self);
+  eKeyShort2:= TSynHotKey.Create(Self);
   with eKeyShort2 do
   begin
     Parent := gbKeystrokes;
-    Left := 120;
-    Top := 87;
-    Width := 185;
-    Height := 21;
+    Left := Muldiv(120, FCurrentPPI, Screen.DefaultPixelsPerInch);
+    Top := Muldiv(87, FCurrentPPI, Screen.DefaultPixelsPerInch);
+    Width := Muldiv(185, FCurrentPPI, Screen.DefaultPixelsPerInch);
+    Height := Muldiv(21, FCurrentPPI, Screen.DefaultPixelsPerInch);
     HotKey := 0;
     InvalidKeys := [];
     Modifiers := [];
@@ -762,29 +811,42 @@ begin
   end;
 end;
 
-procedure TfmEditorOptionsDialog.pnlGutterColorClick(Sender: TObject);
+procedure TfmEditorOptionsDialog.pGutterColorClick(Sender: TObject);
 begin
-  ColorDialog.Color := pnlGutterColor.Color;
+  ColorDialog.Color:= pGutterColor.Color;
   if (ColorDialog.Execute) then
-    pnlGutterColor.Color := ColorDialog.Color;
+  begin
+    pGutterColor.Color:= ColorDialog.Color;
+  end;
 end;
 
-procedure TfmEditorOptionsDialog.pnlRightEdgeColorClick(Sender: TObject);
+procedure TfmEditorOptionsDialog.pRightEdgeColorClick(Sender: TObject);
 begin
-  ColorDialog.Color := pnlRightEdgeColor.Color;
+  ColorDialog.Color:= pRightEdgeColor.Color;
   if (ColorDialog.Execute) then
-    pnlRightEdgeColor.Color := ColorDialog.Color;
+  begin
+    pRightEdgeColor.Color:= ColorDialog.Color;
+  end;
 end;
 
 procedure TfmEditorOptionsDialog.btnFontClick(Sender: TObject);
 begin
-  FontDialog.Font.Assign(lblFont.Font);
+  labFont.Font.PixelsPerInch := FCurrentPPI;
+  FontDialog.Font.Assign(labFont.Font);
+  {$IF CompilerVersion >= 36}
+  // See https://quality.embarcadero.com/browse/RSP-43261
+  FontDialog.Font.IsScreenFont := True;
+  FontDialog.Font.ScaleForDPI(Screen.PixelsPerInch);
+  {$IFEND CompilerVersion >= 36}
   if FontDialog.Execute then
   begin
-    lblFont.Font.Assign(FontDialog.Font);
-    lblFont.Caption := lblFont.Font.Name;
-    lblFont.Caption := lblFont.Font.Name + ' ' + IntToStr(lblFont.Font.Size) + 'pt';
+    labFont.Font.Assign(FontDialog.Font);
+    labFont.Caption:= labFont.Font.Name;
+    labFont.Caption:= labFont.Font.Name + ' ' + IntToStr(labFont.Font.Size) + 'pt';    
   end;
+  {$IF CompilerVersion < 36}
+  labFont.Font.PixelsPerInch := Screen.PixelsPerInch;
+  {$ENDIF}
 end;
 
 procedure TfmEditorOptionsDialog.KeyListSelectItem(Sender: TObject;
@@ -795,16 +857,12 @@ begin
   cKeyCommand.ItemIndex := cKeyCommand.Items.IndexOf(KeyList.Selected.Caption);
   eKeyShort1.HotKey     := TSynEditKeyStroke(KeyList.Selected.Data).ShortCut;
   eKeyShort2.HotKey     := TSynEditKeyStroke(KeyList.Selected.Data).ShortCut2;
-  FOldSelected := Item;
+  OldSelected := Item;
 end;
 
 procedure TfmEditorOptionsDialog.btnUpdateKeyClick(Sender: TObject);
-var Cmd          : Integer;
-{    KeyLoc       : Integer;
-    TmpCommand   : string;
-    OldShortcut  : TShortcut;
-    OldShortcut2 : TShortcut;
-}
+var
+  Cmd: Integer;
 begin
   if (KeyList.Selected = nil) and (Sender <> btnAddKey) then
   begin
@@ -817,23 +875,24 @@ begin
 
   Cmd := Integer(cKeyCommand.Items.Objects[cKeyCommand.ItemIndex]);
 
-  TSynEditKeyStroke(FOldSelected.Data).Command := Cmd;
+  TSynEditKeyStroke(OldSelected.Data).Command:= Cmd;
 
   if eKeyShort1.HotKey <> 0 then
-    TSynEditKeyStroke(FOldSelected.Data).ShortCut := eKeyShort1.HotKey;
+    TSynEditKeyStroke(OldSelected.Data).ShortCut := eKeyShort1.HotKey;
 
   if eKeyShort2.HotKey <> 0 then
-    TSynEditKeyStroke(FOldSelected.Data).ShortCut2 := eKeyShort2.HotKey;
+    TSynEditKeyStroke(OldSelected.Data).ShortCut2:= eKeyShort2.HotKey;
 
-  FillInKeystrokeInfo(TSynEditKeyStroke(FOldSelected.Data), KeyList.Selected);
+  FillInKeystrokeInfo(TSynEditKeyStroke(OldSelected.Data), KeyList.Selected);
 end;
 
 procedure TfmEditorOptionsDialog.btnAddKeyClick(Sender: TObject);
-var Item : TListItem;
+var Item: TListItem;
 begin
-  Item := KeyList.Items.Add;
-  Item.Data := FSynEdit.Keystrokes.Add;
-  Item.Selected := True;
+  if cKeyCommand.ItemIndex < 0 then Exit;
+  Item:= KeyList.Items.Add;
+  Item.Data:= FSynEdit.Keystrokes.Add;
+  Item.Selected:= True;
   btnUpdateKeyClick(btnAddKey);
 end;
 
@@ -853,8 +912,9 @@ begin
 end;
 
 procedure TfmEditorOptionsDialog.FormShow(Sender: TObject);
-var Commands: TStringList;
-    i : Integer;
+var 
+  Commands: TStringList;
+  I: Integer;
 begin
 //We need to do this now because it will not have been assigned when
 //create occurs
@@ -870,38 +930,46 @@ begin
     Commands := TStringList.Create;
     try
       FAllUserCommands(Commands);
-      for i := 0 to Commands.Count - 1 do
-        if Commands.Objects[i] <> nil then
-          cKeyCommand.Items.AddObject(Commands[i], Commands.Objects[i]);
+      for I := 0 to Commands.Count - 1 do
+        if Commands.Objects[I] <> nil then
+          cKeyCommand.Items.AddObject(Commands[I], Commands.Objects[I]);
     finally
       Commands.Free;
     end;
   end;
 
-  PageControl.ActivePage := PageControl.Pages[0];
+  PageControl1.ActivePage := PageControl1.Pages[0];
 end;
 
 procedure TfmEditorOptionsDialog.KeyListEditing(Sender: TObject;
   Item: TListItem; var AllowEdit: Boolean);
 begin
-  AllowEdit := False;
+  AllowEdit:= False;
 end;
 
 
 procedure TfmEditorOptionsDialog.btnOkClick(Sender: TObject);
 begin
   btnUpdateKey.Click;
-  ModalResult := mrOk;
+  ModalResult:= mrOk;
 end;
 
 procedure TfmEditorOptionsDialog.btnGutterFontClick(Sender: TObject);
 begin
+  lblGutterFont.Font.PixelsPerInch := FCurrentPPI;
   FontDialog.Font.Assign(lblGutterFont.Font);
+  {$IF CompilerVersion >= 36}
+  FontDialog.Font.IsScreenFont := True;
+  FontDialog.Font.ScaleForDPI(Screen.PixelsPerInch);
+  {$IFEND CompilerVersion >= 36}
   if FontDialog.Execute then
   begin
     lblGutterFont.Font.Assign(FontDialog.Font);
-    lblGutterFont.Caption := lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';
+    lblGutterFont.Caption:= lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';
   end;
+  {$IF CompilerVersion < 36}
+  lblGutterFont.Font.PixelsPerInch := Screen.PixelsPerInch;
+  {$ENDIF}
 end;
 
 procedure TfmEditorOptionsDialog.cbGutterFontClick(Sender: TObject);
@@ -912,10 +980,10 @@ end;
 
 procedure TfmEditorOptionsDialog.btnRightEdgeMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var P : TPoint;
+var P: TPoint;
 begin
-  FPoppedFrom := cpRightEdge;
-  P := pnlRightEdgeColor.ClientToScreen(Point(-1, pnlRightEdgeColor.Height - 1));
+  FPoppedFrom:= cpRightEdge;
+  P:= pRightEdgeColor.ClientToScreen(Point(-1, pRightEdgeColor.Height-1));
   btnRightEdge.BevelOuter := bvLowered;
   ColorPopup.Popup(P.X, P.Y);
   btnRightEdge.BevelOuter := bvNone;
@@ -923,10 +991,10 @@ end;
 
 procedure TfmEditorOptionsDialog.btnGutterColorMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var P : TPoint;
+var P: TPoint;
 begin
-  FPoppedFrom := cpGutter;
-  P := pnlGutterColor.ClientToScreen(Point(-1, pnlGutterColor.Height - 1));
+  FPoppedFrom:= cpGutter;
+  P:= pGutterColor.ClientToScreen(Point(-1, pGutterColor.Height-1));
   btnGutterColor.BevelOuter := bvLowered;
   ColorPopup.Popup(P.X, P.Y);
   btnGutterColor.BevelOuter := bvNone;
@@ -934,7 +1002,7 @@ end;
 
 procedure TfmEditorOptionsDialog.FillInKeystrokeInfo(
   AKey: TSynEditKeystroke; AItem: TListItem);
-var TmpString: String;
+var TmpString: string;
 begin
   with AKey do
   begin
@@ -949,7 +1017,7 @@ begin
       else TmpString := EditorCommandToCodeString(Command);
     end;
 
-    AItem.Caption := TmpString;
+    AItem.Caption:= TmpString;
     AItem.SubItems.Clear;
 
     TmpString := '';
@@ -960,46 +1028,7 @@ begin
       TmpString := TmpString + ' ' + ShortCutToText(ShortCut2);
 
     AItem.SubItems.Add(TmpString);
-
   end;
-
-end;
-
-procedure TfmEditorOptionsDialog.cKeyCommandExit(Sender: TObject);
-VAR TmpIndex : Integer;
-begin
-  TmpIndex := cKeyCommand.Items.IndexOf(cKeyCommand.Text);
-  if TmpIndex = -1 then
-  begin
-    if FExtended then
-      cKeyCommand.ItemIndex := cKeyCommand.Items.IndexOf(ConvertCodeStringToExtended('ecNone'))
-    else cKeyCommand.ItemIndex := cKeyCommand.Items.IndexOf('ecNone');
-  end else cKeyCommand.ItemIndex := TmpIndex;  //need to force it incase they just typed something in
-
-end;
-
-procedure TfmEditorOptionsDialog.cKeyCommandKeyPress(Sender: TObject;
-  var Key: Char);
-var WorkStr : string;
-    i       : Integer;
-begin
-//This would be better if componentized, but oh well...
-  WorkStr := Uppercase(Copy(cKeyCommand.Text, 1, cKeyCommand.SelStart) + Key);
-  i := 0;
-  while i < cKeyCommand.Items.Count do
-  begin
-    if pos(WorkStr, Uppercase(cKeyCommand.Items[i])) = 1 then
-    begin
-      cKeyCommand.Text := cKeyCommand.Items[i];
-      cKeyCommand.SelStart := length(WorkStr);
-      cKeyCommand.SelLength := Length(cKeyCommand.Text) - cKeyCommand.SelStart;
-      Key := #0;
-      Break;
-    end
-    else
-      Inc(i);
-  end;
-
 end;
 
 procedure TfmEditorOptionsDialog.cKeyCommandKeyUp(Sender: TObject;
@@ -1012,11 +1041,11 @@ procedure TfmEditorOptionsDialog.KeyListChanging(Sender: TObject;
   Item: TListItem; Change: TItemChange; var AllowChange: Boolean);
 begin
 //make sure that it's saved.
-  if FInChanging then Exit;
-  FInChanging := True;
+  if InChanging then Exit;
+  InChanging := True;
   if Visible then
   begin
-    if (Item = FOldSelected) and
+    if (Item = OldSelected) and
        ((Item.Caption <> cKeyCommand.Text) or
        (TSynEditKeystroke(Item.Data).ShortCut <> eKeyShort1.HotKey) or
        (TSynEditKeystroke(Item.Data).ShortCut2 <> eKeyShort2.HotKey)) then
@@ -1024,33 +1053,7 @@ begin
       btnUpdateKeyClick(btnUpdateKey);
     end;
   end;
-  FInChanging := False;
+  InChanging := False;
 end;
-
-{$IFNDEF SYN_COMPILER_4_UP}
-procedure TfmEditorOptionsDialog.OverridingWndProc(var Message: TMessage);
-var
-  Item: TListItem;
-begin
-  FOldWndProc(Message);
-
-  if Message.Msg = CN_NOTIFY then
-    with TWMNotify(Message) do
-      if NMHdr.code = LVN_ITEMCHANGED then
-        with PNMListView(NMHdr)^ do
-        begin
-          Item := KeyList.Items[iItem];
-          if Assigned(FOnSelectItem) and (uChanged = LVIF_STATE) then
-          begin
-            if (uOldState and LVIS_SELECTED <> 0) and
-              (uNewState and LVIS_SELECTED = 0) then
-              FOnSelectItem(Self, Item, False)
-            else if (uOldState and LVIS_SELECTED = 0) and
-              (uNewState and LVIS_SELECTED <> 0) then
-              FOnSelectItem(Self, Item, True);
-          end;
-        end;
-end;
-{$ENDIF}
 
 end.

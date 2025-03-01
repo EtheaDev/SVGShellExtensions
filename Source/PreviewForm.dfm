@@ -12,7 +12,7 @@ inherited FrmPreview: TFrmPreview
   TextHeight = 13
   object Splitter: TSplitter
     Left = 0
-    Top = 329
+    Top = 362
     Width = 617
     Height = 6
     Cursor = crVSplit
@@ -129,7 +129,7 @@ inherited FrmPreview: TFrmPreview
     Left = 0
     Top = 35
     Width = 617
-    Height = 294
+    Height = 206
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
@@ -137,7 +137,7 @@ inherited FrmPreview: TFrmPreview
       Left = 0
       Top = 0
       Width = 617
-      Height = 294
+      Height = 233
       Align = alClient
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -180,9 +180,9 @@ inherited FrmPreview: TFrmPreview
   end
   object ImagePanel: TPanel
     Left = 0
-    Top = 335
+    Top = 368
     Width = 617
-    Height = 263
+    Height = 230
     Align = alClient
     BevelOuter = bvNone
     ParentBackground = False
@@ -192,7 +192,7 @@ inherited FrmPreview: TFrmPreview
       Left = 0
       Top = 40
       Width = 617
-      Height = 223
+      Height = 281
       AutoSize = False
       Align = alClient
     end
@@ -229,6 +229,65 @@ inherited FrmPreview: TFrmPreview
         TabStop = False
         OnChange = BackgroundTrackBarChange
       end
+    end
+  end
+  object ColorPanel: TPanel
+    Left = 0
+    Top = 335
+    Width = 617
+    Height = 30
+    Align = alTop
+    ParentBackground = False
+    TabOrder = 2
+    object GrayscaleCheckBox: TCheckBox
+      AlignWithMargins = True
+      Left = 4
+      Top = 3
+      Width = 76
+      Height = 26
+      Margins.Top = 2
+      Align = alLeft
+      Caption = 'Grayscale'
+      TabOrder = 0
+      OnClick = GrayscaleCheckBoxClick
+    end
+    object ApplyToRootCheckBox: TCheckBox
+      AlignWithMargins = True
+      Left = 325
+      Top = 3
+      Width = 121
+      Height = 26
+      Margins.Top = 2
+      Align = alLeft
+      Caption = 'Apply to root only'
+      TabOrder = 3
+      OnClick = ApplyToRootCheckBoxClick
+    end
+    object FixedColorBox: TColorBox
+      AlignWithMargins = True
+      Left = 174
+      Top = 6
+      Width = 145
+      Height = 22
+      Align = alLeft
+      DefaultColorColor = clDefault
+      NoneColorColor = clNone
+      Selected = clNone
+      Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeDefault, cbCustomColor, cbPrettyNames, cbCustomColors]
+      TabOrder = 2
+      OnSelect = FixedColorBoxSelect
+    end
+    object FixedColorCheckBox: TCheckBox
+      AlignWithMargins = True
+      Left = 86
+      Top = 3
+      Width = 82
+      Height = 26
+      Margins.Top = 2
+      Align = alLeft
+      Caption = 'Fixed Color'
+      TabOrder = 1
+      OnClick = FixedColorCheckBoxClick
     end
   end
   object SVGIconImageList: TVirtualImageList

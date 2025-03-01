@@ -26,30 +26,19 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditPlugins.pas,v 1.8.2.2 2008/09/14 16:24:58 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITPLUGINS}
 unit SynEditPlugins;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  {$IFDEF SYN_COMPILER_17_UP}
-  Types,
-  {$ENDIF}
   Windows,
   Menus,
   SynEdit,
+  SynEditTypes,
   SynEditKeyCmds,
   SynUnicode,
   Classes;
@@ -62,7 +51,7 @@ type
     function GetEditor: TCustomSynEdit;
     function GetEditorCount: Integer;
   protected
-    FEditors: TList;
+    fEditors: TList;
     procedure Notification(aComponent: TComponent;
       aOperation: TOperation); override;
     procedure DoAddEditor(aEditor: TCustomSynEdit); virtual;
@@ -85,7 +74,7 @@ type
       aCommandID: TSynEditorCommand; aShortCut: TShortCut);
     procedure OnCommand(Sender: TObject; AfterProcessing: Boolean;
       var Handled: Boolean; var Command: TSynEditorCommand; var AChar: WideChar;
-      Data: Pointer; HandlerData: Pointer); virtual; abstract;
+      Data: pointer; HandlerData: pointer); virtual; abstract;
   end;
 
   TPluginState = (psNone, psExecuting, psAccepting, psCancelling);
@@ -96,9 +85,9 @@ type
     function IsShortCutStored: Boolean;
     procedure SetShortCut(const Value: TShortCut);
   protected
-    FState: TPluginState;
+    fState: TPluginState;
     fCurrentEditor: TCustomSynEdit;
-    FShortCut: TShortCut;
+    fShortCut: TShortCut;
     class function DefaultShortCut: TShortCut; virtual;
     procedure DoAddEditor(aEditor: TCustomSynEdit); override;
     procedure DoRemoveEditor(aEditor: TCustomSynEdit); override;
@@ -116,7 +105,7 @@ type
     procedure Accept;
     procedure Cancel;
   published
-    property ShortCut: TShortCut read FShortCut write SetShortCut
+    property ShortCut: TShortCut read fShortCut write SetShortCut
       stored IsShortCutStored;
   end;
 
@@ -124,19 +113,19 @@ type
 
   TAbstractSynCompletion = class(TAbstractSynSingleHookPlugin)
   protected
-    fCurrentString: UnicodeString;
+    fCurrentString: string;
   protected
-    procedure SetCurrentString(const Value: UnicodeString); virtual;
+    procedure SetCurrentString(const Value: string); virtual;
     procedure OnCommand(Sender: TObject; AfterProcessing: Boolean;
       var Handled: Boolean; var Command: TSynEditorCommand; var AChar: WideChar;
-      Data, HandlerData: Pointer); override;
+      Data: pointer; HandlerData: pointer); override;
     procedure DoExecute; override;
     procedure DoAccept; override;
     procedure DoCancel; override;
-    function GetCurrentEditorString: UnicodeString; virtual;
+    function GetCurrentEditorString: string; virtual;
   public
     procedure AddEditor(aEditor: TCustomSynEdit);
-    property CurrentString: UnicodeString read fCurrentString write SetCurrentString;
+    property CurrentString: string read fCurrentString write SetCurrentString;
   end;
 
 function NewPluginCommand: TSynEditorCommand;
@@ -145,8 +134,8 @@ procedure ReleasePluginCommand(aCmd: TSynEditorCommand);
 implementation
 
 uses
+  Types,
   Forms,
-  SynEditTypes,
   SynEditMiscProcs,
   SynEditStrConst,
   SysUtils;
@@ -173,25 +162,25 @@ end;
 
 function TAbstractSynPlugin.AddEditor(aEditor: TCustomSynEdit): Integer;
 begin
-  if FEditors = nil then
+  if fEditors = nil then
   begin
-    FEditors := TList.Create;
+    fEditors := TList.Create;
   end
   else
-    if FEditors.IndexOf(aEditor) >= 0 then
+    if fEditors.IndexOf(aEditor) >= 0 then
     begin
       Result := -1;
       Exit;
     end;
   aEditor.FreeNotification(Self);
-  Result := FEditors.Add(aEditor);
+  Result := fEditors.Add(aEditor);
   DoAddEditor(aEditor);
 end;
 
 destructor TAbstractSynPlugin.Destroy;
 begin
-  { RemoveEditor will free FEditors when it reaches count = 0}
-  while Assigned(FEditors) do
+  { RemoveEditor will free fEditors when it reaches count = 0}
+  while Assigned(fEditors) do
     RemoveEditor(Editors[0]);
   inherited;
 end;
@@ -219,17 +208,17 @@ end;
 
 function TAbstractSynPlugin.RemoveEditor(aEditor: TCustomSynEdit): Integer;
 begin
-  if FEditors = nil then
+  if fEditors = nil then
   begin
     Result := -1;
     Exit;
   end;
-  Result := FEditors.Remove(aEditor);
+  Result := fEditors.Remove(aEditor);
   //aEditor.RemoveFreeNotification(Self);
-  if FEditors.Count = 0 then
+  if fEditors.Count = 0 then
   begin
-    FEditors.Free;
-    FEditors := nil;
+    fEditors.Free;
+    fEditors := nil;
   end;
   if Result >= 0 then
     DoRemoveEditor(aEditor);
@@ -242,7 +231,7 @@ begin
   iEditor := Editor;
   if iEditor <> Value then
   try
-    if (iEditor <> nil) and (FEditors.Count = 1) then
+    if (iEditor <> nil) and (fEditors.Count = 1) then
       RemoveEditor(iEditor);
     if Value <> nil then
       AddEditor(Value);
@@ -256,21 +245,21 @@ end;
 
 function TAbstractSynPlugin.GetEditors(aIndex: Integer): TCustomSynEdit;
 begin
-  Result := TCustomSynEdit(FEditors[aIndex]);
+  Result := TCustomSynEdit(fEditors[aIndex]);
 end;
 
 function TAbstractSynPlugin.GetEditor: TCustomSynEdit;
 begin
-  if FEditors <> nil then
-    Result := FEditors[0]
+  if fEditors <> nil then
+    Result := fEditors[0]
   else
     Result := nil;
 end;
 
 function TAbstractSynPlugin.GetEditorCount: Integer;
 begin
-  if FEditors <> nil then
-    Result := FEditors.Count
+  if fEditors <> nil then
+    Result := fEditors.Count
   else
     Result := 0;
 end;
@@ -282,13 +271,20 @@ procedure TAbstractSynHookerPlugin.HookEditor(aEditor: TCustomSynEdit;
 var
   iIndex: Integer;
   iKeystroke: TSynEditKeyStroke;
+  Dup: Integer;
+  DupCmd: string;
 begin
   Assert(aNewShortCut <> 0);
   { shortcurts aren't created while in design-time }
   if [csDesigning] * ComponentState = [csDesigning] then
   begin
-    if TSynEdit(aEditor).Keystrokes.FindShortcut(aNewShortCut) >= 0 then
-      raise ESynKeyError.Create(SYNS_EDuplicateShortCut)
+    Dup := TSynEdit(aEditor).Keystrokes.FindShortcut(aNewShortCut);
+    if Dup >= 0 then
+    begin
+      DupCmd := EditorCommandToExtendedCodeString(
+        TSynEdit(aEditor).Keystrokes[Dup].Command);
+      raise ESynKeyError.CreateFmt(SYNS_EDuplicateShortCut, ['Plugin', DupCmd])
+    end
     else
       Exit;
   end;
@@ -334,23 +330,23 @@ end;
 
 procedure TAbstractSynSingleHookPlugin.Accept;
 begin
-  FState := psAccepting;
+  fState := psAccepting;
   try
     DoAccept;
   finally
     fCurrentEditor := nil;
-    FState := psNone;
+    fState := psNone;
   end;
 end;
 
 procedure TAbstractSynSingleHookPlugin.Cancel;
 begin
-  FState := psCancelling;
+  fState := psCancelling;
   try
     DoCancel;
   finally
     fCurrentEditor := nil;
-    FState := psNone;
+    fState := psNone;
   end;
 end;
 
@@ -358,7 +354,7 @@ constructor TAbstractSynSingleHookPlugin.Create(aOwner: TComponent);
 begin
   inherited;
   fCommandID := NewPluginCommand;
-  FShortCut := DefaultShortCut;
+  fShortCut := DefaultShortCut;
 end;
 
 class function TAbstractSynSingleHookPlugin.DefaultShortCut: TShortCut;
@@ -387,8 +383,8 @@ begin
     Cancel;
   Assert(fCurrentEditor = nil);
   fCurrentEditor := aEditor;
-  Assert(FState = psNone);
-  FState := psExecuting;
+  Assert(fState = psNone);
+  fState := psExecuting;
   try
     DoExecute;
   except
@@ -399,12 +395,12 @@ end;
 
 function TAbstractSynSingleHookPlugin.Executing: Boolean;
 begin
-  Result := FState = psExecuting;
+  Result := fState = psExecuting;
 end;
 
 function TAbstractSynSingleHookPlugin.IsShortCutStored: Boolean;
 begin
-  Result := FShortCut <> DefaultShortCut;
+  Result := fShortCut <> DefaultShortCut;
 end;
 
 procedure TAbstractSynSingleHookPlugin.DoRemoveEditor(aEditor: TCustomSynEdit);
@@ -419,28 +415,28 @@ procedure TAbstractSynSingleHookPlugin.SetShortCut(const Value: TShortCut);
 var
   cEditor: Integer;
 begin
-  if FShortCut <> Value then
+  if fShortCut <> Value then
   begin
-    if Assigned(FEditors) then
+    if Assigned(fEditors) then
       if Value <> 0 then
       begin
-        for cEditor := 0 to FEditors.Count -1 do
-          HookEditor(Editors[cEditor], CommandID, FShortCut, Value);
+        for cEditor := 0 to fEditors.Count -1 do
+          HookEditor(Editors[cEditor], CommandID, fShortCut, Value);
       end
       else
       begin
-        for cEditor := 0 to FEditors.Count -1 do
-          UnHookEditor(Editors[cEditor], CommandID, FShortCut);
+        for cEditor := 0 to fEditors.Count -1 do
+          UnHookEditor(Editors[cEditor], CommandID, fShortCut);
       end;
-    FShortCut := Value;
+    fShortCut := Value;
   end;
 end;
 
 { TAbstractSynCompletion }
 
-function TAbstractSynCompletion.GetCurrentEditorString: UnicodeString;
+function TAbstractSynCompletion.GetCurrentEditorString: string;
 var
-  S: UnicodeString;
+  S: string;
   Col: Integer;
 begin
   S := CurrentEditor.LineText;
@@ -474,7 +470,7 @@ procedure TAbstractSynCompletion.OnCommand(Sender: TObject;
   var Command: TSynEditorCommand; var AChar: WideChar; Data,
   HandlerData: Pointer);
 var
-  S: UnicodeString;
+  S: string;
 begin  
   if not Executing then
   begin
@@ -546,7 +542,7 @@ begin
     end; {endif Sender = CurrentEditor}
 end;
 
-procedure TAbstractSynCompletion.SetCurrentString(const Value: UnicodeString);
+procedure TAbstractSynCompletion.SetCurrentString(const Value: string);
 begin
   fCurrentString := Value;
 end;

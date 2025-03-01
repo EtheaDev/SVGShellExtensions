@@ -3,7 +3,7 @@
 {  StyledTaskDialogAnimated: an example of Task Dialog Form                    }
 {  using a TSkAnimatedImage with Lottie Animations                             }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -52,7 +52,7 @@ uses
   , Vcl.ExtCtrls
   , Vcl.StdCtrls
   , System.UITypes
-  , Vcl.Skia
+  , Vcl.Skia //Warning: you cannot use Animated Style Dialog if you don't have Skia4Delphi!
   , System.Skia
   ;
 
@@ -63,8 +63,6 @@ type
   private
     procedure InternalLoadImage(const AAnimatedImage: TSkAnimatedImage;
       const AImageIndex: TImageIndex; AImageName: string);
-    function TaskDialogIconToIconName(
-      const ATaskDialogIcon: TTaskDialogIcon): string;
   protected
     class function CanUseAnimations: Boolean; override;
     procedure LoadImage(const AImageIndex: TImageIndex; AImageName: string); override;
@@ -87,19 +85,6 @@ begin
   Result := True;
 end;
 
-function TStyledTaskDialogAnimatedForm.TaskDialogIconToIconName(
-  const ATaskDialogIcon: TTaskDialogIcon): string;
-begin
-  case ATaskDialogIcon of
-    tdiWarning: Result := 'Warning';
-    tdiError: Result := 'Error';
-    tdiInformation: Result := 'Information';
-    tdiShield: Result := 'Shield';
-  else
-    Result := 'Custom';
-  end;
-end;
-
 procedure TStyledTaskDialogAnimatedForm.LoadCustomFooterIcon(const AIcon: TIcon;
   const ATaskDialogIcon: TTaskDialogIcon);
 var
@@ -107,7 +92,7 @@ var
 begin
   inherited;
   //A Custom FooterIcon is not animated so ignore It
-  LImageName := TaskDialogIconToIconName(ATaskDialogIcon);
+  LImageName := TaskDialogIconToImageName(ATaskDialogIcon);
   if LImageName <> '' then
     InternalLoadImage(SkFooterAnimatedImage, -1, LImageName);
 end;
@@ -118,9 +103,9 @@ var
   LImageName: string;
 begin
   //A Custom MainIcon is not animated so ignore it
-  LImageName := TaskDialogIconToIconName(ATaskDialogIcon);
+  LImageName := TaskDialogIconToImageName(ATaskDialogIcon);
   if LImageName <> '' then
-    InternalLoadImage(SkAnimatedImage, -1, LImageName);
+    InternalLoadImage(SkAnimatedImage, ATaskDialogIcon, LImageName);
 end;
 
 procedure TStyledTaskDialogAnimatedForm.LoadImage(
@@ -136,6 +121,8 @@ var
   LStream: TResourceStream;
   LImageName: string;
 begin
+  if AImageName = '' then
+    Exit;
   //Using ..\Animations\Animations.rc file compiled into Animations.RES file
   LImageName := UpperCase('LOTTIE_'+AImageName);
   LStream := TResourceStream.Create(HInstance, LImageName, RT_RCDATA);
@@ -150,5 +137,9 @@ end;
 
 initialization
   RegisterTaskDialogFormClass(TStyledTaskDialogAnimatedForm);
+  InitializeStyledTaskDialogs(True);
+
+finalization
+  UnregisterTaskDialogFormClass(TStyledTaskDialogAnimatedForm);
 
 end.

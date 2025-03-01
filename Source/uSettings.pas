@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -44,6 +44,8 @@ uses
 const
   MaxfontSize = 30;
   MinfontSize = 8;
+  default_lightactivelinecolor = 15066597;
+  default_darkactivelinecolor = 0;
 
 resourcestring
   Background_Grayscale_Caption = 'Backlight %d%%';
@@ -82,15 +84,21 @@ type
     FButtonDrawRounded: Boolean;
     FToolbarDrawRounded: Boolean;
     FMenuDrawRounded: Boolean;
+    FFixedColor: TColor;
+    FGrayScale: Boolean;
+    FApplyToRootOnly: Boolean;
     function GetUseDarkStyle: Boolean;
-    procedure SetSVGEngine(const Value: TSVGEngine);
+    procedure SetSVGEngine(const AValue: TSVGEngine);
     function GetThemeSectionName: string;
     function GetButtonTextColor: TColor;
     class function GetSettingsFileName: string; static;
     procedure UpdateEngine;
-    procedure SetButtonDrawRounded(const Value: Boolean);
-    procedure SetToolbarDrawRounded(const Value: Boolean);
-    procedure SetMenuDrawRounded(const Value: Boolean);
+    procedure SetButtonDrawRounded(const AValue: Boolean);
+    procedure SetToolbarDrawRounded(const AValue: Boolean);
+    procedure SetMenuDrawRounded(const AValue: Boolean);
+    procedure SetFixedColor(const AValue: TColor);
+    procedure SetGrayScale(const AValue: Boolean);
+    procedure SetApplyToRootOnly(const AValue: Boolean);
   protected
     FIniFile: TIniFile;
   public
@@ -131,6 +139,9 @@ type
     property ButtonDrawRounded: Boolean read FButtonDrawRounded write SetButtonDrawRounded;
     property ToolbarDrawRounded: Boolean read FToolbarDrawRounded write SetToolbarDrawRounded;
     property MenuDrawRounded: Boolean read FMenuDrawRounded write SetMenuDrawRounded;
+    property FixedColor: TColor read FFixedColor write SetFixedColor;
+    property GrayScale: Boolean read FGrayScale write SetGrayScale;
+    property ApplyToRootOnly: Boolean read FApplyToRootOnly write SetApplyToRootOnly;
   end;
 
   TPreviewSettings = class(TSettings)
@@ -140,6 +151,8 @@ type
 
   TEditorSettings = class(TSettings)
   private
+    FLightActiveLineColor: TColor;
+    FDarkActiveLineColor: TColor;
     procedure WriteSynEditorOptions(
       const ASynEditorOptions: TSynEditorOptionsContainer);
     procedure ReadSynEditorOptions(
@@ -157,6 +170,8 @@ type
       const ASynEditorOptions: TSynEditorOptionsContainer);
     destructor Destroy; override;
     procedure UpdateOpenedFiles(AFileList: TStrings; const ACurrentFileName: string);
+    property LightActiveLineColor: TColor read FLightActiveLineColor write FLightActiveLineColor;
+    property DarkActiveLineColor: TColor read FDarkActiveLineColor write FDarkActiveLineColor;
   end;
 
 implementation
@@ -335,6 +350,10 @@ begin
   FToolbarDrawRounded := FIniFile.ReadBool('Global', 'ToolbarDrawRounded', false);
   FButtonDrawRounded := FIniFile.ReadBool('Global', 'ButtonDrawRounded', false);
   FMenuDrawRounded := FIniFile.ReadBool('Global', 'MenuDrawRounded', false);
+  FFixedColor := TColor(FIniFile.ReadInteger('Render', 'FixedColor', Ord(clDefault)));
+  FGrayScale := FIniFile.ReadBool('Render', 'GrayScale', false);
+  FApplyToRootOnly := FIniFile.ReadBool('Render', 'ApplyToRootOnly', false);
+
 
   for LValue in AllPngExportSizes do
   begin
@@ -382,11 +401,11 @@ begin
   end;
 end;
 
-procedure TSettings.SetSVGEngine(const Value: TSVGEngine);
+procedure TSettings.SetSVGEngine(const AValue: TSVGEngine);
 begin
-  if FSVGEngine <> Value then
+  if FSVGEngine <> AValue then
   begin
-    FSVGEngine := Value;
+    FSVGEngine := AValue;
     UpdateEngine;
   end;
 end;
@@ -437,6 +456,9 @@ begin
   FIniFile.WriteBool('Global', 'ToolbarDrawRounded', ToolbarDrawRounded);
   FIniFile.WriteBool('Global', 'ButtonDrawRounded', ButtonDrawRounded);
   FIniFile.WriteBool('Global', 'MenuDrawRounded', MenuDrawRounded);
+  FIniFile.WriteInteger('Render', 'FixedColor', Ord(FFixedColor));
+  FIniFile.WriteBool('Render', 'GrayScale', FGrayScale);
+  FIniFile.WriteBool('Render', 'ApplyToRootOnly', FApplyToRootOnly);
 
   if (FUseDarkStyle and (LightBackground <> default_darkbackground)) or
     (not FUseDarkStyle and (LightBackground <> default_lightbackground)) then
@@ -457,19 +479,34 @@ begin
 end;
 
 procedure TSettings.SetToolbarDrawRounded(
-  const Value: Boolean);
+  const AValue: Boolean);
 begin
-  FToolbarDrawRounded := Value;
+  FToolbarDrawRounded := AValue;
 end;
 
-procedure TSettings.SetMenuDrawRounded(const Value: Boolean);
+procedure TSettings.SetMenuDrawRounded(const AValue: Boolean);
 begin
-  FMenuDrawRounded := Value;
+  FMenuDrawRounded := AValue;
 end;
 
-procedure TSettings.SetButtonDrawRounded(const Value: Boolean);
+procedure TSettings.SetApplyToRootOnly(const AValue: Boolean);
 begin
-  FButtonDrawRounded := Value;
+  FApplyToRootOnly := AValue;
+end;
+
+procedure TSettings.SetButtonDrawRounded(const AValue: Boolean);
+begin
+  FButtonDrawRounded := AValue;
+end;
+
+procedure TSettings.SetFixedColor(const AValue: TColor);
+begin
+  FFixedColor := AValue;
+end;
+
+procedure TSettings.SetGrayScale(const AValue: Boolean);
+begin
+  FGrayScale := AValue;
 end;
 
 { TPreviewSettings }
@@ -515,6 +552,15 @@ var
   LPos: Integer;
 begin
   inherited;
+
+  //ActiveLine Color
+  DarkActiveLineColor := FIniFile.ReadInteger('Global', 'DarkActiveLineColor', default_darkactivelinecolor);
+  LightActiveLineColor := FIniFile.ReadInteger('Global', 'LightActiveLineColor', default_lightactivelinecolor);
+  if FUseDarkStyle then
+    ASynEditorOptions.ActiveLineColor := DarkActiveLineColor
+  else
+    ASynEditorOptions.ActiveLineColor := LightActiveLineColor;
+
   if ASynEditHighilighter = nil then
   begin
     if LoadFileList then
@@ -555,11 +601,20 @@ end;
 procedure TeditorSettings.ReadSynEditorOptions(
   const ASynEditorOptions: TSynEditorOptionsContainer);
 
-  procedure UpdateEditorOptions(const AName: string; const AValue: TSynEditorOption;
+  procedure UpdateEditorOptions(const AName: string;
+    const AValue: TSynEditorOption;
     const ADefault: Boolean = True);
   begin
     if FIniFile.ReadBool(EDITOPTION_OPTIONS, AName, ADefault) then
       ASynEditorOptions.Options := ASynEditorOptions.Options + [AValue];
+  end;
+
+  procedure UpdateEditorScrollOptions(const AName: string;
+    const AValue: TSynEditorScrollOption;
+    const ADefault: Boolean = True);
+  begin
+    if FIniFile.ReadBool(EDITOPTION_OPTIONS, AName, ADefault) then
+      ASynEditorOptions.ScrollOptions := ASynEditorOptions.ScrollOptions + [AValue];
   end;
 
 begin
@@ -586,15 +641,13 @@ begin
   //Options
   ASynEditorOptions.Options := [];
   UpdateEditorOptions('AutoIndent', eoAutoIndent);
-  UpdateEditorOptions('AutoSizeMaxScrollWidth', eoAutoSizeMaxScrollWidth);
   UpdateEditorOptions('DragDropEditing',  eoDragDropEditing);
   UpdateEditorOptions('SmartTabs',  eoSmartTabs);
-  UpdateEditorOptions('AltSetsColumnMode',  eoAltSetsColumnMode);
-  UpdateEditorOptions('HalfPageScroll',  eoHalfPageScroll);
-  UpdateEditorOptions('ScrollByOneLess',  eoScrollByOneLess);
-  UpdateEditorOptions('ScrollPastEof',  eoScrollPastEof);
-  UpdateEditorOptions('ScrollPastEol',  eoScrollPastEol);
-  UpdateEditorOptions('ShowScrollHint',  eoShowScrollHint);
+  UpdateEditorScrollOptions('HalfPageScroll',  eoHalfPageScroll);
+  UpdateEditorScrollOptions('ScrollByOneLess',  eoScrollByOneLess);
+  UpdateEditorScrollOptions('ScrollPastEof',  eoScrollPastEof);
+  UpdateEditorScrollOptions('ScrollPastEol',  eoScrollPastEol);
+  UpdateEditorScrollOptions('ShowScrollHint',  eoShowScrollHint);
   UpdateEditorOptions('TabsToSpaces',  eoTabsToSpaces);
   UpdateEditorOptions('TrimTrailingSpaces',  eoTrimTrailingSpaces);
   UpdateEditorOptions('KeepCaretX',  eoKeepCaretX);
@@ -604,10 +657,11 @@ begin
   UpdateEditorOptions('EnhanceEndKey',  eoEnhanceEndKey);
   UpdateEditorOptions('GroupUndo',  eoGroupUndo);
   UpdateEditorOptions('TabIndent',  eoTabIndent);
-  UpdateEditorOptions('DisableScrollArrows',  eoDisableScrollArrows);
-  UpdateEditorOptions('HideShowScrollbars',  eoHideShowScrollbars);
-  UpdateEditorOptions('ShowSpecialChars',  eoShowSpecialChars, False);
+  UpdateEditorScrollOptions('DisableScrollArrows',  eoDisableScrollArrows);
+  UpdateEditorScrollOptions('HideShowScrollbars',  eoHideShowScrollbars);
   ASynEditorOptions.WantTabs := FIniFile.ReadBool(EDITOPTION_OPTIONS, 'WantTabs', False);
+  ASynEditorOptions.WordWrap := FIniFile.ReadBool(EDITOPTION_OPTIONS, 'WordWrap', True);
+
 (*
   //Caret
   cInsertCaret.ItemIndex := ord(ASynEditorOptions.InsertCaret);
@@ -643,6 +697,16 @@ var
   I: Integer;
 begin
   inherited;
+  if (DarkActiveLineColor <> default_darkactivelinecolor) then
+    FIniFile.WriteInteger('Global', 'DarkActiveLineColor', DarkActiveLineColor)
+  else
+    FIniFile.DeleteKey('Global', 'DarkActiveLineColor');
+
+  if (LightActiveLineColor <> default_lightactivelinecolor) then
+    FIniFile.WriteInteger('Global', 'LightActiveLineColor', LightActiveLineColor)
+  else
+    FIniFile.DeleteKey('Global', 'LightActiveLineColor');
+
   FIniFile.EraseSection(LAST_OPENED_SECTION);
   for I := 0 to HistoryFileList.Count -1 do
   begin
@@ -662,9 +726,16 @@ end;
 procedure TEditorSettings.WriteSynEditorOptions(
   const ASynEditorOptions: TSynEditorOptionsContainer);
 
-  procedure WriteEditorOptions(const AName: string; const AValue: TSynEditorOption);
+  procedure WriteEditorOptions(const AName: string;
+    const AValue: TSynEditorOption);
   begin
     FIniFile.WriteBool(EDITOPTION_OPTIONS, AName, AValue in ASynEditorOptions.Options);
+  end;
+
+  procedure WriteEditorScrollOptions(const AName: string;
+    const AValue: TSynEditorScrollOption);
+  begin
+    FIniFile.WriteBool(EDITOPTION_OPTIONS, AName, AValue in ASynEditorOptions.ScrollOptions);
   end;
 
 begin
@@ -688,15 +759,13 @@ begin
   FIniFile.WriteBool(EDITOPTION_BOOKMARK,'EnableKeys', ASynEditorOptions.BookMarkOptions.EnableKeys);
   FIniFile.WriteBool(EDITOPTION_BOOKMARK,'GlyphsVisible', ASynEditorOptions.BookMarkOptions.GlyphsVisible);
   WriteEditorOptions('AutoIndent', eoAutoIndent);
-  WriteEditorOptions('AutoSizeMaxScrollWidth', eoAutoSizeMaxScrollWidth);
   WriteEditorOptions('DragDropEditing',  eoDragDropEditing);
   WriteEditorOptions('SmartTabs',  eoSmartTabs);
-  WriteEditorOptions('AltSetsColumnMode',  eoAltSetsColumnMode);
-  WriteEditorOptions('HalfPageScroll',  eoHalfPageScroll);
-  WriteEditorOptions('ScrollByOneLess',  eoScrollByOneLess);
-  WriteEditorOptions('ScrollPastEof',  eoScrollPastEof);
-  WriteEditorOptions('ScrollPastEol',  eoScrollPastEol);
-  WriteEditorOptions('ShowScrollHint',  eoShowScrollHint);
+  WriteEditorScrollOptions('HalfPageScroll',  eoHalfPageScroll);
+  WriteEditorScrollOptions('ScrollByOneLess',  eoScrollByOneLess);
+  WriteEditorScrollOptions('ScrollPastEof',  eoScrollPastEof);
+  WriteEditorScrollOptions('ScrollPastEol',  eoScrollPastEol);
+  WriteEditorScrollOptions('ShowScrollHint',  eoShowScrollHint);
   WriteEditorOptions('TabsToSpaces',  eoTabsToSpaces);
   WriteEditorOptions('TrimTrailingSpaces',  eoTrimTrailingSpaces);
   WriteEditorOptions('KeepCaretX',  eoKeepCaretX);
@@ -706,10 +775,10 @@ begin
   WriteEditorOptions('EnhanceEndKey',  eoEnhanceEndKey);
   WriteEditorOptions('GroupUndo',  eoGroupUndo);
   WriteEditorOptions('TabIndent',  eoTabIndent);
-  WriteEditorOptions('DisableScrollArrows',  eoDisableScrollArrows);
-  WriteEditorOptions('HideShowScrollbars',  eoHideShowScrollbars);
-  WriteEditorOptions('ShowSpecialChars',  eoShowSpecialChars);
+  WriteEditorScrollOptions('DisableScrollArrows',  eoDisableScrollArrows);
+  WriteEditorScrollOptions('HideShowScrollbars',  eoHideShowScrollbars);
   FIniFile.WriteBool(EDITOPTION_OPTIONS, 'WantTabs', ASynEditorOptions.WantTabs);
+  FIniFile.WriteBool(EDITOPTION_OPTIONS, 'WordWrap', ASynEditorOptions.WordWrap);
 end;
 
 { TThemeAttribute }

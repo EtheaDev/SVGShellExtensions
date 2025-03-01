@@ -1,8 +1,8 @@
 ﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.2.3 - 14 Sep 2024**
+**Latest Version 3.3.0 - 01 Mar 2025**
 
-**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (Vista, 7, 8, 10 and 11):**
+**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):**
 
 - A [Preview handler][1]  which allows you to see the SVG image and text without open it, in the "Preview Panel".
  
@@ -12,7 +12,7 @@
 
 ### Features
 
-- Supports Windows Vista, 7, 8, 10 and 11 (for 32 bits and 64 bits).
+- Supports Windows 10 and 11 (for 32 bits and 64 bits).
 
 - Themes (Dark and Light) according to user preferences of Windows Theme
 
@@ -73,6 +73,13 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+
+01 Mar 2025: ver. 3.3.0
+- Added "Wordwrap option" for the editor (active by default)
+- Updated the latest Image32 library
+- Added Color options in Viewer GUI (Grayscale, FixedColor, ApplyFixedColorToRootOnly)
+- Added Color options in Editor GUI
+- Updated to Image32 4.6 Released Feb 2025 to fix some drawing issue
 
 14 Sep 2024: ver. 3.2.3
 - Built with Delphi 12.2

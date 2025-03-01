@@ -8,10 +8,8 @@ Software distributed under the License is distributed on an "AS IS" basis,
 WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
 the specific language governing rights and limitations under the License.
 
-Code template generated with SynGen.
-The original code is: C:\Delphi\Components\UniSynEdit\SynGen\yaml.pas, released 2008-06-13.
 Description: YAML Syntax Parser/Highlighter
-The initial author of this file is Kiriakos.
+The initial author of this file is PyScripter.
 Copyright (c) 2008, all rights reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -26,29 +24,20 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
 -------------------------------------------------------------------------------}
 
 unit SynHighlighterYAML;
 
-{$I SynEdit.inc}
-
 interface
 
 uses
-  Graphics,
-  SynEditHighlighter,
-  SysUtils,
-  Classes,
-  SynUnicode;
+  System.SysUtils,
+  System.Classes,
+  Vcl.Graphics,
+  SynEditHighlighter;
 
 //State constants
-Const
+const
   rsUnknown = 0;
   rsValue = 1;
   rsLiteralStart = 2;
@@ -57,6 +46,7 @@ Const
   rsString2 = 5;
   rsDirective = 6;
   rsDocDelimiter = 7;
+
 type
   TtkTokenKind = (
     tkComment,
@@ -95,7 +85,7 @@ type
     fDirectiveAttri: TSynHighlighterAttributes;
     fAnchorAttri: TSynHighlighterAttributes;
     fErrorAttri: TSynHighlighterAttributes;
-    fTempSpaceAttri : TSynHighlighterAttributes;
+    fTempSpaceAttri: TSynHighlighterAttributes;
     procedure KeyProc;
     procedure LiteralProc;
     procedure LiteralMarkProc;
@@ -148,62 +138,20 @@ type
     property ErrorAttri: TSynHighlighterAttributes read fErrorAttri write fErrorAttri;
   end;
 
-const
-  SYNS_LangYAML = 'YAML';
-  SYNS_AttrDocumentDelimiter = 'DocumentDelimiter';
-  SYNS_AttrKey = 'Key';
-  SYNS_AttrNumericValue = 'NumericValue';
-  SYNS_AttrTextValue = 'TextValue';
-  SYNS_AttrAnchor = 'Anchor';
-  SYNS_AttrTag = 'Tag';
-
-resourcestring
-  SYNS_FilterYAML = 'YAML files (*.yaml)|*.yaml';
-  SYNS_FriendlyLangYAML = 'YAML';
-  SYNS_FriendlyAttrDocumentDelimiter = 'Document Delimiter';
-  SYNS_FriendlyAttrKey = 'Key';
-  SYNS_FriendlyAttrNumericValue = 'Numeric Value';
-  SYNS_FriendlyAttrTextValue = 'Text Value';
-  SYNS_FriendlyAttrTag = 'Tag';
-  SYNS_FriendlyAttrAnchor = 'Anchor';
-
 implementation
 
 uses
-  Windows,
+  System.Character,
+  System.Math,
+  Winapi.Windows,
   SynEditStrConst,
-  Math;
-
-//Funzioni contenute in uCommonFunctions.pas del progetto pyScripter
-function CalcIndent(S : string; TabWidth : integer = 4): integer;
-Var
-  i : integer;
-begin
-  Result := 0;
-  for i := 1 to Length(S) do
-    if S[i] = #9 then
-      Inc(Result, TabWidth)
-    else if S[i] = ' ' then
-      Inc(Result)
-    else
-      break;
-end;
-
-function StrIsLeft(AText, ALeft: PWideChar): Boolean;
-(* checks if AText starts with ALeft *)
-begin
-  while (ALeft^ <> #0) and (AText^ <> #0) and (ALeft^ = AText^) do begin
-    Inc(ALeft);
-    Inc(AText);
-  end;
-  Result := ALeft^ = #0;
-end;
+  SynEditMiscProcs;
 
 procedure TSynYAMLSyn.SpaceProc;
 begin
-  inc(Run);
+  Inc(Run);
   fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynYAMLSyn.StringProc1;
@@ -240,22 +188,22 @@ end;
 procedure TSynYAMLSyn.TagProc;
 begin
   while not (IsLineEnd(Run) or (FLine[Run] <= #32)) do
-    inc(Run);
+    Inc(Run);
   fTokenID := tkTag;
 end;
 
 procedure TSynYAMLSyn.NullProc;
 begin
   fTokenID := tkNull;
-  inc(Run);
+  Inc(Run);
 end;
 
 procedure TSynYAMLSyn.CRProc;
 begin
   fTokenID := tkSpace;
-  inc(Run);
+  Inc(Run);
   if fLine[Run] = #10 then
-    inc(Run);
+    Inc(Run);
 end;
 
 destructor TSynYAMLSyn.Destroy;
@@ -268,7 +216,7 @@ procedure TSynYAMLSyn.DirectiveProc;
 begin
   fTokenID := tkDirective;
   while not IsLineEnd(Run) do
-    inc(Run);
+    Inc(Run);
   LongRec(fRange).Lo := rsUnknown;
 end;
 
@@ -276,18 +224,18 @@ procedure TSynYAMLSyn.DocDelimiterProc;
 begin
   fTokenID := tkDocDelimiter;
   while not IsLineEnd(Run) do
-    inc(Run);
+    Inc(Run);
 end;
 
 procedure TSynYAMLSyn.DoSetLine(const Value: UnicodeString; LineNumber: Integer);
-Const
-  sDocStart : UnicodeString = '---';
-  sDocEnd : UnicodeString = '...';
-Var
-  NewIndent : integer;
+const
+  sDocStart: UnicodeString = '---';
+  sDocEnd: UnicodeString = '...';
+var
+  NewIndent: Integer;
 begin
   inherited;
-  NewIndent := CalcIndent(fLineStr);
+  NewIndent := LeftSpaces(fLineStr, False);
 
   if LongRec(fRange).Lo = rsDocDelimiter then
    LongRec(fRange).Lo := rsUnknown;
@@ -295,7 +243,7 @@ begin
   if fLine^ = '%' then begin
     LongRec(fRange).Lo := rsDirective;
     LongRec(fRange).Hi := NewIndent;
-  end else if StrIsLeft(FLine, PWideChar(sDocStart)) or StrIsLeft(FLine, PWideChar(sDocEnd)) then begin
+  end else if FLineStr.StartsWith(sDocStart) or FLineStr.StartsWith(sDocEnd) then begin
     LongRec(fRange).Lo := rsDocDelimiter;
     LongRec(fRange).Hi := NewIndent;
   end else if (LongRec(fRange).Lo = rsLiteralStart) then begin
@@ -324,7 +272,7 @@ end;
 procedure TSynYAMLSyn.LFProc;
 begin
   fTokenID := tkSpace;
-  inc(Run);
+  Inc(Run);
 end;
 
 procedure TSynYAMLSyn.ListItemProc;
@@ -353,13 +301,13 @@ procedure TSynYAMLSyn.LiteralProc;
 begin
   fTokenID := tkLiteral;
   while (not IsLineEnd(Run)) and (FLine[Run] <> '#') do
-    inc(Run);
+    Inc(Run);
 end;
 
 procedure TSynYAMLSyn.AnchorProc;
 begin
   while not (IsLineEnd(Run) or (FLine[Run] <= #32)) do
-    inc(Run);
+    Inc(Run);
   fTokenID := tkAnchor;
 end;
 
@@ -367,13 +315,13 @@ procedure TSynYAMLSyn.CommentProc;
 begin
   fTokenID := tkComment;
   while not IsLineEnd(Run) do
-    inc(Run);
+    Inc(Run);
 end;
 
 constructor TSynYAMLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCaseSensitive := False;
+  fCaseSensitive := True;
 
   fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Foreground := clGray;
@@ -400,7 +348,7 @@ begin
 
   fSymbolAttri := TSynHighLighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   fSymbolAttri.Style := [fsBold];
-  fSymbolAttri.Foreground := clBlue;
+  fSymbolAttri.Foreground := $FF8844;
   AddAttribute(fSymbolAttri);
 
   fTagAttri := TSynHighLighterAttributes.Create(SYNS_AttrTag, SYNS_FriendlyAttrTag);
@@ -412,7 +360,7 @@ begin
   AddAttribute(fTextValueAttri);
 
   fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  fStringAttri.Foreground := clBlue;
+  fStringAttri.Foreground := $FF8844;
   AddAttribute(fStringAttri);
 
   fDirectiveAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective, SYNS_FriendlyAttrDirective);
@@ -446,7 +394,7 @@ begin
       if FLine[Run] = ' ' then
         Inc(Run);
       fTokenID := tkKey;
-      break;
+      Break;
     end else
       Inc(Run);
   end;
@@ -454,20 +402,20 @@ end;
 
 procedure TSynYAMLSyn.UnknownProc;
 begin
-  inc(Run);
+  Inc(Run);
   fTokenID := tkUnknown;
 end;
 
 procedure TSynYAMLSyn.ValueProc;
-Var
-  Start : Integer;
-  Val : UnicodeString;
-  FloatVal : Extended;
+var
+  Start: Integer;
+  Val:  UnicodeString;
+  FloatVal: Extended;
 begin
   Start := Run;
   fTokenID := tkLiteral;
   while (not IsLineEnd(Run)) and (FLine[Run] <> '#') do
-    inc(Run);
+    Inc(Run);
   Val := Copy(FLineStr, Start, Run - Start + 1);
   if TryStrToFloat(Trim(Val), FloatVal) then
     fTokenId := tkNumericValue;
@@ -477,8 +425,8 @@ procedure TSynYAMLSyn.Next;
 begin
   fTokenPos := Run;
   case LongRec(fRange).Lo of
-    rsDirective : DirectiveProc;
-    rsString1 :
+    rsDirective: DirectiveProc;
+    rsString1:
       case fLine[Run] of
         #0: NullProc;
         #10: LFProc;
@@ -486,7 +434,7 @@ begin
       else
         StringProc1;
       end;
-    rsString2 :
+    rsString2:
       case fLine[Run] of
         #0: NullProc;
         #10: LFProc;
@@ -494,7 +442,7 @@ begin
       else
         StringProc2;
       end;
-    rsDocDelimiter :
+    rsDocDelimiter:
       case fLine[Run] of
         #0: NullProc;
         #10: LFProc;
@@ -502,7 +450,7 @@ begin
       else
         DocDelimiterProc;
       end;
-    rsLiteralStart :
+    rsLiteralStart:
       case fLine[Run] of
         #0: NullProc;
         #10: LFProc;
@@ -511,7 +459,7 @@ begin
       else
         UnknownProc;
       end;
-    rsLiteral :
+    rsLiteral:
       case fLine[Run] of
         #0: NullProc;
         #10: LFProc;
@@ -520,7 +468,7 @@ begin
       else
         LiteralProc;
       end;
-    rsValue :
+    rsValue:
       case fLine[Run] of
         #0: NullProc;
         #10: LFProc;
@@ -529,7 +477,7 @@ begin
         '|': LiteralMarkProc;
         '>': FoldedLiteralMarkProc;
         '-': ListItemProc;
-        '&', '*' : AnchorProc;
+        '&', '*': AnchorProc;
         '"':
           begin
             Inc(Run);
@@ -624,12 +572,7 @@ end;
 
 function TSynYAMLSyn.IsIdentChar(AChar: WideChar): Boolean;
 begin
-  case AChar of
-    '_', '0'..'9', 'a'..'z', 'A'..'Z':
-      Result := True;
-    else
-      Result := False;
-  end;
+  Result := AChar.IsLetterOrDigit or (AChar = '_');
 end;
 
 function TSynYAMLSyn.GetSampleSource: UnicodeString;
@@ -675,6 +618,11 @@ begin
   Result := fDefaultFilter <> SYNS_FilterYAML;
 end;
 
+class function TSynYAMLSyn.GetFriendlyLanguageName: UnicodeString;
+begin
+  Result := SYNS_FriendlyLangYAML;
+end;
+
 class function TSynYAMLSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangYAML;
@@ -695,14 +643,6 @@ begin
   Result := Pointer(fRange);
 end;
 
-{$IFNDEF SYN_CPPB_1}
-class function TSynYAMLSyn.GetFriendlyLanguageName: UnicodeString;
-begin
-  Result := SYNS_FriendlyLangYAML;
-end;
-
 initialization
-
   RegisterPlaceableHighlighter(TSynYAMLSyn);
-{$ENDIF}
 end.

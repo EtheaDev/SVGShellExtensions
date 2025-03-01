@@ -2,7 +2,7 @@
 {                                                                              }
 {  Vcl.StyledGraphicUtils: utilities for Styled Components                     }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -108,8 +108,6 @@ var
   LImagePng: TPngImage;
   LBitmap: TBitmap;
   LFileName: string;
-  BmpRGBA: ^TRGBAArray;
-  PngRGB: ^TRGB;
 begin
   //Notice: this procedure works fine olny with
   //DrawTextWithGDIPlus and DrawRectWithGDIPlus compiler directives

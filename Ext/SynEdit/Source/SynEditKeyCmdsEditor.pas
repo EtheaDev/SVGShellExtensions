@@ -26,30 +26,15 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditKeyCmdsEditor.pas,v 1.10.2.2 2004/12/10 15:31:05 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITKEYCMDSEDITOR}
 unit SynEditKeyCmdsEditor;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  {$IFDEF SYN_COMPILER_15_UP}
-  Types,
-  {$ENDIF}
-  {$IFDEF SYN_COMPILER_17_UP}
-  UITypes,
-  {$ENDIF}
   Windows,
   Messages,
   Graphics,
@@ -109,6 +94,8 @@ implementation
 {$R *.dfm}
 
 uses
+  Types,
+  UITypes,
   SynEditKeyCmdEditor,
   SynEditStrConst;
 
@@ -122,7 +109,7 @@ end;
 
 destructor TSynEditKeystrokesEditorForm.Destroy;
 begin
-  if Assigned(FKeystrokes) then FKeystrokes.Free;
+  if Assigned(FKeyStrokes) then FKeystrokes.Free;
   inherited Destroy;
 end;
 
@@ -137,26 +124,26 @@ end;
 
 procedure TSynEditKeystrokesEditorForm.UpdateKeystrokesList;
 var
-  x: Integer;
+  I: Integer;
 begin
   KeyCmdList.Items.BeginUpdate;
   try
     KeyCmdList.Items.Clear;
-    for x := 0 to FKeystrokes.Count-1 do
+    for I := 0 to FKeystrokes.Count-1 do
     begin
       with KeyCmdList.Items.Add do
       begin
         if FExtended then
-          Caption := ConvertCodeStringToExtended(EditorCommandToCodeString(FKeystrokes[x].Command))
-        else Caption := EditorCommandToCodeString(FKeystrokes[x].Command);
-        if FKeystrokes[x].ShortCut = 0 then
+          Caption := ConvertCodeStringToExtended(EditorCommandToCodeString(FKeystrokes[I].Command))
+        else Caption := EditorCommandToCodeString(FKeystrokes[I].Command);
+        if FKeystrokes[I].ShortCut = 0 then
           SubItems.Add(SYNS_ShortCutNone)
         else
-          if FKeystrokes[x].ShortCut2 = 0 then
-            SubItems.Add(Menus.ShortCutToText(FKeystrokes[x].ShortCut))
+          if FKeystrokes[I].ShortCut2 = 0 then
+            SubItems.Add(Menus.ShortCutToText(FKeystrokes[I].ShortCut))
           else
-            SubItems.Add(Menus.ShortCutToText(FKeystrokes[x].ShortCut)+ ' '+
-              Menus.ShortCutToText(FKeystrokes[x].ShortCut2));
+            SubItems.Add(Menus.ShortCutToText(FKeystrokes[I].ShortCut)+ ' '+
+              Menus.ShortCutToText(FKeystrokes[I].ShortCut2));
       end;
     end;
   finally
@@ -192,10 +179,10 @@ begin
   Msg.MinMaxInfo.ptMinTrackSize := Point(300, 225);
 end;
 
-procedure TSynEditKeystrokesEditorForm.btnAddClick(Sender: TObject);            //DDH 10/16/01 Begin (reworked proc)
+procedure TSynEditKeystrokesEditorForm.btnAddClick(Sender: TObject);
 var
   NewStroke: TSynEditKeyStroke;
-  AForm : TSynEditKeystrokeEditorForm;
+  AForm: TSynEditKeystrokeEditorForm;
 
   function AddKeyStroke: Boolean;
   var
@@ -246,7 +233,6 @@ begin
 
       if AddKeyStroke then
       begin
-
         with KeyCmdList.Items.Add do
         begin
           if FExtended then
@@ -313,6 +299,21 @@ var
         // Some other kind of exception, we don't deal with it...
       end;
     end;
+(*
+      if ShowModal = mrOK then
+      begin
+
+        try
+        except
+          on ESynKeyError do
+            begin
+              // Shortcut already exists in the collection!
+              MessageDlg(Format(SYNS_DuplicateShortcutMsg2,
+                [Menus.ShortCutToText(Keystroke)]), mtError, [mbOK], 0);
+            end;
+          // Some other kind of exception, we don't deal with it...
+        end;
+*)
   end;
 begin
   SelItem := KeyCmdList.Selected;
@@ -355,7 +356,7 @@ begin
     finally
       AForm.Free;
     end;
-end;                                                                            //DDH 10/16/01 End (reworked procs)
+end;
 
 procedure TSynEditKeystrokesEditorForm.btnDeleteClick(Sender: TObject);
 var
@@ -385,9 +386,7 @@ end;
 
 procedure TSynEditKeystrokesEditorForm.FormCreate(Sender: TObject);
 begin
-  {$IFDEF SYN_COMPILER_3_UP}
   KeyCmdList.RowSelect := True;
-  {$ENDIF}
 end;
 
 procedure TSynEditKeystrokesEditorForm.btnOKClick(Sender: TObject);

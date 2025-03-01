@@ -1,8 +1,8 @@
 inherited TextReplaceDialog: TTextReplaceDialog
   Caption = 'Replace text'
-  ClientHeight = 184
+  ClientHeight = 206
   OldCreateOrder = True
-  ExplicitHeight = 213
+  ExplicitHeight = 235
   PixelsPerInch = 96
   TextHeight = 13
   object ReplaceWidthLabel: TLabel [0]
@@ -14,37 +14,30 @@ inherited TextReplaceDialog: TTextReplaceDialog
     AutoSize = False
     Caption = '&Replace with:'
   end
-  inherited SearchForLabel: TLabel
-    Left = 38
-    Width = 52
-    ExplicitLeft = 38
-    ExplicitWidth = 52
+  inherited cbSearchText: TComboBox
+    TabOrder = 5
   end
   inherited FSearchOptions: TGroupBox
     Top = 70
-    TabOrder = 2
     ExplicitTop = 70
   end
   inherited FSearchDirection: TRadioGroup
     Top = 70
-    TabOrder = 3
     ExplicitTop = 70
   end
   inherited btnOK: TButton
-    Top = 155
-    TabOrder = 4
-    ExplicitTop = 155
+    Top = 174
+    ExplicitTop = 174
   end
-  inherited btnCancel: TButton
-    Top = 155
-    TabOrder = 5
-    ExplicitTop = 155
-  end
-  object cbReplaceText: TComboBox
+  object cbReplaceText: TComboBox [6]
     Left = 96
     Top = 37
     Width = 228
     Height = 21
-    TabOrder = 1
+    TabOrder = 0
+  end
+  inherited btnCancel: TButton
+    Top = 174
+    ExplicitTop = 174
   end
 end

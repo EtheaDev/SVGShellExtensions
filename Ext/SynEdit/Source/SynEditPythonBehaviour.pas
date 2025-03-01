@@ -25,13 +25,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynEditPythonBehaviour.pas,v 1.5.2.3 2008/09/14 16:24:59 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides a component which implements editing rules to apply to a Python source file)
@@ -39,24 +32,18 @@ Known Issues:
 @created(1999-10-17)
 @lastmod(May 19, 2000)
 The  SynEditPythonBehaviour unit provides a simple component implements editing rules to apply
-to a python source file. Python has a unusual way to mark blocks (like begin/end in pascal) : it
+to a python source file. Python has a unusual way to mark blocks (like begin/end in pascal): it
 uses indentation. So the rule is after a ":" and a line break, we have to indent once.
 }
-{$IFNDEF QSYNEDITPYTHONBEHAVIOUR}
 unit SynEditPythonBehaviour;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  Windows, Messages, Graphics, Controls, Forms, Dialogs,
-  SynEdit,
-  SynEditKeyCmds,
-  SynUnicode,
-  SysUtils,
-  Classes;
+  Windows, Messages, Graphics, Controls, Forms, Dialogs, SynEdit, SynEditKeyCmds,
+  SynUnicode, SysUtils, Classes, SynEditTypes;
 
 type
   TSynEditPythonBehaviour = class(TComponent)
@@ -96,10 +83,10 @@ end;
 procedure TSynEditPythonBehaviour.doProcessUserCommand(Sender: TObject;
   AfterProcessing: Boolean; var Handled: Boolean;
   var Command: TSynEditorCommand; var AChar: WideChar; Data: Pointer;
-  HandlerData: Pointer);
+  HandlerData: pointer);
 var
   iEditor: TCustomSynEdit;
-  iPrevLine: UnicodeString;
+  iPrevLine: string;
   cSpace: Integer;
 begin
   if (Command = ecLineBreak) and AfterProcessing then
@@ -107,15 +94,15 @@ begin
     iEditor := Sender as TCustomSynEdit;
     { CaretY should never be lesser than 2 right after ecLineBreak, so there's
     no need for a check }
-    iPrevLine := WideTrimRight(iEditor.Lines[iEditor.CaretY - 2]);
+    iPrevLine := TrimRight(iEditor.Lines[iEditor.CaretY - 2]);
     if (iPrevLine <> '') and (iPrevLine[Length(iPrevLine)] = ':') then
     begin
-      iEditor.UndoList.BeginBlock;
+      iEditor.BeginUndoBlock;
       try
         for cSpace := 1 to Indent do
           iEditor.ExecuteCommand(ecChar, #32, nil);
       finally
-        iEditor.UndoList.EndBlock;
+        iEditor.EndUndoBlock;
       end;
     end;
   end;
@@ -128,3 +115,4 @@ begin
 end;
 
 end.
+

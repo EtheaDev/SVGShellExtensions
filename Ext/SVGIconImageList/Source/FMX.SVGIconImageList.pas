@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/FMX                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -47,7 +47,7 @@ uses
   ;
 
 const
-  SVGIconImageListVersion = '4.1.9';
+  SVGIconImageListVersion = '4.4.1';
   DEFAULT_SIZE = 32;
   ZOOM_DEFAULT = 100;
   SVG_INHERIT_COLOR = TAlphaColors.Null;
@@ -202,6 +202,8 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
     procedure DeleteIcon(const AIndex: Integer);
+    function AddIcon(const ASVGText: string;
+      const AIconName: string = ''): TSVGIconSourceItem;
     function InsertIcon(const AIndex: Integer;
       const ASVGText: string; const AIconName: string = ''): TSVGIconSourceItem;
     function CloneIcon(const AIndex: Integer; const AInsertIndex: Integer = -1): TSVGIconSourceItem;
@@ -787,6 +789,15 @@ begin
   finally
     LSVG.Free;
   end;
+end;
+
+function TSVGIconImageList.AddIcon(const ASVGText,
+  AIconName: string): TSVGIconSourceItem;
+begin
+  if Count = 0 then
+    Result := InsertIcon(0, ASVGText, AIconName)
+  else
+    Result := InsertIcon(Source.Count, ASVGText, AIconName);
 end;
 
 procedure TSVGIconImageList.Assign(Source: TPersistent);

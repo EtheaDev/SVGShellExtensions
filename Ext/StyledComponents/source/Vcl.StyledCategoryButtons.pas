@@ -3,7 +3,7 @@
 {  StyledCategoryButtons: a Styled CategoryButtons with TStyledButtonItem      }
 {  Based on TCategoryButtons and TButtonItem                                   }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -83,6 +83,7 @@ type
 
   { TStyledButtonCategory }
   TStyledButtonCategory = class(TButtonCategory)
+  protected
   public
     constructor Create(Collection: TCollection); override;
   end;
@@ -236,6 +237,7 @@ type
     procedure SetCursor(const AValue: TCursor);
     procedure SetImageAlignment(const AValue: TImageAlignment);
     function GetScaleFactor: Single;
+    function CalcMaxBorderWidth: Integer;
     function GetButtonCategories: TStyledButtonCategories;
     procedure SetButtonCategories(const AValue: TStyledButtonCategories);
     procedure SetImageMargins(const AValue: TImageMargins);
@@ -247,6 +249,9 @@ type
     //Windows messages
     procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
   protected
+    {$IFDEF D10_1+}
+    procedure ChangeScale(M, D: Integer; isDpiChange: Boolean); override;
+    {$ENDIF}
     procedure Loaded; override;
 
     function GetButtonCategoriesClass: TButtonCategoriesClass; override;
@@ -365,6 +370,21 @@ begin
   inherited;
   ApplyButtonStyle;
 end;
+
+{$IFDEF D10_1+}
+procedure TStyledCategoryButtons.ChangeScale(M, D: Integer;
+  isDpiChange: Boolean);
+begin
+  inherited;
+  {$IFNDEF D10_4+}
+  //Fixed in Delphi 10.4
+  ButtonWidth := MulDiv(ButtonWidth, M, D);
+  ButtonHeight := MulDiv(ButtonHeight, M, D);
+  Resize;
+  UpdateAllButtons;
+  {$ENDIF}
+end;
+{$ENDIF}
 
 constructor TStyledCategoryButtons.Create(AOwner: TComponent);
 begin
@@ -513,7 +533,8 @@ begin
 
   //Calculate LTextRect and LImageRect using ImageMargins and ImageAlignment
   CalcImageAndTextRect(ASurfaceRect, ACaption, LTextRect, LImageRect,
-    LImageWidth, LImageHeight, FImageAlignment, FImageMargins, GetScaleFactor);
+    LImageWidth, LImageHeight, FImageAlignment, FImageMargins,
+    CalcMaxBorderWidth, GetScaleFactor);
 
   if LUseImageList and not Assigned(OnDrawIcon) then
   begin
@@ -753,6 +774,15 @@ begin
       iaBottom: FImageMargins.Bottom := AdJustMargin(FImageMargins.Bottom, DEFAULT_IMAGE_VMARGIN);
     end;
   end;
+end;
+
+function TStyledCategoryButtons.CalcMaxBorderWidth: Integer;
+begin
+  Result := Max(Max(Max(Max(FButtonStyleNormal.BorderWidth,
+    FButtonStylePressed.BorderWidth),
+    FButtonStyleSelected.BorderWidth),
+    FButtonStyleHot.BorderWidth),
+    FButtonStyleDisabled.BorderWidth);
 end;
 
 function TStyledCategoryButtons.ImageMarginsStored: Boolean;

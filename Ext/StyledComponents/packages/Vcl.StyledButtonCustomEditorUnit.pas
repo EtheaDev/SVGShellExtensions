@@ -2,7 +2,7 @@
 {                                                                              }
 {  StyledButton Attributes Editor: Component editor for Styled Button          }
 {                                                                              }
-{  Copyright (c) 2022-2024 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -48,8 +48,7 @@ uses
   Vcl.BootstrapButtonStyles,
   Vcl.AngularButtonStyles,
   Vcl.ColorButtonStyles,
-  Vcl.ImgList,
-  Vcl.StyledAttributesFrameUnit;
+  Vcl.ImgList;
 
 type
   TStyledButtonCustomEditor = class(TForm)
@@ -256,8 +255,7 @@ var
   LPos: Integer;
   LDrawName: string;
 begin
-  Caption := Format(Caption, [StyledButtonsVersion]);
-(*
+  Caption := Format(Caption, [StyledComponentsVersion]);
   for I := Low(TStyledButtonDrawType) to High(TStyledButtonDrawType) do
   begin
     LDrawName := GetEnumName(TypeInfo(TStyledButtonDrawType), Ord(I));
@@ -268,7 +266,6 @@ begin
   EnabledCheckBox.Checked := SourceButton.Enabled;
   RadiusTrackBar.Position := SourceButton.StyleRadius;
   FlatButtonCheckBox.Checked := SourceButton.Flat;
-*)
   UpdateDestFromGUI;
 end;
 

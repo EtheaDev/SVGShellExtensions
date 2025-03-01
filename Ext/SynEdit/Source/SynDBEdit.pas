@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
 The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
@@ -12,7 +12,7 @@ The Original Code is: SynDBEdit.pas, released 2000-05-05.
 The Original Code is based on DBmwEdit.pas by Vladimir Kuznetsov, part of
 the mwEdit component suite.
 Portions created by Vladimir Kuznetsov are Copyright (C) 1999 Vladimir Kuznetsov.
-Unicode translation by Maël Hörz.
+Unicode translation by MaÃ«l HÃ¶rz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,32 +27,21 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynDBEdit.pas,v 1.11.2.2 2009/06/14 13:33:38 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNDBEDIT}
 unit SynDBEdit;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFNDEF SYN_COMPILER_3_UP}
-  DbTables,
-{$ENDIF}
   Windows,
   Messages,
   Controls,
   DbCtrls,
   SynEdit,
+  SynEditTypes,
   SynEditKeyCmds,
   SysUtils,
   Classes,
@@ -62,7 +51,7 @@ type
   TCustomDBSynEdit = class(TCustomSynEdit)
   private
     FDataLink: TFieldDataLink;
-    FEditing: Boolean;
+    fEditing: Boolean;
     FBeginEdit: Boolean;
     FLoadData: TNotifyEvent;
     procedure DataChange(Sender: TObject);
@@ -88,7 +77,7 @@ type
     destructor Destroy; override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure ExecuteCommand(Command: TSynEditorCommand; AChar: WideChar;
-      Data: Pointer); override;
+      Data: pointer); override;
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
@@ -96,7 +85,7 @@ type
     property DataField: string read GetDataField write SetDataField;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
     property Field: TField read GetField;
-    property OnLoadData: TNotifyEvent read FLoadData write FLoadData;
+    property OnLoadData: TNotifyEvent read fLoadData write fLoadData;
   end;
 
   TDBSynEdit = class(TCustomDBSynEdit)
@@ -108,11 +97,10 @@ type
     // TCustomDBSynEdit events
     property OnLoadData;
     // inherited properties
+    property ActiveLineColor;
     property Align;
-  {$IFDEF SYN_COMPILER_4_UP}
     property Anchors;
     property Constraints;
-  {$ENDIF}
     property Color;
     property Ctl3D;
     property Enabled;
@@ -135,9 +123,7 @@ type
     property OnDblClick;
     property OnDragDrop;
     property OnDragOver;
-  {$IFDEF SYN_COMPILER_4_UP}
     property OnEndDock;
-  {$ENDIF}
     property OnEndDrag;
     property OnEnter;
     property OnExit;
@@ -147,9 +133,7 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-  {$IFDEF SYN_COMPILER_4_UP}
     property OnStartDock;
-  {$ENDIF}
     property OnStartDrag;
     // TCustomSynEdit properties
     property BookMarkOptions;
@@ -163,7 +147,6 @@ type
     property InsertCaret;
     property InsertMode;
     property Keystrokes;
-    property MaxScrollWidth;
     property MaxUndo;
     property Options;
     property OverwriteCaret;
@@ -173,7 +156,6 @@ type
     property ScrollBars;
     property SearchEngine;
     property SelectedColor;
-    property SelectionMode;
     property TabWidth;
     property WantTabs;
     // TCustomSynEdit events
@@ -182,7 +164,6 @@ type
     property OnDropFiles;
     property OnGutterClick;
     property OnGutterGetText;
-    property OnGutterPaint;
     property OnPaint;
     property OnPlaceBookmark;
     property OnProcessCommand;
@@ -232,7 +213,7 @@ end;
 
 procedure TCustomDBSynEdit.CMGetDataLink(var Msg: TMessage);
 begin
-  Msg.Result := LRESULT(FDataLink);
+  Msg.Result := Integer(FDataLink);
 end;
 
 procedure TCustomDBSynEdit.DataChange(Sender: TObject);
@@ -244,11 +225,9 @@ begin
       FBeginEdit := False;
       Exit;
     end;
-{$IFDEF SYN_COMPILER_3_UP}
     if FDataLink.Field.IsBlob then
       LoadMemo
     else
-{$ENDIF}
       Text := FDataLink.Field.Text;
     if Assigned(FLoadData) then
       FLoadData(Self);
@@ -280,7 +259,7 @@ begin
 end;
 
 procedure TCustomDBSynEdit.ExecuteCommand(Command: TSynEditorCommand;
-  AChar: WideChar; Data: Pointer);
+  AChar: WideChar; Data: pointer);
 begin
   // cancel on [ESC]
   if (Command = ecChar) and (AChar = #27) then
@@ -320,50 +299,30 @@ begin
 end;
 
 procedure TCustomDBSynEdit.LoadMemo;
-{$IFDEF UNICODE}
-const
- BlobFieldWideText = [ftWideMemo,ftWideString];
-{$ENDIF}
-{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
-{$ELSE}
-var
-  BlobStream: TBlobStream;
-  BlobField: TBlobField;
-{$ENDIF}
 begin
   try
-{$IFDEF SYN_COMPILER_3_UP}
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmRead);
-{$ELSE}
-    BlobField := FDataLink.Field as TBlobField;
-    BlobStream := TBlobStream.Create(BlobField, bmRead);
-{$ENDIF}
     Lines.BeginUpdate;
-{$IFDEF UNICODE}
-//03.12.2019 fix for unicode
-//Tested on UTF8 TEXT Sqlite3 & Zeos Unicode (UTF16) v7.2.6
-//For UTF8 use: System.SysUtils.TEncoding.UTF8
     if ((FDataLink.Field is  TBlobField) and
-	(TBlobField(FDataLink.Field).BlobType in BlobFieldWideText)) then
+	    (TBlobField(FDataLink.Field).BlobType in [ftWideMemo,ftWideString]))
+    then
       Lines.LoadFromStream(BlobStream, TEncoding.Unicode)
-    else Lines.LoadFromStream(BlobStream, TEncoding.Default);
-{$ELSE} //Non Unicode
-    Lines.LoadFromStream(BlobStream);
-{$ENDIF}
+    else
+      //For UTF8 use: System.SysUtils.TEncoding.UTF8
+      Lines.LoadFromStream(BlobStream, TEncoding.Default);
     Lines.EndUpdate;
     BlobStream.Free;
     Modified := False;
     ClearUndo;
   except
-    // Memo too large
+    // Memo too large 
     on E: EInvalidOperation do
       Lines.Text := Format('(%s)', [E.Message]);
   end;
   EditingChange(Self);
 end;
-
 
 procedure TCustomDBSynEdit.DoChange;
 begin
@@ -395,12 +354,10 @@ end;
 
 procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
-  if FEditing <> Value then
+  if fEditing <> Value then
   begin
-    FEditing := Value;
-{$IFDEF SYN_COMPILER_3_UP}
+    fEditing := Value;
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
-{$ENDIF}
       FDataLink.Reset;
   end;
 end;
@@ -411,20 +368,17 @@ begin
 end;
 
 procedure TCustomDBSynEdit.UpdateData(Sender: TObject);
-{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
-{$ENDIF}
 begin
-{$IFDEF SYN_COMPILER_3_UP}
   if FDataLink.Field.IsBlob then
   begin
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmWrite);
     Lines.SaveToStream(BlobStream);
     BlobStream.Free;
   end else
-{$ENDIF}
     FDataLink.Field.AsString := Text;
 end;
 
 end.
+

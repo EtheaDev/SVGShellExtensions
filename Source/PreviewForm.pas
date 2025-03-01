@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -69,6 +69,11 @@ type
     panelPreview: TPanel;
     BackgroundGrayScaleLabel: TLabel;
     BackgroundTrackBar: TTrackBar;
+    ColorPanel: TPanel;
+    GrayscaleCheckBox: TCheckBox;
+    ApplyToRootCheckBox: TCheckBox;
+    FixedColorBox: TColorBox;
+    FixedColorCheckBox: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure ToolButtonZoomInClick(Sender: TObject);
     procedure ToolButtonZoomOutClick(Sender: TObject);
@@ -83,6 +88,10 @@ type
     procedure ToolButtonMouseLeave(Sender: TObject);
     procedure SplitterMoved(Sender: TObject);
     procedure BackgroundTrackBarChange(Sender: TObject);
+    procedure ApplyToRootCheckBoxClick(Sender: TObject);
+    procedure GrayscaleCheckBoxClick(Sender: TObject);
+    procedure FixedColorBoxSelect(Sender: TObject);
+    procedure FixedColorCheckBoxClick(Sender: TObject);
   private
     FFontSize: Integer;
     FSimpleText: string;
@@ -99,6 +108,13 @@ type
     procedure SaveSettings;
     procedure SetEditorFontSize(const Value: Integer);
     procedure UpdateHighlighter;
+    function GetApplyToRootOnly: Boolean;
+    function GetFixedColor: TColor;
+    function GetGrayScale: Boolean;
+    procedure SetApplyToRootOnly(const Value: Boolean);
+    procedure SetFixedColor(const Value: TColor);
+    procedure SetGrayScale(const Value: Boolean);
+    procedure UpdateColorGUI;
   protected
   public
     procedure ScaleControls(const ANewPPI: Integer);
@@ -109,6 +125,9 @@ type
     procedure LoadFromFile(const AFileName: string);
     procedure LoadFromStream(const AStream: TStream);
     property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
+    property FixedColor: TColor read GetFixedColor write SetFixedColor;
+    property ApplyToRootOnly: Boolean read GetApplyToRootOnly write SetApplyToRootOnly;
+    property GrayScale: Boolean read GetGrayScale write SetGrayScale;
   end;
 
 
@@ -144,6 +163,12 @@ begin
   // log unhandled exceptions (TSynEdit, etc)
   TLogPreview.Add('AppException');
   TLogPreview.Add(E);
+end;
+
+procedure TFrmPreview.ApplyToRootCheckBoxClick(Sender: TObject);
+begin
+  inherited;
+  ApplyToRootOnly := ApplyToRootCheckBox.Checked;
 end;
 
 procedure TFrmPreview.BackgroundTrackBarChange(Sender: TObject);
@@ -225,6 +250,25 @@ begin
 {$ENDIF}
 end;
 
+procedure TFrmPreview.FixedColorBoxSelect(Sender: TObject);
+begin
+  inherited;
+  FixedColor := FixedColorBox.Selected;
+end;
+
+procedure TFrmPreview.FixedColorCheckBoxClick(Sender: TObject);
+begin
+  inherited;
+  if FixedColorCheckBox.Checked then
+  begin
+    FixedColorBox.Visible := True;
+    ApplyToRootCheckBox.Visible := True;
+    ApplyToRootCheckBox.Left := FixedColorBox.Left + 1;
+  end
+  else
+    FixedColor := clDefault;
+end;
+
 procedure TFrmPreview.FormCreate(Sender: TObject);
 var
   FileVersionStr: string;
@@ -262,6 +306,27 @@ begin
     StyledToolBar.ButtonWidth := Round(110 * Self.ScaleFactor);
   end;
   UpdateGUI;
+end;
+
+function TFrmPreview.GetApplyToRootOnly: Boolean;
+begin
+  Result := SVGIconImage.ApplyFixedColorToRootOnly;
+end;
+
+function TFrmPreview.GetFixedColor: TColor;
+begin
+  Result := SVGIconImage.FixedColor;
+end;
+
+function TFrmPreview.GetGrayScale: Boolean;
+begin
+  Result := SVGIconImage.GrayScale;
+end;
+
+procedure TFrmPreview.GrayscaleCheckBoxClick(Sender: TObject);
+begin
+  inherited;
+  GrayScale := GrayscaleCheckBox.Checked;
 end;
 
 procedure TFrmPreview.LoadFromFile(const AFileName: string);
@@ -321,6 +386,13 @@ begin
   end;
 end;
 
+procedure TFrmPreview.SetApplyToRootOnly(const Value: Boolean);
+begin
+  ApplyToRootCheckBox.Checked := Value;
+  SVGIconImage.ApplyFixedColorToRootOnly := Value;
+  FPreviewSettings.ApplyToRootOnly := Value;
+end;
+
 procedure TFrmPreview.SetEditorFontSize(const Value: Integer);
 var
   LScaleFactor: Single;
@@ -339,6 +411,33 @@ begin
     SynEdit.Font.Size := Round(FFontSize * LScaleFactor);
     SynEdit.Gutter.Font.Size := SynEdit.Font.Size;
   end;
+end;
+
+procedure TFrmPreview.UpdateColorGUI;
+var
+  LUseFixedColor: Boolean;
+begin
+  LUseFixedColor := FixedColor <> clDefault;
+  FixedColorCheckBox.Checked := LUseFixedColor;
+  FixedColorBox.Visible := LUseFixedColor;
+  ApplyToRootCheckBox.Visible := LUseFixedColor;
+  ApplyToRootCheckBox.Left := FixedColorBox.Left + 1;
+  GrayscaleCheckBox.Checked := Grayscale;
+end;
+
+procedure TFrmPreview.SetFixedColor(const Value: TColor);
+begin
+  FixedColorBox.Selected := Value;
+  SVGIconImage.FixedColor := Value;
+  FPreviewSettings.FixedColor := Value;
+  UpdateColorGUI;
+end;
+
+procedure TFrmPreview.SetGrayScale(const Value: Boolean);
+begin
+  SVGIconImage.GrayScale := Value;
+  FPreviewSettings.GrayScale := Value;
+  UpdateColorGUI;
 end;
 
 procedure TFrmPreview.SplitterMoved(Sender: TObject);
@@ -415,6 +514,11 @@ begin
   TStyleManager.TrySetStyle(FPreviewSettings.StyleName, False);
 {$ENDIF}
   BackgroundTrackBar.Position := FPreviewSettings.LightBackground;
+
+  FixedColor := FPreviewSettings.FixedColor;
+  ApplyToRootOnly := FPreviewSettings.ApplyToRootOnly;
+  Grayscale := FPreviewSettings.GrayScale;
+
   SVGIconImage.UpdateSVGFactory;
   UpdateHighlighter;
   UpdateGUI;

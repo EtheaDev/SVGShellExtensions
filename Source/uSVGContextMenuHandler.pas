@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -218,7 +218,7 @@ begin
     try
       Reg.RootKey := HKEY_CLASSES_ROOT;
       TLogPreview.Add('TSVGContextMenuHandler: Open Registry');
-      if Reg.OpenKey('OpenSVGEditor\Shell\Open\Command', False) then
+      if Reg.OpenKey('Applications\SVGTextEditor.exe\Shell\Open\Command', False) then
       begin
         LCommand := Reg.ReadString('');
         LCommand := StringReplace(LCommand,' "%1"','', []);

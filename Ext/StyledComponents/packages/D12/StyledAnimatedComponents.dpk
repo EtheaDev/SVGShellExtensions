@@ -1,8 +1,9 @@
 {******************************************************************************}
 {                                                                              }
-{       StyledComponents: a set of Styled VCL Component                        }
+{       StyledAnimatedComponents: a set of StyledComponents with animations    }
+{       using Skia4Delphi (needs Skia Package already installed                }
 {                                                                              }
-{       Copyright (c) 2022-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2022-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -53,17 +54,12 @@ package StyledAnimatedComponents;
 {$IMAGEBASE $400000}
 {$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Ethea Styled Animated Components'}
+{$DESCRIPTION 'Ethea Styled Components with Animations by Skia4Delphi'}
 {$LIBSUFFIX AUTO}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
-  rtl,
-  vcl,
-  vclimg,
-  dbrtl,
-  vcldb,
   StyledComponents,
   Skia.Package.VCL,
   Skia.Package.RTL;

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
 The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
@@ -15,7 +15,7 @@ mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Hieke.
 Portions created by Michael Hieke are Copyright 2000 Michael Hieke.
 Portions created by James D. Jacobson are Copyright 1999 Martin Waldenburg.
-Unicode translation by Maël Hörz.
+Unicode translation by MaÃ«l HÃ¶rz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -29,18 +29,9 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynExportRTF.pas,v 1.10.2.3 2008/09/14 16:24:59 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEXPORTRTF}
 unit SynExportRTF;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -58,8 +49,8 @@ type
   TSynExporterRTF = class(TSynCustomExporter)
   private
     fAttributesChanged: Boolean;
-    FListColors: TList;
-    function ColorToRTF(AColor: TColor): UnicodeString;
+    fListColors: TList;
+    function ColorToRTF(AColor: TColor): string;
     function GetColorIndex(AColor: TColor): Integer;
   protected
     procedure FormatAfterLastAttribute; override;
@@ -70,10 +61,10 @@ type
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
       ForegroundChanged: Boolean; FontStylesChanged: TFontStyles); override;
     procedure FormatNewLine; override;
-    function GetFooter: UnicodeString; override;
+    function GetFooter: string; override;
     function GetFormatName: string; override;
-    function GetHeader: UnicodeString; override;
-    function ReplaceReservedChar(AChar: WideChar): UnicodeString; override;
+    function GetHeader: string; override;
+    function ReplaceReservedChar(AChar: WideChar): string; override;
     function UseBom: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -101,27 +92,27 @@ uses
 constructor TSynExporterRTF.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FListColors := TList.Create;
-  FDefaultFilter := SYNS_FilterRTF;
-  FClipboardFormat := RegisterClipboardFormat(CF_RTF);
+  fListColors := TList.Create;
+  fDefaultFilter := SYNS_FilterRTF;
+  fClipboardFormat := RegisterClipboardFormat(CF_RTF);
   FEncoding := seUTF8;
 end;
 
 destructor TSynExporterRTF.Destroy;
 begin
-  FListColors.Free;
-  FListColors := nil;
+  fListColors.Free;
+  fListColors := nil;
   inherited Destroy;
 end;
 
 procedure TSynExporterRTF.Clear;
 begin
   inherited Clear;
-  if Assigned(FListColors) then
-    FListColors.Clear;
+  if Assigned(fListColors) then
+    fListColors.Clear;
 end;
 
-function TSynExporterRTF.ColorToRTF(AColor: TColor): UnicodeString;
+function TSynExporterRTF.ColorToRTF(AColor: TColor): string;
 var
   Col: Integer;
 begin
@@ -138,7 +129,7 @@ end;
 procedure TSynExporterRTF.FormatAttributeDone(BackgroundChanged,
   ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 const
-  FontTags: array[TFontStyle] of UnicodeString = ('\b0', '\i0', '\ul0', '\strike0');
+  FontTags: array[TFontStyle] of string = ('\b0', '\i0', '\ul0', '\strike0');
 var
   AStyle: TFontStyle;
 begin
@@ -156,14 +147,14 @@ end;
 procedure TSynExporterRTF.FormatAttributeInit(BackgroundChanged,
   ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 const
-  FontTags: array[TFontStyle] of UnicodeString = ('\b', '\i', '\ul', '\strike');
+  FontTags: array[TFontStyle] of string = ('\b', '\i', '\ul', '\strike');
 var
   AStyle: TFontStyle;
 begin
   // background color
   if BackgroundChanged then
   begin
-    AddData(Format('\cb%d', [GetColorIndex(fLastBG)]));
+    AddData(Format('\chcbpat%d\cb%d', [GetColorIndex(fLastBG), GetColorIndex(fLastBG)]));
     fAttributesChanged := True;
   end;
   // text color
@@ -199,12 +190,12 @@ end;
 
 function TSynExporterRTF.GetColorIndex(AColor: TColor): Integer;
 begin
-  Result := FListColors.IndexOf(Pointer(AColor));
+  Result := fListColors.IndexOf(pointer(AColor));
   if Result = -1 then
-    Result := FListColors.Add(Pointer(AColor));
+    Result := fListColors.Add(pointer(AColor));
 end;
 
-function TSynExporterRTF.GetFooter: UnicodeString;
+function TSynExporterRTF.GetFooter: string;
 begin
   Result := '}';
 end;
@@ -214,11 +205,11 @@ begin
   Result := SYNS_ExporterFormatRTF;
 end;
 
-function TSynExporterRTF.GetHeader: UnicodeString;
+function TSynExporterRTF.GetHeader: string;
 var
   i: Integer;
 
-  function GetFontTable: UnicodeString;
+  function GetFontTable: string;
   begin
     Result := '{\fonttbl{\f0\fmodern ' + Font.Name;
     Result := Result + ';}}'#13#10;
@@ -228,8 +219,8 @@ begin
   Result := '{\rtf1\ansi\ansicpg1252\uc1\deff0\deftab720' + GetFontTable;
   // all the colors
   Result := Result + '{\colortbl';
-  for i := 0 to FListColors.Count - 1 do
-    Result := Result + ColorToRTF(TColor(FListColors[i]));
+  for i := 0 to fListColors.Count - 1 do
+    Result := Result + ColorToRTF(TColor(fListColors[i]));
   Result := Result + '}'#13#10;
   // title and creator comment
   Result := Result + '{\info{\comment Generated by the SynEdit RTF ' +
@@ -241,7 +232,7 @@ begin
     [2 * Font.Size]);
 end;
 
-function TSynExporterRTF.ReplaceReservedChar(AChar: WideChar): UnicodeString;
+function TSynExporterRTF.ReplaceReservedChar(AChar: WideChar): string;
 begin
   Result := '';
   case AChar of
@@ -249,9 +240,9 @@ begin
     '{': Result := '\{';
     '}': Result := '\}';
   end;
-  if Ord(AChar) > 127 then
+  if AChar > #127 then
   begin
-    if Ord(AChar) <= 255 then
+    if AChar <= #$00FF then
       Result := '\''' + LowerCase(IntToHex(Ord(AChar), 2))
     else
       // SmallInt type-cast is necessary because RTF

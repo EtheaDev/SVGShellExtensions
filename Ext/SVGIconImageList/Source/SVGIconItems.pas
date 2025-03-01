@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/VCL                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors: Vincent Parrett, Kiriakos Vlahos                         }
 {                                                                              }
@@ -125,7 +125,7 @@ uses
   VCL.Controls,
   VCL.Themes,
 {$IFDEF D10_3+}
-  BaseImageCollection,
+  Vcl.BaseImageCollection,
 {$ENDIF}
   SVGIconImageList,
   SVGIconImageCollection;

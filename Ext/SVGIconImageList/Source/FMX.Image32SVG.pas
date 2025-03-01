@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/FMX                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -175,7 +175,7 @@ begin
   LSource := TBitMapData.Create(FImage32.Width, FImage32.Height, TPixelFormat.RGBA);
 {$ELSE}
   LSource := TBitMapData.Create(FImage32.Width, FImage32.Height, TPixelFormat.BGRA);
-{$IFEND}
+{$ENDIF}
   LSource.Data := FImage32.PixelBase;
   LSource.Pitch := FImage32.Width * 4;
   ABitmap.SetSize(FImage32.Width, FImage32.Height);
@@ -189,8 +189,10 @@ end;
 
 initialization
 {$IFDEF MSWINDOWS}
-  FontManager.Load('Arial');
-  FontManager.Load('Times New Roman');
+  FontManager.LoadFontReaderFamily('Arial');
+  FontManager.LoadFontReaderFamily('Times New Roman');
+  FontManager.LoadFontReaderFamily('Segoe UI');
+  FontManager.LoadFontReaderFamily('Segoe UI Emoji');
 {$ENDIF}
 
 end.

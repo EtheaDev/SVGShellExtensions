@@ -8,12 +8,10 @@ object SynEditPrintMarginsDlg: TSynEditPrintMarginsDlg
   ClientWidth = 506
   Color = clBtnFace
   ParentFont = True
-  OldCreateOrder = True
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object Image1: TImage
     Left = 275
     Top = 10
@@ -1049,82 +1047,82 @@ object SynEditPrintMarginsDlg: TSynEditPrintMarginsDlg
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFF0}
   end
-  object LabelLeft: TLabel
+  object Label1: TLabel
     Left = 10
     Top = 44
     Width = 23
-    Height = 13
+    Height = 15
     Caption = 'Left:'
   end
-  object LabelRight: TLabel
+  object Label2: TLabel
     Left = 10
     Top = 69
-    Width = 29
-    Height = 13
+    Width = 31
+    Height = 15
     Caption = 'Right:'
   end
-  object LabelTop: TLabel
+  object Label3: TLabel
     Left = 10
     Top = 94
     Width = 22
-    Height = 13
+    Height = 15
     Caption = 'Top:'
   end
-  object LabelBottom: TLabel
+  object Label4: TLabel
     Left = 10
     Top = 119
-    Width = 38
-    Height = 13
+    Width = 43
+    Height = 15
     Caption = 'Bottom:'
   end
-  object LabelUnits: TLabel
+  object Label5: TLabel
     Left = 10
     Top = 14
-    Width = 28
-    Height = 13
+    Width = 30
+    Height = 15
     Caption = 'Units:'
   end
-  object LabelHeader: TLabel
+  object Label6: TLabel
     Left = 10
     Top = 174
-    Width = 39
-    Height = 13
+    Width = 41
+    Height = 15
     Caption = 'Header:'
   end
-  object LabelFooter: TLabel
+  object Label7: TLabel
     Left = 10
     Top = 199
-    Width = 36
-    Height = 13
+    Width = 37
+    Height = 15
     Caption = 'Footer:'
   end
-  object LabelInternalMargin: TLabel
+  object Label8: TLabel
     Left = 10
     Top = 224
-    Width = 87
-    Height = 13
+    Width = 96
+    Height = 15
     Caption = 'HFInternalMargin:'
   end
-  object LabelLeftIndent: TLabel
+  object Label9: TLabel
     Left = 10
     Top = 249
-    Width = 90
-    Height = 13
+    Width = 93
+    Height = 15
     Caption = 'LeftHFTextIndent:'
   end
-  object LabelRightIndent: TLabel
+  object Label10: TLabel
     Left = 10
     Top = 274
-    Width = 96
-    Height = 13
+    Width = 101
+    Height = 15
     Caption = 'RightHFTextIndent:'
   end
-  object LabelGutter: TLabel
+  object Label11: TLabel
     Left = 10
     Top = 144
-    Width = 31
-    Height = 13
-    Caption = 'Gutter'
+    Width = 36
+    Height = 15
+    Caption = 'Gutter:'
   end
   object OKBtn: TButton
     Left = 344
@@ -1158,77 +1156,77 @@ object SynEditPrintMarginsDlg: TSynEditPrintMarginsDlg
     Left = 110
     Top = 40
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 1
   end
   object EditRight: TEdit
     Left = 110
     Top = 65
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 2
   end
   object EditTop: TEdit
     Left = 110
     Top = 90
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 3
   end
   object EditBottom: TEdit
     Left = 110
     Top = 115
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 4
   end
   object EditGutter: TEdit
     Left = 110
     Top = 140
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 5
   end
   object EditHeader: TEdit
     Left = 110
     Top = 170
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 6
   end
   object EditFooter: TEdit
     Left = 110
     Top = 195
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 7
   end
   object EditHFInternalMargin: TEdit
     Left = 110
     Top = 220
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 8
   end
   object EditLeftHFTextIndent: TEdit
     Left = 110
     Top = 245
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 9
   end
   object EditRightHFTextIndent: TEdit
     Left = 110
     Top = 270
     Width = 151
-    Height = 21
+    Height = 23
     TabOrder = 10
   end
   object CBUnits: TComboBox
     Left = 110
     Top = 10
     Width = 151
-    Height = 21
+    Height = 23
     Style = csDropDownList
     TabOrder = 0
     OnChange = CBUnitsChange

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
 The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
@@ -12,7 +12,7 @@ The Original Code is: SynHighlighterUNIXShellScript.pas, released 2001-11-13.
 The Initial Author of this file is Stefan Ascher.
 Portions by Jan Verhoeven (http://jansfreeware.com/jfdelphi.htm)
 "Heredoc" syntax highlighting implementation by Marko Njezic.
-Unicode translation by Maël Hörz.
+Unicode translation by MaÃ«l HÃ¶rz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,13 +27,6 @@ under the MPL, indicate your decision by deleting the provisions above and
 replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
-
-$Id: SynHighlighterUNIXShellScript.pas,v 1.7.2.11 2008/09/14 16:25:03 maelh Exp $
-
-You may retrieve the latest version of this file at the SynEdit home page,
-located at http://SynEdit.SourceForge.net
-
-Known Issues:
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides a UNIX Shell Script highlighter for SynEdit)
@@ -76,21 +69,21 @@ type
 type
   TSynUNIXShellScriptSyn = class(TSynCustomHighlighter)
   private
-    FRange: TRangeState;
+    fRange: TRangeState;
 {$IFDEF SYN_HEREDOC}
-    FHeredocLength: Byte;
-    FHeredocChecksum: Word;
+    fHeredocLength: Byte;
+    fHeredocChecksum: Word;
 {$ENDIF}
     FTokenID: TtkTokenKind;
-    FStringAttri: TSynHighlighterAttributes;
-    FSymbolAttri: TSynHighlighterAttributes;
-    FKeyAttri: TSynHighlighterAttributes;
-    FSecondKeyAttri: TSynHighlighterAttributes;
-    FNumberAttri: TSynHighlighterAttributes;
-    FCommentAttri: TSynHighlighterAttributes;
-    FSpaceAttri: TSynHighlighterAttributes;
-    FIdentifierAttri: TSynHighlighterAttributes;
-    FVarAttri: TSynHighlighterAttributes;
+    fStringAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fSecondKeyAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fCommentAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fVarAttri: TSynHighlighterAttributes;
     procedure BraceOpenProc;
     procedure PointCommaProc;
     procedure CRProc;
@@ -111,12 +104,12 @@ type
     procedure HeredocProc;
 {$ENDIF}
   protected
-    function GetSampleSource: UnicodeString; override;
+    function GetSampleSource: string; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: UnicodeString; override;
+    class function GetFriendlyLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -125,31 +118,31 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
-    function IsSecondKeyWord(AToken: UnicodeString): Boolean;
+    function IsKeyword(const AKeyword: string): Boolean; override;
+    function IsSecondKeyWord(AToken: string): Boolean;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
-      write FCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
-      write FIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
-    property SecondKeyAttri: TSynHighlighterAttributes read FSecondKeyAttri
-      write FSecondKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
-      write FNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
-      write FSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read FStringAttri
-      write FStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
-      write FSymbolAttri;
-    property VarAttri: TSynHighlighterAttributes read FVarAttri
-      write FVarAttri;
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
+      write fCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
+      write fIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property SecondKeyAttri: TSynHighlighterAttributes read fSecondKeyAttri
+      write fSecondKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
+      write fNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
+      write fSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri
+      write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
+      write fSymbolAttri;
+    property VarAttri: TSynHighlighterAttributes read fVarAttri
+      write fVarAttri;
   end;
 
 implementation
@@ -159,7 +152,7 @@ uses
   SynEditStrConst;
 
 const
-  ShellScriptKeys: array[0..109] of UnicodeString = (
+  ShellScriptKeys: array[0..109] of string = (
     'awk', 'banner', 'basename', 'bdiff', 'bg', 'break', 'case', 'cat', 'cc',
     'cd', 'chdir', 'chgrp', 'chmod', 'chown', 'clear', 'compress', 'continue',
     'cp', 'cpio', 'cut', 'date', 'dd', 'df', 'diff', 'do', 'done', 'dtpad',
@@ -174,27 +167,27 @@ const
     'uuencode', 'vi', 'wait', 'wc', 'while', 'who', 'xtern', 'zcat', 'zip'
   );
 
-  ShellScriptSecondKeys: array[0..22] of UnicodeString = (
+  ShellScriptSecondKeys: array[0..22] of string = (
     'cdpath', 'editor', 'home', 'ifs', 'lang', 'lc_messages', 'lc_type',
     'ld_library_path', 'logname', 'mail', 'mailcheck', 'mailpath', 'manpath',
     'path', 'ps1', 'ps2', 'pwd', 'shacct', 'shell', 'shlib_path', 'term',
     'termcap', 'tz'
   );
 
-function TSynUNIXShellScriptSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
+function TSynUNIXShellScriptSyn.IsKeyword(const AKeyword: string): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: UnicodeString;
+  Token: string;
 begin
   First := 0;
   Last := High(ShellScriptKeys);
   Result := False;
-  Token := SynWideLowerCase(AKeyword);
+  Token := SysUtils.AnsiLowerCase(AKeyword);
 
   while First <= Last do
   begin
     I := (First + Last) shr 1;
-    Compare := WideCompareStr(ShellScriptKeys[I], Token);
+    Compare := CompareStr(ShellScriptKeys[I], Token);
     if Compare = 0 then
     begin
       Result := True;
@@ -205,19 +198,19 @@ begin
   end;
 end; { IsKeyWord }
 
-function TSynUNIXShellScriptSyn.IsSecondKeyWord(AToken: UnicodeString): Boolean;
+function TSynUNIXShellScriptSyn.IsSecondKeyWord(AToken: string): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: UnicodeString;
+  Token: string;
 begin
   First := 0;
   Last := High(ShellScriptSecondKeys);
   Result := False;
-  Token := SynWideLowerCase(AToken);
+  Token := SysUtils.AnsiLowerCase(AToken);
   while First <= Last do
   begin
     I := (First + Last) shr 1;
-    Compare := WideCompareStr(ShellScriptSecondKeys[i], Token);
+    Compare := CompareStr(ShellScriptSecondKeys[i], Token);
     if Compare = 0 then
     begin
       Result := True;
@@ -231,36 +224,36 @@ end; { IsSecondKeyWord }
 constructor TSynUNIXShellScriptSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FCaseSensitive := False;
-  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  FCommentAttri.Foreground := clGreen;
-  AddAttribute(FCommentAttri);
-  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
-  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  FKeyAttri.Foreground := clNavy;
-  FKeyAttri.Style := [fsBold];
-  AddAttribute(FKeyAttri);
-  FSecondKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord, SYNS_FriendlyAttrSecondReservedWord);
-  AddAttribute(FSecondKeyAttri);
-  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  FNumberAttri.Foreground := clBlue;
-  AddAttribute(FNumberAttri);
-  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
-  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  FStringAttri.Foreground := clMaroon;
-  AddAttribute(FStringAttri);
-  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  FSymbolAttri.Foreground := clRed;
-  AddAttribute(FSymbolAttri);
-  FVarAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
-  FVarAttri.Foreground := clPurple;
-  AddAttribute(FVarAttri);
+  fCaseSensitive := False;
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  fCommentAttri.Foreground := clGreen;
+  AddAttribute(fCommentAttri);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(fIdentifierAttri);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  fKeyAttri.Foreground := clNavy;
+  fKeyAttri.Style := [fsBold];
+  AddAttribute(fKeyAttri);
+  fSecondKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord, SYNS_FriendlyAttrSecondReservedWord);
+  AddAttribute(fSecondKeyAttri);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  fNumberAttri.Foreground := clBlue;
+  AddAttribute(fNumberAttri);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(fSpaceAttri);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  fStringAttri.Foreground := clMaroon;
+  AddAttribute(fStringAttri);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  fSymbolAttri.Foreground := clRed;
+  AddAttribute(fSymbolAttri);
+  fVarAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
+  fVarAttri.Foreground := clPurple;
+  AddAttribute(fVarAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  FRange := rsUnknown;
-  FDefaultFilter := SYNS_FilterUNIXShellScript;
+  fRange := rsUnknown;
+  fDefaultFilter := SYNS_FilterUNIXShellScript;
 end; { Create }
 
 destructor TSynUNIXShellScriptSyn.Destroy;
@@ -273,7 +266,7 @@ var
   cc: WideChar;
 begin
   Inc(Run);
-  FTokenID := tkVariable;
+  fTokenID := tkVariable;
   if IsLineEnd(Run) then Exit;
   cc := FLine[Run];
   Inc(Run);
@@ -297,45 +290,45 @@ procedure TSynUNIXShellScriptSyn.DotProc;
 
   function TestDot: Boolean;
   var
-    i: Integer;
+    I: Integer;
   begin
     Result := False;
-    i := Run;
-    Inc(i);
-    while CharInSet(FLine[i], ['a'..'z', 'A'..'Z']) do
-      Inc(i);
-    if i > (Run + 1) then
+    I := Run;
+    Inc(I);
+    while CharInSet(FLine[I], ['a'..'z', 'A'..'Z']) do
+      Inc(I);
+    if I > (Run + 1) then
       Result := True;
     if Result then
-      Run := i;
+      Run := I;
   end;
   
 begin
   // Don't highlight filenames like filename.zip
   if TestDot then
-    FTokenID := tkIdentifier
+    fTokenID := tkIdentifier
   else
   begin
     Inc(Run);
-    FTokenID := tkSymbol;
+    fTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynUNIXShellScriptSyn.BraceOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
 procedure TSynUNIXShellScriptSyn.PointCommaProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
 procedure TSynUNIXShellScriptSyn.CRProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   case FLine[Run + 1] of
     #10: Inc(Run, 2);
     else Inc(Run);
@@ -344,26 +337,26 @@ end;
 
 procedure TSynUNIXShellScriptSyn.IdentProc;
 begin
-  while IsIdentChar(FLine[Run]) do Inc(Run);
+  while IsIdentChar(fLine[Run]) do Inc(Run);
   if IsKeyWord(GetToken) then
   begin
-    FTokenID := tkKey;
+    fTokenId := tkKey;
     Exit;
   end
   else
-    FTokenID := tkIdentifier;
+    fTokenId := tkIdentifier;
     
   if IsSecondKeyWord(GetToken) then
-    FTokenID := tkSecondKey
+    fTokenId := tkSecondKey
   else if fLine[Run] = '=' then
     FTokenID := tkVariable
   else
-    FTokenID := tkIdentifier;
+    fTokenId := tkIdentifier;
 end;
 
 procedure TSynUNIXShellScriptSyn.LFProc;
 begin
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   Inc(Run);
 end;
 
@@ -391,7 +384,7 @@ begin
 {$IFDEF SYN_HEREDOC}
   if FLine[Run + 1] = '<' then
   begin
-    FTokenID := tkSymbol;
+    fTokenID := tkSymbol;
 
     SkipRun := 0;
     QuoteChar := #0;
@@ -421,25 +414,25 @@ begin
 
       if Len > 255 then
       begin
-        FTokenID := tkUnknown;
+        fTokenID := tkUnknown;
         Exit;
       end;
 
       if (QuoteChar <> #0) and (FLine[Run + SkipRun + Len] <> QuoteChar) then
       begin
-        FTokenID := tkUnknown;
+        fTokenID := tkUnknown;
         Exit;
       end;
 
       if IndentedHeredoc then
-        FRange := rsIndentedHeredoc
+        fRange := rsIndentedHeredoc
       else
-        FRange := rsHeredoc;
-      FHeredocLength := Len;
-      FHeredocChecksum := CalcFCS(FLine[Run + SkipRun], Len);
+        fRange := rsHeredoc;
+      fHeredocLength := Len;
+      fHeredocChecksum := CalcFCS(FLine[Run + SkipRun], Len);
 
       Inc(Run, SkipRun + Len);
-      FTokenID := tkString;
+      fTokenID := tkString;
     end
     else
       Inc(Run, 2);
@@ -448,13 +441,13 @@ begin
 {$ENDIF}
   begin
     Inc(Run);
-    FTokenID := tkSymbol;
+    fTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynUNIXShellScriptSyn.NullProc;
 begin
-  FTokenID := tkNull;
+  fTokenID := tkNull;
   Inc(Run);
 end;
 
@@ -472,7 +465,7 @@ procedure TSynUNIXShellScriptSyn.NumberProc;
 
 begin
   Inc(Run);
-  FTokenID := tkNumber;
+  fTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
@@ -486,7 +479,7 @@ end;
 procedure TSynUNIXShellScriptSyn.RoundOpenProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenId := tkSymbol;
 end;
 
 procedure TSynUNIXShellScriptSyn.SlashProc;
@@ -495,7 +488,7 @@ begin
   begin
     // Perl Styled Comment
     Inc(Run);
-    FTokenID := tkComment;
+    fTokenID := tkComment;
     while not IsLineEnd(Run) do
     begin
       Inc(Run);
@@ -504,14 +497,14 @@ begin
   else
   begin
     Inc(Run);
-    FTokenID := tkSymbol;
+    fTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynUNIXShellScriptSyn.SpaceProc;
 begin
   Inc(Run);
-  FTokenID := tkSpace;
+  fTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
@@ -521,7 +514,7 @@ var
 begin
 // Single and Double Quotes.
 
-  FTokenID := tkString;
+  fTokenID := tkString;
   QuoteChar := FLine[Run];      // either " or '
   if (FLine[Run + 1] = QuoteChar) and (FLine[Run + 2] = QuoteChar)
     then Inc(Run, 2);
@@ -535,7 +528,7 @@ end;
 procedure TSynUNIXShellScriptSyn.UnknownProc;
 begin
   Inc(Run);
-  FTokenID := tkUnknown;
+  fTokenID := tkUnknown;
 end;
 
 {$IFDEF SYN_HEREDOC}
@@ -557,23 +550,23 @@ procedure TSynUNIXShellScriptSyn.HeredocProc;
 var
   i: Integer;
 begin
-  if IsLineEnd(Run) and (FTokenPos = Run) then
+  if IsLineEnd(Run) and (fTokenPos = Run) then
   begin
     NextProcedure;
     Exit;
   end;
-  FTokenID := tkString;
+  fTokenID := tkString;
 
-  if FRange = rsIndentedHeredoc then
-    while FLine[Run] in [WideChar(#9), WideChar(#32)] do Inc(Run);
+  if fRange = rsIndentedHeredoc then
+    while FLine[Run] in [#$0009, #$0020] do Inc(Run);
 
-  if ((Run = 0) and (FRange = rsHeredoc)) or (FRange = rsIndentedHeredoc) then
+  if ((Run = 0) and (fRange = rsHeredoc)) or (fRange = rsIndentedHeredoc) then
   begin
     i := 0;
 
     while not IsLineEnd(FLine[Run + i]) do
     begin
-      if i > FHeredocLength then
+      if i > fHeredocLength then
       begin
         SkipToEOL;
         Exit;
@@ -581,15 +574,15 @@ begin
       Inc(i);
     end;
 
-    if i <> FHeredocLength then
+    if i <> fHeredocLength then
     begin
       SkipToEOL;
       Exit;
     end;
 
-    if (CalcFCS(FLine[Run], i) = FHeredocChecksum) then
+    if (CalcFCS(FLine[Run], i) = fHeredocChecksum) then
     begin
-      FRange := rsUnknown;
+      fRange := rsUnknown;
       Run := Run + i;
       Exit;
     end;
@@ -601,9 +594,9 @@ end;
 
 procedure TSynUNIXShellScriptSyn.Next;
 begin
-  FTokenPos := Run;
+  fTokenPos := Run;
 {$IFDEF SYN_HEREDOC}
-  if FRange in [rsHeredoc, rsIndentedHeredoc] then
+  if fRange in [rsHeredoc, rsIndentedHeredoc] then
     HeredocProc
   else
 {$ENDIF}
@@ -637,12 +630,12 @@ end;
 function TSynUNIXShellScriptSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := FCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := FKeyAttri;
-    SYN_ATTR_STRING: Result := FStringAttri;
-    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -650,7 +643,7 @@ end;
 
 function TSynUNIXShellScriptSyn.GetEol: Boolean;
 begin
-  Result := Run = FLineLen + 1;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynUNIXShellScriptSyn.GetRange: Pointer;
@@ -660,38 +653,38 @@ var
 {$ENDIF}
 begin
 {$IFDEF SYN_HEREDOC}
-  RangePointer.Range := Ord(FRange);
+  RangePointer.Range := Ord(fRange);
   RangePointer.Length := 0;
   RangePointer.Checksum := 0;
-  if FRange in [rsHeredoc, rsIndentedHeredoc] then
+  if fRange in [rsHeredoc, rsIndentedHeredoc] then
   begin
-    RangePointer.Length := FHeredocLength;
-    RangePointer.Checksum := FHeredocChecksum;
+    RangePointer.Length := fHeredocLength;
+    RangePointer.Checksum := fHeredocChecksum;
   end;
   Result := RangePointer.Ptr;
 {$ELSE}
-  Result := Pointer(FRange);
+  Result := Pointer(fRange);
 {$ENDIF}
 end;
 
 function TSynUNIXShellScriptSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := FTokenID;
+  Result := fTokenId;
 end;
 
 function TSynUNIXShellScriptSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case FTokenID of
-    tkComment: Result := FCommentAttri;
-    tkIdentifier: Result := FIdentifierAttri;
-    tkKey: Result := FKeyAttri;
-    tkSecondKey: Result := FSecondKeyAttri;
-    tkNumber: Result := FNumberAttri;
-    tkSpace: Result := FSpaceAttri;
-    tkString: Result := FStringAttri;
-    tkSymbol: Result := FSymbolAttri;
-    tkVariable: Result := FVarAttri;
-    tkUnknown: Result := FSymbolAttri;
+  case fTokenID of
+    tkComment: Result := fCommentAttri;
+    tkIdentifier: Result := fIdentifierAttri;
+    tkKey: Result := fKeyAttri;
+    tkSecondKey: Result := fSecondKeyAttri;
+    tkNumber: Result := fNumberAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkString: Result := fStringAttri;
+    tkSymbol: Result := fSymbolAttri;
+    tkVariable: Result := fVarAttri;
+    tkUnknown: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -699,42 +692,42 @@ end;
 
 function TSynUNIXShellScriptSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(FTokenID);
+  Result := Ord(fTokenId);
 end;
 
 procedure TSynUNIXShellScriptSyn.ResetRange;
 begin
-  FRange := rsUnknown;
+  fRange := rsUnknown;
 {$IFDEF SYN_HEREDOC}
-  FHeredocLength := 0;
-  FHeredocChecksum := 0;
+  fHeredocLength := 0;
+  fHeredocChecksum := 0;
 {$ENDIF}
 end;
 
 procedure TSynUNIXShellScriptSyn.SetRange(Value: Pointer);
 {$IFDEF SYN_HEREDOC}
 var
-  RangePointer : TRangePointer;
+  RangePointer: TRangePointer;
 {$ENDIF}
 begin
 {$IFDEF SYN_HEREDOC}
   RangePointer := TRangePointer(Value);
-  FRange := TRangeState(RangePointer.Range);
-  FHeredocLength := 0;
-  FHeredocChecksum := 0;
-  if FRange in [rsHeredoc, rsIndentedHeredoc] then
+  fRange := TRangeState(RangePointer.Range);
+  fHeredocLength := 0;
+  fHeredocChecksum := 0;
+  if fRange in [rsHeredoc, rsIndentedHeredoc] then
   begin
-    FHeredocLength := RangePointer.Length;
-    FHeredocChecksum := RangePointer.Checksum;
+    fHeredocLength := RangePointer.Length;
+    fHeredocChecksum := RangePointer.Checksum;
   end;
 {$ELSE}
-  FRange := TRangeState(Value);
+  fRange := TRangeState(Value);
 {$ENDIF}
 end;
 
 function TSynUNIXShellScriptSyn.IsFilterStored: Boolean;
 begin
-  Result := FDefaultFilter <> SYNS_FilterUNIXShellScript;
+  Result := fDefaultFilter <> SYNS_FilterUNIXShellScript;
 end;
 
 class function TSynUNIXShellScriptSyn.GetLanguageName: string;
@@ -742,7 +735,7 @@ begin
   Result := SYNS_LangNameUNIXShellScript;
 end;
 
-function TSynUNIXShellScriptSyn.GetSampleSource: UnicodeString;
+function TSynUNIXShellScriptSyn.GetSampleSource: string;
 begin
   Result := '######################################'#13#10 +
             '# Here is a comment about some stuff #'#13#10 +
@@ -761,7 +754,7 @@ begin
             'esac';
 end;
 
-class function TSynUNIXShellScriptSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynUNIXShellScriptSyn.GetFriendlyLanguageName: string;
 begin
   Result := SYNS_FriendlyLangNameUNIXShellScript;
 end;
@@ -769,11 +762,9 @@ end;
 procedure TSynUNIXShellScriptSyn.SymbolProc;
 begin
   Inc(Run);
-  FTokenID := tkSymbol;
+  fTokenID := tkSymbol;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynUNIXShellScriptSyn);
-{$ENDIF}
 end.
