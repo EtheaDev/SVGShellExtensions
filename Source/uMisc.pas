@@ -36,7 +36,6 @@ interface
   function GetDllPath: String;
   function GetTempDirectory: string;
   function GetSpecialFolder(const CSIDL: integer): string;
-  function GetFileVersion(const FileName: string): string;
   function  GetModuleLocation: string;
   procedure Initialize_GDI; stdcall;
   procedure Finalize_GDI; stdcall;
@@ -115,16 +114,6 @@ begin
   finally
     StrDispose(lpszPath);
   end;
-end;
-
-
-
-function GetFileVersion(const FileName: string): string;
-var
-  FSO: OleVariant;
-begin
-  FSO := CreateOleObject('Scripting.FileSystemObject');
-  Result := FSO.GetFileVersion(FileName);
 end;
 
 function  GetModuleLocation: string;

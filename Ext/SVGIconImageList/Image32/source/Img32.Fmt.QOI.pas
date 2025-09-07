@@ -1,8 +1,8 @@
 unit Img32.Fmt.QOI;
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.7                                                             *
-* Date      :  6 January 2025                                                  *
+* Version   :  4.9                                                             *
+* Date      :  9 August 2025                                                   *
 * Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2019-2025                                         *
 * Purpose   :  QOI file format extension for TImage32                          *
@@ -81,7 +81,7 @@ type
 
 function QOI_COLOR_HASH(c: TARGB): Byte;  {$IFDEF INLINE} inline; {$ENDIF}
 begin
-  Result := (c.r*3 + c.g*5 + c.b*7 + c.a*11) mod 64;
+  Result := (c.r * 3 + c.g * 5 + c.b * 7 + c.a * 11) mod 64;
 end;
 //------------------------------------------------------------------------------
 

@@ -2,8 +2,8 @@ unit Img32.Fmt.PNG;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.7                                                             *
-* Date      :  6 January 2025                                                  *
+* Version   :  4.9                                                             *
+* Date      :  9 August 2025                                                   *
 * Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2019-2025                                         *
 * Purpose   :  PNG file format extension for TImage32                          *
@@ -76,7 +76,7 @@ begin
     img32.BeginUpdate;
     try
       img32.SetSize(png.Width, png.Height);
-      Move(png.ScanLine[0]^, img32.PixelBase^, png.Width * png.Height *4);
+      Move(png.ScanLine[0]^, img32.PixelBase^, png.Width * png.Height * 4);
     finally
       img32.EndUpdate;
     end;
@@ -100,7 +100,7 @@ begin
       png.CompressionLevel := Max(0, Min(9, compressionQuality));
     png.SetSize(img32.Width, img32.Height);
     png.PixelFormat := pf32bit;
-    Move(img32.PixelBase^, png.ScanLine[0]^, img32.Width * img32.Height *4);
+    Move(img32.PixelBase^, png.ScanLine[0]^, img32.Width * img32.Height * 4);
     png.SaveToStream(stream);
   finally
     png.Free;

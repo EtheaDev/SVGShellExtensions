@@ -21,8 +21,11 @@ of this file under either the MPL or the GPL.
 
 The Initial Author of this unit is pyscripter.
 -------------------------------------------------------------------------------}
+{$I SynEdit.inc}
+
 interface
-Uses
+
+uses
   Winapi.Windows,
   Winapi.Messages,
   Winapi.Wincodec,
@@ -1638,6 +1641,7 @@ begin
         then
           Exit;  // Exit if it fails or if biBitCount <> 32
         BitmapInfo.bmiHeader.biCompression := BI_RGB; // set to uncompressed
+        BitmapInfo.bmiHeader.biHeight := -Abs(BitmapInfo.bmiHeader.biHeight); // Force top-down
         SetLength(Buf, IL.Height * IL.Width * 4);
         if GetDIBits(DC, IconInfo.hbmColor, 0, IL.Height, @Buf[0], BitmapInfo, DIB_RGB_COLORS) = 0 then
           Exit;
@@ -1655,11 +1659,13 @@ begin
   BitmapProperties := D2D1BitmapProperties(D2D1PixelFormat(
     DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED), 0, 0);
 
-  CheckOSError(RT.CreateBitmap(D2D1SizeU(IL.Width, IL.Height), @Buf[0],
-                4 * IL.Width, BitmapProperties, Bitmap));
+  if Failed(RT.CreateBitmap(D2D1SizeU(IL.Width, IL.Height), @Buf[0],
+                4 * IL.Width, BitmapProperties, Bitmap))
+  then
+    Exit;
 
   R := Rect(X, Y, X + IL.Width, Y + IL.Height);
-  RT.DrawBitmap(Bitmap, @R, 1);
+  RT.DrawBitmap(Bitmap, PD2D1RectF(@R), 1);
 end;
 
 function IsFontMonospacedAndValid(Font: TFont): Boolean;
@@ -1705,7 +1711,7 @@ begin
     CheckOSError(Names.GetString(Index, PChar(Result), NameLength + 1));
   end
   else
-    raise ESynError.CreateRes(@SYNS_FontFamilyNotFound);
+    raise ESynError.CreateRes(Pointer(@SYNS_FontFamilyNotFound));
 end;
 
 function D2D1BitmapFromBitmap(Bitmap: TBitmap; RT: ID2D1RenderTarget): ID2D1Bitmap;

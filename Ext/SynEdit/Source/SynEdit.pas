@@ -537,7 +537,6 @@ type
     procedure SizeOrFontChanged(bFont: Boolean);
     procedure ModifiedChanged(Sender: TObject);
     procedure UpdateLastPosX;
-    procedure UpdateScrollBars;
     procedure WriteAddedKeystrokes(Writer: TWriter);
     procedure WriteRemovedKeystrokes(Writer: TWriter);
     procedure SetAdditionalIdentChars(const Value: TSysCharSet);
@@ -822,6 +821,7 @@ type
     procedure UnlockUndo;
     procedure UnregisterCommandHandler(AHandlerProc: THookedCommandEvent);
     function UpdateAction(Action: TBasicAction): Boolean; override;
+    procedure UpdateScrollBars;
     function ValidTextPos(const S: string; Index: Integer; Trailing: Boolean):
         Integer; overload;
     function ValidTextPos(BC: TBufferCoord; Trailing: Boolean): TBufferCoord; overload;
@@ -1286,7 +1286,6 @@ begin
     PEnd := P + S.Length;
   end;
 
-
   PStart := P;
   PCol := P + Col - 1;
   Result := 0;
@@ -1298,7 +1297,7 @@ begin
       case P^ of
          #9: Inc(Result, fTabWidth * fCharWidth - Result mod (fTabWidth * fCharWidth));
          #32..#126, #$00A0: Inc(Result, FCharWidth);
-     else
+       else
          Break;
        end;
        Inc(P);
@@ -2059,14 +2058,12 @@ begin
     then
       InvalidateLines(-1, -1);
     InvalidateGutterBand(gbkFold);
-    UpdateScrollbars;
   end;
 
   Exclude(fStateFlags, sfLinesChanging);
   if HandleAllocated then
   begin
-//++ Flicker Reduction
-//    UpdateScrollBars;
+    UpdateScrollBars;
 //-- Flicker Reduction
     //SetBlockBegin(CaretXY);
     if not (eoScrollPastEof in ScrollOptions) then
@@ -2075,13 +2072,8 @@ begin
   HighlightBrackets;
   DoChange;
 
-  if Assigned(FUIAutomationProvider) and UiaClientsAreListening
-  then
-    TThread.ForceQueue(nil, procedure
-    begin
-      UiaRaiseAutomationEvent(IRawElementProviderSimple(FUIAutomationProvider),
-        UIA_Text_TextChangedEventId);
-    end);
+  if Assigned(FUIAutomationProvider) then
+    (FUIAutomationProvider as TSynUIAutomationProvider).RaiseTextChangedEvent;
 end;
 
 procedure TCustomSynEdit.MouseDown(Button: TMouseButton; Shift: TShiftState;
@@ -2826,7 +2818,7 @@ var
             not Odd(Row)
           then
             RectF.Offset(0, 1);
-          RT.DrawBitmap(BM, @RectF);
+          RT.DrawBitmap(BM, PD2D1RectF(@RectF));
         end;
         Inc(TabSteps, TabWidth);
       end;
@@ -2893,6 +2885,7 @@ var
     HasTabs: Boolean;
     I: Integer;
   begin
+    // Special case - Empty strings
     if S = '' then
     begin
       FirstChar := 1;
@@ -2900,17 +2893,25 @@ var
       XRowOffset := 0;
       Exit;
     end;
-    FirstChar := PixelsToColumn(PChar(S), S.Length,
-      (FLeftChar - 1) * FCharWidth + 1, True);
-    if FirstChar > S.Length then
+
+    // Get the first char that is displayed given FLeftChar
+    if FLeftChar = 1 then
+      FirstChar := 1
+    else
     begin
-      // nothing to display
-      FirstChar := 1;
-      LastChar := -1;
-      Exit;
+      FirstChar := PixelsToColumn(PChar(S), S.Length,
+        (FLeftChar - 1) * FCharWidth + 1, True);
+      if FirstChar > S.Length then
+      begin
+        // nothing to display - the whole string fits before FLeftChar
+        FirstChar := 1;
+        LastChar := -1;
+        XRowOffset := 0;
+        Exit;
+      end;
     end;
 
-    while (FirstChar > 1) and not (Word(S[FirstChar - 1]) in [9, 32..126]) do
+    while (FirstChar > 1) and not (Word(S[FirstChar - 1]) in [9, 65..90, 97..122]) do
       Dec(FirstChar);
 
     XRowOffset := ColumnToPixels(S, FirstChar);
@@ -2918,7 +2919,7 @@ var
     LastChar := Min(FirstChar + PixelsToColumn(PChar(S) + FirstChar - 1,
       S.Length - FirstChar + 1, ClientWidth - fTextOffset - XRowOffset),
       S.Length);
-    while (LastChar < S.Length) and not (Word(S[LastChar + 1]) in [9, 32..126]) do
+    while (LastChar < S.Length) and not (Word(S[LastChar + 1]) in [9, 65..90, 97..122]) do
       Inc(LastChar);
 
     // If there are tabs *inside* the displayed range we need to make sure
@@ -2939,7 +2940,7 @@ var
     else begin
       // Check for RTL characters which are not safe to optimize
       for I := FirstChar to LastChar do
-        if (S[I] >= #$0590) and (S[I] <= #$08FF) then
+        if IsRTLChar(S[I]) then
         begin
           FirstChar := 1;
           XRowOffset := 0;
@@ -3178,9 +3179,12 @@ begin
         HintColor := clGray;
       Layout.Draw(RT, fGutterWidth + fTextMargin, 0, HintColor);
     end;
-    // Nothig else to do
+    // Nothing else to do
     Exit
   end;
+
+  // Check whether there is space to draw the line
+  if ClientWidth - fTextOffset <= 0 then Exit;
 
   Inc(LinesRect.Left, FTextMargin);
 
@@ -3522,6 +3526,7 @@ begin
     end;
 
     Assert(SelList.Count > 0);
+    Include(fStatusChanges, scSelection);
 
     SelStorage.Selections := SelList.ToArray;
     FSelections.Restore(SelStorage);
@@ -6179,7 +6184,7 @@ begin
     if (eoScrollPastEol in fScrollOptions) and (DC.Column > SRow.Length) then
       WidthToX := TextWidth(SRow) + (DC.Column - SRow.Length) * FCharWidth
     else
-      WidthToX := TextWidth(Copy(SRow, 1, DC.Column - 1));
+      WidthToX :=  ColumnToPixels(SRow, DC.Column);
     if WidthToX < (FLeftChar - 1) * FCharWidth then
       LeftChar := Max(WidthToX div fCharWidth, 1)
     else if WidthToX >= FTextAreaWidth + (LeftChar - 1) * FCharWidth then
@@ -6412,7 +6417,10 @@ begin
           if FSelections.Count = 1 then
             CaretXY := CaretXY // removes selection
           else
+          begin
             FSelections.Clear(ksKeepBase);
+            Include(fStatusChanges, scSelection);
+          end;
         end;
       ecDeleteSelections:
         begin
@@ -7507,6 +7515,16 @@ end;
 
 function TCustomSynEdit.SearchReplace(const ASearch, AReplace: string;
   AOptions: TSynSearchOptions; const Start, Stop: TBufferCoord): Integer;
+{
+  - If valid Start and Stop parameters are provided, then search/replace takes
+    place between those coordinates, ignoring the ssoSelection and
+    ssoEntireScope options.
+  - If Options include ssoSelection and you provide a valid Start parameter
+    and Stop = TBufferCoord.Invalid then search/replace takes place
+    within the multiple selections, but after/before the Start
+    depending on the option ssoBackwards.
+}
+
 var
   ptStart, ptEnd: TBufferCoord; // start and end of the search range
   nEOLCount, i: Integer;
@@ -7782,6 +7800,9 @@ begin
     if bReplaceAll and not bPrompt then DecPaintLock;
     if bEndUndoBlock then EndUndoBlock;
     DoOnPaintTransient(ttAfter);
+    // The search engine may be used by other editors
+    // Don't leave a hanging reference
+    fSearchEngine.IsWordBreakFunction := nil;
   end;
 end;
 
@@ -8735,6 +8756,8 @@ begin
         DeleteSelections
       else if Action is TEditUndo then
         CommandProcessor(ecUndo, ' ', nil)
+      else if Action is TSynEditRedo then
+        CommandProcessor(ecRedo, ' ', nil)
       else if Action is TEditSelectAll then
         CommandProcessor(ecSelectAll, ' ', nil);
     end
@@ -8769,7 +8792,7 @@ begin
     if Result then
     begin
       if Action is TEditCut then
-        TEditAction(Action).Enabled := not (IsEmpty or ReadOnly)
+        TEditAction(Action).Enabled := not (FSelections.IsEmpty or ReadOnly)
       else if Action is TEditCopy then
         TEditAction(Action).Enabled := not IsEmpty
       else if Action is TEditPaste then
@@ -8778,10 +8801,13 @@ begin
         TEditAction(Action).Enabled := not (FSelections.IsEmpty or ReadOnly)
       else if Action is TEditUndo then
         TEditAction(Action).Enabled := CanUndo
+      else if Action is TSynEditRedo then
+        TEditAction(Action).Enabled := CanRedo
       else if Action is TEditSelectAll then
-        TEditAction(Action).Enabled := True;
+        TEditAction(Action).Enabled := not IsEmpty;
     end;
-  end else if (Action is TSearchAction) or (Action is TSearchFindNext) then
+  end
+  else if (Action is TSearchAction) or (Action is TSearchFindNext) then
   begin
     Result := Focused;
     if Result then
@@ -9345,7 +9371,7 @@ var
   Plugin: TSynEditPlugin;
 begin
   // SynIndicators
-  FIndicators.LinePut(Index);
+  FIndicators.LinePut(Index, OldLine);
 
   // Selections
   if not fUndoRedo.InsideUndoRedo then
@@ -9454,7 +9480,9 @@ begin
       #0..#32, '.', ',', ';', ':', '"', '''', #$00B4, '`',
       #$00B0, '^', '!', '?', '&', '$', '@', #$00A7, '%',
       '#', '~', '[', ']', '(', ')', '{', '}', '<', '>', '-', '=', '+', '*',
-      '/', '\', '|':
+      '/', '\', '|',
+      // Zero-width non joiner and Arabic comma and semicolon
+      #$200C, #$060C, #$061B:
         Result := True;
       else
         Result := False;
@@ -10067,19 +10095,22 @@ end;
 
 function TCustomSynEdit.LineToRow(aLine: Integer): Integer;
 begin
-  if not UseCodeFolding and not WordWrap then
-    Result := aLine
+  if UseCodeFolding then
+    Result := fAllFoldRanges.FoldLineToRow(aLine)
+  else if WordWrap then
+    Result := fWordWrapPlugin.LineToRow(aLine)
   else
-    Result := BufferToDisplayPos(BufferCoord(1, aLine)).Row;
+    Result := aLine;
 end;
 
 function TCustomSynEdit.RowToLine(aRow: Integer): Integer;
 begin
-  if not UseCodeFolding and not WordWrap then
-    Result := aRow
-  else begin
-    Result := DisplayToBufferPos(DisplayCoord(1, aRow)).Line;
-  end;
+  if UseCodeFolding then
+    Result := fAllFoldRanges.FoldRowToLine(aRow)
+  else if WordWrap then
+    Result := fWordWrapPlugin.RowToLine(aRow)
+  else
+    Result := aRow;
 end;
 
 procedure TCustomSynEdit.SetDisplayXY(const aPos: TDisplayCoord);

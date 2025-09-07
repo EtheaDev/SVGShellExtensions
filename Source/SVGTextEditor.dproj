@@ -4,7 +4,7 @@
         <MainSource>SVGTextEditor.dpr</MainSource>
         <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-        <ProjectVersion>20.2</ProjectVersion>
+        <ProjectVersion>20.3</ProjectVersion>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
@@ -31,12 +31,6 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
-        <Cfg_1_Win64>true</Cfg_1_Win64>
-        <CfgParent>Cfg_1</CfgParent>
-        <Cfg_1>true</Cfg_1>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
@@ -61,17 +55,16 @@
         <Icon_MainIcon>..\Icons\logo.ico</Icon_MainIcon>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Text Editor;FileVersion=3.3.0.0;InternalName=;LegalCopyright=Copyright © 2021-2025 - Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Text Editor;ProductVersion=3.3;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=SVG Text Editor;FileVersion=3.3.1.0;InternalName=;LegalCopyright=Copyright © 2021-2025 - Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=SVG Text Editor;ProductVersion=3.3;Comments=</VerInfo_Keys>
         <Custom_Styles>Glow|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glow.vsf;Sky|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Sky.vsf;Windows10|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10.vsf;&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf&quot;;&quot;Windows11 Impressive Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Impressive_Dark.vsf&quot;;&quot;Windows11 Impressive Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Impressive_Light.vsf&quot;;&quot;Windows11 Modern Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Modern_Dark.vsf&quot;;&quot;Windows11 Modern Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Modern_Light.vsf&quot;;&quot;Windows11 Polar Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Polar_Dark.vsf&quot;;&quot;Windows11 Polar Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows11_Polar_Light.vsf&quot;;&quot;Flat UI Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\FlatUILight.vsf&quot;;&quot;Windows10 BlackPearl|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlackPearl.vsf&quot;;&quot;Windows10 Blue Whale|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10BlueWhale.vsf&quot;;&quot;Windows10 Clear Day|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10ClearDay.vsf&quot;;&quot;Windows10 Malibu|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Malibu.vsf&quot;</Custom_Styles>
         <DCC_DebugInformation>0</DCC_DebugInformation>
-        <DCC_ImportedDataReferences>false</DCC_ImportedDataReferences>
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;..\Ext\StyledComponents\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\Ext\SynEdit\Source;..\Ext\SVGIconImageList\Source;..\Ext\VCLStyleUtils\Common;..\Ext\VCLStyleUtils\DDetours\Source;..\Ext\SVGIconImageList\Image32\Source;..\Ext\StyledComponents\source;..\Ext\AEFramework;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>..\Dcu\$(Platform)\$(Config)</DCC_DcuOutput>
-        <DCC_DependencyCheckOutputName>..\..\exe\InstantXMLEditor.exe</DCC_DependencyCheckOutputName>
         <VerInfo_MajorVer>3</VerInfo_MajorVer>
-        <DCC_Define>SKIA;$(DCC_Define)</DCC_Define>
+        <DCC_Define>SKIA;NO_VCL_STYLES;$(DCC_Define)</DCC_Define>
         <VerInfo_MinorVer>3</VerInfo_MinorVer>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
@@ -87,26 +80,18 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <Version>7.0</Version>
-        <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-        <DCC_ResourcePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ResourcePath)</DCC_ResourcePath>
-        <DCC_ObjPath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ObjPath)</DCC_ObjPath>
-        <DCC_IncludePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_IncludePath)</DCC_IncludePath>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
-        <Debugger_RunParams>D:\ETHEA\CBLib7\images\svg\system-help.svg</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DebugInformation>true</DCC_DebugInformation>
         <DCC_DebugDCUs>true</DCC_DebugDCUs>
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
-        <Version>7.0</Version>
-        <DCC_ResourcePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ResourcePath)</DCC_ResourcePath>
-        <DCC_ObjPath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_ObjPath)</DCC_ObjPath>
-        <DCC_IncludePath>..\..\ext\LibXML2\src;..\..\ext\SynEdit\Source;..\..\ext\CBLib\src;$(DCC_IncludePath)</DCC_IncludePath>
         <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
         <DCC_Optimize>false</DCC_Optimize>
+        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
+        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -114,7 +99,6 @@
         <DCC_DebugInformation>2</DCC_DebugInformation>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
         <DCC_RangeChecking>true</DCC_RangeChecking>
-        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <DCC_MapFile>3</DCC_MapFile>
@@ -123,6 +107,67 @@
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
         <DCC_RangeChecking>true</DCC_RangeChecking>
     </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="$(MainSource)">
+            <MainSource>MainSource</MainSource>
+        </DelphiCompile>
+        <DCCReference Include="dlgSearchText.pas">
+            <Form>TextSearchDialog</Form>
+        </DCCReference>
+        <DCCReference Include="dlgReplaceText.pas">
+            <Form>TextReplaceDialog</Form>
+        </DCCReference>
+        <DCCReference Include="PageControlHook.pas"/>
+        <DCCReference Include="EditorMainForm.pas">
+            <Form>frmMain</Form>
+        </DCCReference>
+        <DCCReference Include="DResources.pas">
+            <Form>dmResources</Form>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
+        <DCCReference Include="DPageSetup.pas">
+            <Form>PageSetupDlg</Form>
+        </DCCReference>
+        <DCCReference Include="FTestPrintPreview.pas">
+            <Form>TestPrintPreviewDlg</Form>
+        </DCCReference>
+        <DCCReference Include="FSplash.pas">
+            <Form>SplashForm</Form>
+        </DCCReference>
+        <DCCReference Include="dlgConfirmReplace.pas">
+            <Form>ConfirmReplaceDialog</Form>
+        </DCCReference>
+        <DCCReference Include="uAbout.pas">
+            <Form>FrmAbout</Form>
+        </DCCReference>
+        <DCCReference Include="uMisc.pas"/>
+        <DCCReference Include="SynEditOptionsDialog.pas">
+            <Form>fmEditorOptionsDialog</Form>
+        </DCCReference>
+        <DCCReference Include="uSettings.pas"/>
+        <DCCReference Include="SettingsForm.pas">
+            <Form>UserSettingsForm</Form>
+        </DCCReference>
+        <DCCReference Include="uRegistry.pas"/>
+        <DCCReference Include="GitHubAPI.pas"/>
+        <DCCReference Include="..\Ext\StyledComponents\source\Vcl.StyledTaskDialogFormUnit.pas">
+            <Form>StyledTaskDialogForm</Form>
+        </DCCReference>
+        <DCCReference Include="..\Ext\StyledComponents\source\Skia.Vcl.StyledTaskDialogAnimatedUnit.pas">
+            <Form>StyledTaskDialogAnimated</Form>
+        </DCCReference>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Delphi.Personality.12</Borland.Personality>
         <Borland.ProjectType>VCLApplication</Borland.ProjectType>
@@ -131,36 +176,7 @@
                 <Source>
                     <Source Name="MainSource">SVGTextEditor.dpr</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\wPDF3_D12.bpl">wPDF V3 - (C) WPCubed GmbH</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISVcl7_7290.bpl">Ethea InstantSolutions 7.7 Vcl Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISFLib7_7290.bpl">Ethea InstantSolutions 7.7 Framework Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISOpenOffice8_6290.bpl">Ethea InstantSolutions 8.6 LibreOffice/OpenOffice Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISRtl8_6290.bpl">Ethea InstantSolutions 8.6 Rtl Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISReportBuilder8_6290.bpl">Ethea InstantSolutions 8.6 ReportBuilder Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISVcl8_6290.bpl">Ethea InstantSolutions 8.6 Vcl Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclISFLib8_6290.bpl">Ethea InstantSolutions 8.6 Framework Library</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclLiscorVCL_D12.bpl">*** Liscor VCL Design Package for D12 ***</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\DclIODBX_4290.bpl">InstantObjects 4 dbExpress Design-Time Support</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\DclIOADO_4290.bpl">InstantObjects 4 ADO Design-Time Support</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dipstudiowin290.bpl">Woll2Woll InfoPower Studio 4K</Excluded_Packages>
-                    <Excluded_Packages Name="D:\ETHEA\FGX Native\Libs\290\Win32\Release\FGXNative.Designer.290.bpl">File D:\ETHEA\FGX Native\Libs\290\Win32\Release\FGXNative.Designer.290.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="D:\ETHEA\FGX Native\Libs\290\Win32\Release\FGXNative.Registration.290.bpl">FGX Native - Designtime Registration</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcbie290.bpl">Embarcadero C++Builder Internet Explorer Components Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k290.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp290.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\QR506DesignDXE12.bpl">QuickReport 5.06 Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dclshlctrls290.bpl">Shell Control Property and Component Editors</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\kbmMemDesD120Std.bpl">kbmMemTable Standard Edition - High performance memory table - RAD Studio 12 for Win32 - Designtime - www.Components4Developers.com</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\DCLPsRBD12.bpl">Pragnaan ReportBuilder Export Devices</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\QImport2DTD12.bpl">EMS Advanced Import Component Suite</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\QExport3DTD12.bpl">EMS Advanced Export Component Suite</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\tmsdedXE17.bpl">TMS Component Pack design time support</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\dGXOutD7.bpl">GExperts Outlookbar design time package</Excluded_Packages>
-                    <Excluded_Packages Name="D:\ETHEA\FGX Native\Libs\290\Win32\Release\FGXNative.Extension.Zint.290.bpl">FGX Native Extension - Zint Barcode</Excluded_Packages>
-                    <Excluded_Packages Name="D:\ETHEA\DevExpressVCL\Library\RS29\cxBDEAdaptersRS29.bpl">BDE Adapters for ExpressDataController by Developer Express Inc.</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
                 <WelcomePageFile Path="..\README.htm"/>
                 <WelcomePageFolder/>
             </Delphi.Personality>
@@ -340,6 +356,16 @@
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>res\values-v31</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidSplashStylesV35">
+                    <Platform Name="Android">
+                        <RemoteDir>res\values-v35</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>res\values-v35</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -1078,68 +1104,6 @@
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>
-    <ItemGroup>
-        <DelphiCompile Include="$(MainSource)">
-            <MainSource>MainSource</MainSource>
-        </DelphiCompile>
-        <DCCReference Include="dlgSearchText.pas">
-            <Form>TextSearchDialog</Form>
-        </DCCReference>
-        <DCCReference Include="dlgReplaceText.pas">
-            <Form>TextReplaceDialog</Form>
-        </DCCReference>
-        <DCCReference Include="ChildForm.pas">
-            <Form>MDIChildForm</Form>
-        </DCCReference>
-        <DCCReference Include="EditorMainForm.pas">
-            <Form>frmMain</Form>
-        </DCCReference>
-        <DCCReference Include="DResources.pas">
-            <Form>dmResources</Form>
-            <DesignClass>TDataModule</DesignClass>
-        </DCCReference>
-        <DCCReference Include="DPageSetup.pas">
-            <Form>PageSetupDlg</Form>
-        </DCCReference>
-        <DCCReference Include="FTestPrintPreview.pas">
-            <Form>TestPrintPreviewDlg</Form>
-        </DCCReference>
-        <DCCReference Include="FSplash.pas">
-            <Form>SplashForm</Form>
-        </DCCReference>
-        <DCCReference Include="dlgConfirmReplace.pas">
-            <Form>ConfirmReplaceDialog</Form>
-        </DCCReference>
-        <DCCReference Include="uAbout.pas">
-            <Form>FrmAbout</Form>
-        </DCCReference>
-        <DCCReference Include="uMisc.pas"/>
-        <DCCReference Include="SynEditOptionsDialog.pas">
-            <Form>fmEditorOptionsDialog</Form>
-        </DCCReference>
-        <DCCReference Include="uSettings.pas"/>
-        <DCCReference Include="SettingsForm.pas">
-            <Form>UserSettingsForm</Form>
-        </DCCReference>
-        <DCCReference Include="uRegistry.pas"/>
-        <DCCReference Include="..\Ext\StyledComponents\source\Vcl.StyledTaskDialogFormUnit.pas">
-            <Form>StyledTaskDialogForm</Form>
-        </DCCReference>
-        <DCCReference Include="..\Ext\StyledComponents\source\Skia.Vcl.StyledTaskDialogAnimatedUnit.pas">
-            <Form>StyledTaskDialogAnimated</Form>
-        </DCCReference>
-        <BuildConfiguration Include="Base">
-            <Key>Base</Key>
-        </BuildConfiguration>
-        <BuildConfiguration Include="Release">
-            <Key>Cfg_1</Key>
-            <CfgParent>Base</CfgParent>
-        </BuildConfiguration>
-        <BuildConfiguration Include="Debug">
-            <Key>Cfg_2</Key>
-            <CfgParent>Base</CfgParent>
-        </BuildConfiguration>
-    </ItemGroup>
     <Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
     <Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
     <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>

@@ -2,8 +2,8 @@ unit Img32.Clipper2;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.7                                                             *
-* Date      :  6 January 2025                                                  *
+* Version   :  4.9                                                             *
+* Date      :  9 August 2025                                                   *
 * Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2019-2025                                         *
 * Purpose   :  Wrapper module for the Clipper library                          *
@@ -45,9 +45,11 @@ function UnionPolygons(const polygons1, polygons2: TPathsD;
 
 function IntersectPolygons(const polygons1, polygons2: TPathsD;
   fillRule: TFillRule): TPathsD;
-
 function DifferencePolygons(const polygons1, polygons2: TPathsD;
   fillRule: TFillRule): TPathsD;
+
+function RectClip(const rect: TRectD; const path: TPathD): TPathD; overload;
+function RectClip(const rect: TRectD; const paths: TPathsD): TPathsD; overload;
 
 const
   etPolygon   = Clipper.Offset.etPolygon;
@@ -66,7 +68,7 @@ uses Clipper, Clipper.Core, Clipper.Engine;
 function ClipperEndType(endStyle: TEndStyle): TClipperEndType;
 begin
   case endStyle of
-    esPolygon: Result := etJoined;
+    esClosed: Result := etJoined;
     esButt: Result := etButt;
     esSquare: Result := etSquare;
     else Result := etRound;
@@ -192,6 +194,22 @@ begin
     Free;
   end;
 end;
+//------------------------------------------------------------------------------
+
+function RectClip(const rect: Img32.TRectD; const path: Img32.TPathD): Img32.TPathD;
+begin
+  Result := Img32.TPathD(
+    Clipper.RectClip(Clipper.TRectD(rect), Clipper.TPathD(path), 2));
+end;
+//------------------------------------------------------------------------------
+
+function RectClip(const rect: Img32.TRectD; const paths: Img32.TPathsD): Img32.TPathsD;
+begin
+  Result := Img32.TPathsD(
+    Clipper.RectClip(Clipper.TRectD(rect), Clipper.TPathsD(paths), 2));
+end;
+
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
 end.

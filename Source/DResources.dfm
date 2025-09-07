@@ -1,22 +1,15 @@
 object dmResources: TdmResources
-  OldCreateOrder = False
   OnCreate = DataModuleCreate
   Height = 259
   Width = 259
   object SynXMLSyn: TSynXMLSyn
     DefaultFilter = 'SVG Files (*.svg)|*.svg'
-    Options.AutoDetectEnabled = False
-    Options.AutoDetectLineLimit = 0
-    Options.Visible = False
     WantBracesParsed = False
     Left = 80
     Top = 24
   end
   object SynXMLSynDark: TSynXMLSyn
     DefaultFilter = 'SVG Files (*.svg)|*.svg'
-    Options.AutoDetectEnabled = False
-    Options.AutoDetectLineLimit = 0
-    Options.Visible = False
     ElementAttri.Foreground = 14198787
     AttributeAttri.Foreground = 14198787
     NamespaceAttributeAttri.Foreground = 8454143

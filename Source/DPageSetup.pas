@@ -199,7 +199,9 @@ uses
   RichEdit
   , ShellAPI
   , System.UITypes
-  , Messages;
+  , Messages
+  , Vcl.StyledTaskDialog
+  ;
 
 {$R *.DFM}
 
@@ -411,12 +413,8 @@ begin
       RightHFTextIndent := StringToFloat(EditRightHFTextIndent);
       HFInternalMargin := StringToFloat(EditHFInternalMargin);
     except
-      On E:Exception do
-      begin
-        CurEdit.SetFocus;
-        raise Exception.create(INVALID_NUMBER+sLineBreak+
-          E.message);
-      end;
+      StyledMessageDlg(INVALID_NUMBER, mtError, [mbOk], 0);
+      CurEdit.SetFocus;
     end;
     MirrorMargins := CBMirrorMargins.Checked;
   end;

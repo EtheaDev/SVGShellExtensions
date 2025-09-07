@@ -1,0 +1,41 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{20EAD8A8-4C4A-4FC8-9292-D1BF23BB9F4E}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="SynEdit_R12.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SynEdit_D12.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <Target Name="SynEdit_R12">
+        <MSBuild Projects="SynEdit_R12.dproj"/>
+    </Target>
+    <Target Name="SynEdit_R12:Clean">
+        <MSBuild Projects="SynEdit_R12.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SynEdit_R12:Make">
+        <MSBuild Projects="SynEdit_R12.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SynEdit_D12">
+        <MSBuild Projects="SynEdit_D12.dproj"/>
+    </Target>
+    <Target Name="SynEdit_D12:Clean">
+        <MSBuild Projects="SynEdit_D12.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SynEdit_D12:Make">
+        <MSBuild Projects="SynEdit_D12.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="SynEdit_R12;SynEdit_D12"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="SynEdit_R12:Clean;SynEdit_D12:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="SynEdit_R12:Make;SynEdit_D12:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -28,6 +28,15 @@
   {$DEFINE IgnoreAntiAliasedColor}
 {$IFEND}
 
+//Check correct defines
+{$IF NOT DEFINED(Image32_SVGEngine) and NOT DEFINED(Skia_SVGEngine) and NOT DEFINED(PreferNativeSvgSupport)}
+  {$MESSAGE FATAL 'You must define at least one engine (Image32_SVGEngine or Skia_Engine or PreferNativeSvgSupport) into SVGIconImageList.inc)'}
+{$IFEND}
+
+{$IF DEFINED(Image32_SVGEngine) and DEFINED(Skia_SVGEngine)}
+  {$MESSAGE FATAL 'You must define only one engine (Image32_SVGEngine or Skia_Engine) into SVGIconImageList.inc)'}
+{$IFEND}
+
 // Delphi XE3
 {$IFDEF VER240}
   {$DEFINE D2010+}
@@ -171,7 +180,7 @@
   {$DEFINE D11+}
 {$ENDIF}
 
-// Delphi 12
+// Delphi 12 Athens
 {$IFDEF VER360}
   {$DEFINE D2010+}
   {$DEFINE DXE+}
@@ -189,6 +198,27 @@
   {$DEFINE D10_4+}
   {$DEFINE D11+}
   {$DEFINE D12+}
+{$ENDIF}
+
+// Delphi 13 Florence
+{$IFDEF VER370}
+  {$DEFINE D2010+}
+  {$DEFINE DXE+}
+  {$DEFINE DXE2+}
+  {$DEFINE DXE3+}
+  {$DEFINE DXE4+}
+  {$DEFINE DXE5+}
+  {$DEFINE DXE6+}
+  {$DEFINE DXE7+}
+  {$DEFINE DXE8+}
+  {$DEFINE D10_0+}
+  {$DEFINE D10_1+}
+  {$DEFINE D10_2+}
+  {$DEFINE D10_3+}
+  {$DEFINE D10_4+}
+  {$DEFINE D11+}
+  {$DEFINE D12+}
+  {$DEFINE D13+}
 {$ENDIF}
 
 {$IFDEF D10_3+}

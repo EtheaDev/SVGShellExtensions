@@ -13,7 +13,6 @@ object frmMain: TfrmMain
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  FormStyle = fsMDIForm
   KeyPreview = True
   Position = poScreenCenter
   ShowHint = True
@@ -22,7 +21,6 @@ object frmMain: TfrmMain
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnKeyPress = FormKeyPress
   OnMouseWheelDown = FormMouseWheelDown
   OnMouseWheelUp = FormMouseWheelUp
   OnResize = FormResize
@@ -33,28 +31,19 @@ object frmMain: TfrmMain
   TextHeight = 15
   object RightSplitter: TSplitter
     Left = 434
-    Top = 69
+    Top = 38
     Width = 6
-    Height = 500
+    Height = 531
     Align = alRight
     AutoSnap = False
     MinSize = 240
-    ExplicitLeft = 643
-    ExplicitTop = 38
-    ExplicitHeight = 531
   end
   object ClientPanel: TPanel
-    AlignWithMargins = True
-    Left = 42
+    Left = 44
     Top = 38
-    Width = 857
-    Height = 31
-    Margins.Left = 42
-    Margins.Top = 0
-    Margins.Right = 0
-    Margins.Bottom = 0
-    Align = alTop
-    ParentColor = True
+    Width = 390
+    Height = 531
+    Align = alClient
     TabOrder = 4
   end
   object StatusBar: TStatusBar
@@ -87,31 +76,30 @@ object frmMain: TfrmMain
   end
   object ImagePanel: TPanel
     Left = 440
-    Top = 69
+    Top = 38
     Width = 459
-    Height = 500
+    Height = 531
     Align = alRight
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
+    Visible = False
     StyleElements = []
     object StatusSplitter: TSplitter
       Left = 0
-      Top = 462
+      Top = 493
       Width = 459
       Height = 4
       Cursor = crVSplit
       Align = alBottom
       AutoSnap = False
-      ExplicitTop = 493
-      ExplicitWidth = 250
     end
     object SVGIconImage: TSVGIconImage
       Left = 0
       Top = 202
       Width = 459
-      Height = 260
+      Height = 291
       AutoSize = False
       Align = alClient
       OnMouseMove = SVGIconImageMouseMove
@@ -211,7 +199,7 @@ object frmMain: TfrmMain
     end
     object StatusPanel: TPanel
       Left = 0
-      Top = 466
+      Top = 497
       Width = 459
       Height = 34
       Align = alBottom
@@ -232,8 +220,8 @@ object frmMain: TfrmMain
         AlignWithMargins = True
         Left = 36
         Top = 4
-        Width = 419
-        Height = 26
+        Width = 4
+        Height = 4
         Align = alClient
         Alignment = taCenter
         TabOrder = 0
@@ -302,13 +290,12 @@ object frmMain: TfrmMain
   object SV: TSplitView
     Left = 0
     Top = 36
-    Width = 44
+    Width = 160
     Height = 533
     CloseStyle = svcCompact
     Color = clHighlight
     CompactWidth = 44
     DisplayMode = svmOverlay
-    Opened = False
     OpenedWidth = 160
     ParentDoubleBuffered = True
     Placement = svpLeft
@@ -317,11 +304,10 @@ object frmMain: TfrmMain
     OnClosing = SVClosing
     OnOpened = SVOpened
     OnOpening = SVOpening
-    OnResize = SVResize
     object catMenuItems: TStyledCategoryButtons
       Left = 0
       Top = 0
-      Width = 44
+      Width = 160
       Height = 533
       Align = alClient
       BackgroundGradientDirection = gdVertical
@@ -442,11 +428,10 @@ object frmMain: TfrmMain
       Left = 40
       Top = 3
       Width = 79
-      Height = 32
+      Height = 15
       Align = alLeft
       Caption = 'SVG Text Editor'
       Layout = tlCenter
-      ExplicitHeight = 15
     end
     object SettingsToolBar: TStyledToolbar
       AlignWithMargins = True
@@ -516,9 +501,10 @@ object frmMain: TfrmMain
       end
     end
   end
-  object OpenDialog: TOpenDialog
-    Filter = 'SVG Image files (.svg)|*.svg'
-    Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
+  object OpenDialog: TFileOpenDialog
+    FavoriteLinks = <>
+    FileTypes = <>
+    Options = [fdoAllowMultiSelect, fdoPathMustExist, fdoFileMustExist, fdoShareAware]
     Left = 300
     Top = 196
   end
@@ -794,9 +780,10 @@ object frmMain: TfrmMain
       OnExecute = ExportToPNGActionExecute
     end
   end
-  object SaveDialog: TSaveDialog
-    Filter = 'SVG Image files (.svg)|*.svg'
-    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+  object SaveDialog: TFileSaveDialog
+    FavoriteLinks = <>
+    FileTypes = <>
+    Options = [fdoOverWritePrompt, fdoNoReadOnlyReturn]
     Left = 300
     Top = 264
   end

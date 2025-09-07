@@ -46,6 +46,13 @@ const
   MENU_ITEM_EXPORT_TO_PNG = 1;
   MENU_ITEM_COUNT = 2;
 
+resourcestring
+  SVG_TEXT_EDITOR_NOT_INSTALLED = '"SVG Text Editor" not installed';
+  SVG_TEXT_EDITOR_NOT_FOUND = '"SVG Text Editor" not found!';
+  ERROR_OPENING_FILE = 'Error opening file';
+  OPEN_WITH_SVG_TEXT_EDITOR = 'Open with "SVG Text Editor"...';
+  EXPORT_TO_PNG_FILES = 'Export to PNG files...';
+
 type
   TSVGContextMenu = class(TComObject, IUnknown,
     IContextMenu,
@@ -167,10 +174,10 @@ begin
   // add a new item to context menu
   LMenuIndex := indexMenu;
   InsertMenu(Menu, LMenuIndex, MF_STRING or MF_BYPOSITION, idCmdFirst+MENU_ITEM_OPEN_WITH_EDITOR,
-    'Open with "SVG Text Editor"...');
+    PWideChar(OPEN_WITH_SVG_TEXT_EDITOR));
   Inc(LMenuIndex);
   InsertMenu(Menu, LMenuIndex, MF_STRING or MF_BYPOSITION, idCmdFirst+MENU_ITEM_EXPORT_TO_PNG,
-    'Export to PNG files...');
+    PWideChar(EXPORT_TO_PNG_FILES));
   // Return number of menu items added
   Result := MENU_ITEM_COUNT;
 end;
@@ -185,14 +192,14 @@ var
 
   procedure EditorNotInstalled;
   begin
-    MessageBox(0, '"SVG Text Editor" not installed',
-      'Error opening file', MB_OK);
+    MessageBox(0, PWideChar(SVG_TEXT_EDITOR_NOT_INSTALLED),
+      PWideChar(ERROR_OPENING_FILE), MB_OK);
   end;
 
   procedure EditorNotFound;
   begin
-    MessageBox(0, '"SVG Text Editor" not found!',
-      'Error opening file', MB_OK);
+    MessageBox(0, PWideChar(SVG_TEXT_EDITOR_NOT_FOUND),
+      PWideChar(ERROR_OPENING_FILE), MB_OK);
   end;
 
 begin

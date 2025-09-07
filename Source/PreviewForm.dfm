@@ -5,14 +5,13 @@ inherited FrmPreview: TFrmPreview
   ClientWidth = 617
   DoubleBuffered = True
   Font.Name = 'Segoe UI'
-  StyleElements = [seFont, seClient, seBorder]
   OnResize = FormResize
   ExplicitWidth = 633
   ExplicitHeight = 656
   TextHeight = 13
   object Splitter: TSplitter
     Left = 0
-    Top = 362
+    Top = 271
     Width = 617
     Height = 6
     Cursor = crVSplit
@@ -20,6 +19,7 @@ inherited FrmPreview: TFrmPreview
     AutoSnap = False
     MinSize = 100
     OnMoved = SplitterMoved
+    ExplicitTop = 362
   end
   object PanelTop: TPanel
     Left = 0
@@ -145,14 +145,9 @@ inherited FrmPreview: TFrmPreview
       Font.Name = 'Consolas'
       Font.Pitch = fpFixed
       Font.Style = []
+      Font.Quality = fqClearTypeNatural
       TabOrder = 0
       CodeFolding.GutterShapeSize = 11
-      CodeFolding.CollapsedLineColor = clGrayText
-      CodeFolding.FolderBarLinesColor = clGrayText
-      CodeFolding.IndentGuidesColor = clGray
-      CodeFolding.IndentGuides = True
-      CodeFolding.ShowCollapsedLine = False
-      CodeFolding.ShowHintMark = True
       UseCodeFolding = False
       BorderStyle = bsNone
       Gutter.Font.Charset = DEFAULT_CHARSET
@@ -160,9 +155,11 @@ inherited FrmPreview: TFrmPreview
       Gutter.Font.Height = -11
       Gutter.Font.Name = 'Consolas'
       Gutter.Font.Style = []
+      Gutter.Font.Quality = fqClearTypeNatural
       Gutter.ShowLineNumbers = True
+      Gutter.Bands = <>
       ReadOnly = True
-      FontSmoothing = fsmNone
+      ScrollbarAnnotations = <>
     end
   end
   object StatusBar: TStatusBar
@@ -174,15 +171,14 @@ inherited FrmPreview: TFrmPreview
     ParentFont = True
     SimplePanel = True
     SimpleText = 
-      ' SVG Preview - Ver.%s (%dbit)- Copyright '#169' 2021-2024 Ethea S.r.l' +
-      '. - Author: Carlo Barazzetta'
+      ' SVG Preview - %s (%dbit)- Copyright '#169' 2021-2025 Ethea S.r.l.'
     UseSystemFont = False
   end
   object ImagePanel: TPanel
     Left = 0
-    Top = 368
+    Top = 277
     Width = 617
-    Height = 230
+    Height = 321
     Align = alClient
     BevelOuter = bvNone
     ParentBackground = False
@@ -233,7 +229,7 @@ inherited FrmPreview: TFrmPreview
   end
   object ColorPanel: TPanel
     Left = 0
-    Top = 335
+    Top = 241
     Width = 617
     Height = 30
     Align = alTop
@@ -244,7 +240,7 @@ inherited FrmPreview: TFrmPreview
       Left = 4
       Top = 3
       Width = 76
-      Height = 26
+      Height = 23
       Margins.Top = 2
       Align = alLeft
       Caption = 'Grayscale'
@@ -256,7 +252,7 @@ inherited FrmPreview: TFrmPreview
       Left = 325
       Top = 3
       Width = 121
-      Height = 26
+      Height = 23
       Margins.Top = 2
       Align = alLeft
       Caption = 'Apply to root only'
@@ -266,7 +262,7 @@ inherited FrmPreview: TFrmPreview
     object FixedColorBox: TColorBox
       AlignWithMargins = True
       Left = 174
-      Top = 6
+      Top = 4
       Width = 145
       Height = 22
       Align = alLeft
@@ -282,7 +278,7 @@ inherited FrmPreview: TFrmPreview
       Left = 86
       Top = 3
       Width = 82
-      Height = 26
+      Height = 23
       Margins.Top = 2
       Align = alLeft
       Caption = 'Fixed Color'

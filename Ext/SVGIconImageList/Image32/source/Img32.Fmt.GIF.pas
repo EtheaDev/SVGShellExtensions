@@ -1,8 +1,8 @@
 unit Img32.Fmt.GIF;
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.7                                                             *
-* Date      :  6 January 2025                                                  *
+* Version   :  4.9                                                             *
+* Date      :  9 August 2025                                                   *
 * Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2019-2025                                         *
 * Purpose   :  GIF file format extension for TImage32                          *
@@ -95,7 +95,7 @@ begin
           Cardinal(palentries[TransparentColorIndex]) := 0;
 
       img.SetSize(Width, Height);
-      rec := Rect(Left, Top, Left+ Width, Top +Height);
+      rec := Rect(Left, Top, Left + Width, Top + Height);
       pb := Data;
       pc := PARGB(img.PixelBase);
       for i := 1 to Width * Height do

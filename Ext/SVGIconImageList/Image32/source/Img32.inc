@@ -1,10 +1,16 @@
 // While "storage" is still technically experimental,
 // it does allow file system storage of layered objects etc 
-// Comment out the following preprocessor define if you do wish to 
-// use storage (eg to compile the experimental 'CtrlDemo' in Examples).
-{$DEFINE NO_STORAGE}   
+// Uncomment the following preprocessor define if you do wish to 
+// use file storage (eg to compile the experimental 'CtrlDemo' in Examples).
+{.$DEFINE USE_FILE_STORAGE}   
 
-// default rotation direction is clockwise with positive angles
+// The library's default rotation direction is CLOCKWISE as angle values increase.
+// A point offset at an angle of 0 degrees from the origin will always be at 3 o'clock
+// relative to the origin. A point offset at 90 degrees from the origin will be at
+// 6 o'clock, and a point offset at 270 degrees will be at 12 o'clock.
+// However, when this compiler directive is enabled, as angles increase in value, their
+// offsets will now occur in an anti-clockwise direction so that a point offset at
+// 90 degrees from the origin will appear at 12 o'clock, instead of at 6 o'clock.
 {.$DEFINE CLOCKWISE_ROTATION_WITH_NEGATIVE_ANGLES}
 
 // Image downsampling occurs when images are reduced in size, and the default downsampling
@@ -28,7 +34,7 @@
 {$IF DEFINED(FPC)}
   {$DEFINE USING_LCL}
   {$DEFINE USING_VCL_LCL}
-{$ELSEIF defined(ANDROID) OR defined(IOS) OR defined(OSX)}
+{$ELSEIF declared(FireMonkeyVersion) OR DEFINED(FRAMEWORK_FMX)}
   {$DEFINE USING_FMX}
 {$ELSE}
   {$DEFINE USING_VCL}
@@ -57,6 +63,9 @@
   {$IF COMPILERVERSION < 15}
     Your version of Delphi is not supported (Image32 requires Delphi version 7 or above)
   {$IFEND}
+  {$IF COMPILERVERSION <16}
+    {$DEFINE DELPHI_COMPILER_BEFORE_16}
+  {$IFEND}  
   {$IF COMPILERVERSION < 23}
     {$DEFINE CPUX86}                            // CPUX86 was added in Delphi XE2 (added Win64 compiler)
   {$IFEND}
@@ -90,7 +99,8 @@
             {$IF COMPILERVERSION >= 23}         //DelphiXE2
               {$DEFINE USES_NAMESPACES}
               {$DEFINE FORMATSETTINGS}
-              {$DEFINE TROUNDINGMODE}   
+              {$DEFINE TROUNDINGMODE}
+              {$DEFINE LIST_DELETERANGE}          //added TList.DeleteRange
               {$DEFINE UITYPES}                   //added UITypes unit
               {$DEFINE XPLAT_GENERICS}            //cross-platform generics support
               {$DEFINE STYLESERVICES}             //added StyleServices unit

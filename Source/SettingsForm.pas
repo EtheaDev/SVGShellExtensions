@@ -39,7 +39,8 @@ uses
   ActnList, SynEditHighlighter, SynUnicode, System.ImageList, Vcl.ImgList,
   SVGIconImageListBase, SVGIconImageList, uSettings, Vcl.ButtonGroup,
   Vcl.ToolWin, DResources, Vcl.VirtualImageList, uAbout, Vcl.WinXCtrls,
-  Vcl.ButtonStylesAttributes, Vcl.StyledButtonGroup, Vcl.StyledButton;
+  Vcl.ButtonStylesAttributes, Vcl.StyledButtonGroup, Vcl.StyledButton,
+  Vcl.Samples.Spin;
 
 type
   TUserSettingsForm = class(TForm)
@@ -97,10 +98,16 @@ type
     FixedColorGroupBox: TGroupBox;
     ApplyToRootCheckBox: TCheckBox;
     GrayScaleCheckBox: TCheckBox;
+    FixedColorCheckBox: TCheckBox;
     FixedColorColorBox: TColorBox;
     ActiveLineColorGroupBox: TGroupBox;
     DarkActiveLineColorColorBox: TColorBox;
     LightActiveLineColorColorBox: TColorBox;
+    tsUpdates: TTabSheet;
+    UpdateGroupBox: TGroupBox;
+    AutoUpdateCheckBox: TCheckBox;
+    CheckNDaysLabel: TLabel;
+    CheckNDaysSpinEdit: TSpinEdit;
     procedure BoxElementsClick(Sender: TObject);
     procedure cbForegroundClick(Sender: TObject);
     procedure cbBackgroundClick(Sender: TObject);
@@ -120,12 +127,14 @@ type
     procedure ResetButtonClick(Sender: TObject);
     procedure CbFontDrawItem(Control: TWinControl; Index: Integer; Rect: TRect;
       State: TOwnerDrawState);
+    procedure AutoUpdateCheckBoxClick(Sender: TObject);
   private
     FHighlighter: TSynCustomHighlighter;
     FSourceSynEdit: TSynEdit;
     FFileName: string;
     FAboutForm: TFrmAbout;
     FTitle: string;
+    procedure UpdateGUI;
     procedure PopulateAvailThemes;
     procedure AssignSettings(ASettings: TSettings);
     procedure UpdateSettings(ASettings: TSettings);
@@ -507,9 +516,12 @@ begin
   tsFont.TabVisible := False;
   stTheme.TabVisible := False;
   stGeneral.TabVisible := False;
+  tsUpdates.TabVisible := false;  
   CbFont.Items.Assign(Screen.Fonts);
   TitlePanel.Font.Height := Round(TitlePanel.Font.Height * 1.5);
   MenuButtonGroup.Font.Height := Round(MenuButtonGroup.Font.Height * 1.2);
+
+  UpdateGroupBox.Caption := CheckForUpdates_Msg;
   PanelTopPreviewSettings.Font.Style := PanelTopPreviewSettings.Font.Style + [fsBold];
   PanelTopTheme.Font.Style := PanelTopTheme.Font.Style + [fsBold];
   PanelTopFont.Font.Style := PanelTopFont.Font.Style + [fsBold];
@@ -519,6 +531,13 @@ end;
 procedure TUserSettingsForm.FormDestroy(Sender: TObject);
 begin
   FAboutForm.Free;
+end;
+
+procedure TUserSettingsForm.AutoUpdateCheckBoxClick(Sender: TObject);
+begin
+  if AutoUpdateCheckBox.Checked and (CheckNDaysSpinEdit.Value = -1) then
+    CheckNDaysSpinEdit.Value := default_checkdays;
+  UpdateGUI;
 end;
 
 procedure TUserSettingsForm.ColorBoxSelect(Sender: TObject);
@@ -555,13 +574,18 @@ begin
   ToolbarRoundedCheckBox.Checked := ASettings.ToolbarDrawRounded;
   ButtonsRoundedCheckBox.Checked := ASettings.ButtonDrawRounded;
   MenuRoundedCheckBox.Checked := ASettings.MenuDrawRounded;
+  FixedColorCheckBox.Checked := ASettings.FixedColor <> Ord(clDefault);
   FixedColorColorBox.Selected := ASettings.FixedColor;
   ApplyToRootCheckBox.Checked := ASettings.ApplyToRootOnly;
   GrayScaleCheckBox.Checked := ASettings.GrayScale;
   DarkActiveLineColorColorBox.Selected := TEditorSettings(ASettings).DarkActiveLineColor;
   LightActiveLineColorColorBox.Selected := TEditorSettings(ASettings).LightActiveLineColor;
 
+  AutoUpdateCheckBox.Checked := ASettings.DaysForNextCheck <> -1;
+  CheckNDaysSpinEdit.Value := ASettings.DaysForNextCheck;
+
   PopulateAvailThemes;
+  UpdateGUI;  
 end;
 
 function TUserSettingsForm.SelectedStyleIsDark: Boolean;
@@ -583,6 +607,11 @@ begin
     Result := DefaultStyleName;
 end;
 
+procedure TUserSettingsForm.UpdateGUI;
+begin
+  CheckNDaysSpinEdit.Enabled := AutoUpdateCheckBox.Checked;
+end;
+
 procedure TUserSettingsForm.UpdateSettings(ASettings: TSettings);
 begin
   ASettings.ActivePageIndex := pc.ActivePageIndex;
@@ -594,7 +623,10 @@ begin
   ASettings.ToolbarDrawRounded := ToolbarRoundedCheckBox.Checked;
   ASettings.ButtonDrawRounded := ButtonsRoundedCheckBox.Checked;
   ASettings.MenuDrawRounded := MenuRoundedCheckBox.Checked;
-  ASettings.FixedColor := FixedColorColorBox.Selected;
+  if FixedColorCheckBox.Checked then
+    ASettings.FixedColor := FixedColorColorBox.Selected
+  else
+    ASettings.FixedColor := Ord(clDefault);
   ASettings.ApplyToRootOnly := ApplyToRootCheckBox.Checked;
   ASettings.GrayScale := GrayScaleCheckBox.Checked;
 
@@ -603,6 +635,11 @@ begin
     TEditorSettings(ASettings).DarkActiveLineColor := DarkActiveLineColorColorBox.Selected;
     TEditorSettings(ASettings).LightActiveLineColor := LightActiveLineColorColorBox.Selected;
   end;
+
+  if AutoUpdateCheckBox.Checked then
+    ASettings.DaysForNextCheck := CheckNDaysSpinEdit.Value
+  else
+    ASettings.DaysForNextCheck := -1;
 end;
 
 procedure TUserSettingsForm.MenuButtonGroupButtonClicked(Sender: TObject;
@@ -612,7 +649,7 @@ begin
   begin
     case Index of
       0: ExitFromSettings(nil);
-      1,2,3,4: ChangePage(Index -1);
+      1,2,3,4,5: ChangePage(Index -1);
     else
       Beep;
     end;

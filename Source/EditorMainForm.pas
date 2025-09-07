@@ -37,12 +37,10 @@ uses
   SynEditSearch, XPStyleActnCtrls, System.Actions, SVGIconImage, Vcl.Buttons,
   Vcl.CategoryButtons, Vcl.WinXCtrls, System.ImageList, Vcl.VirtualImageList,
   uSettings
-  , System.Generics.Collections
   , Vcl.PlatformVclStylesActnCtrls
   {$IFNDEF NO_VCL_STYLES}
   , Vcl.Styles.Fixes
   , Vcl.Styles.FormStyleHooks
-  , Vcl.Styles.NC
   , Vcl.Styles.OwnerDrawFix
   , Vcl.Styles.Utils.ScreenTips
   , Vcl.Styles.Utils.SysStyleHook
@@ -63,15 +61,14 @@ uses
   , Vcl.ButtonStylesAttributes
   , Vcl.StyledButtonGroup
   , Vcl.StyledCategoryButtons
-  , Vcl.FormTabsBar
-  , ChildForm
+  , PageControlHook
   ;
 
 const
   SET_FILE_NAME = 'HiglightSettings';
   SV_COLLAPSED_WIDTH = 42;
   SV_COLLAPSED_WIDTH_WITH_SCROLLBARS = 60;
-
+  TABSHEET_IMAGE = 'svg-logo';
 
 resourcestring
   PAGE_HEADER_FIRST_LINE_LEFT = '$TITLE$';
@@ -90,16 +87,14 @@ resourcestring
   CONFIRM_CHANGES = 'ATTENTION: the content of file "%s" is changed: do you want to save the file?';
   FILE_CHANGED_RELOAD = 'File "%s" Date/Time changed! Do you want to reload it?';
   SVG_PARSING_OK = 'SVG Parsing is correct.';
+  FILES_TYPE = 'SVG Image files';
 
 type
   TEditingFile = class
   private
-    //FIcon : TIcon;
     FFileName : string;
     FFileAge: TDateTime;
     FExtension: string;
-    FUseDarkStyle: Boolean;
-    FChildForm: TMDIChildForm;
     procedure ReadFromFile;
     procedure SaveToFile;
     function GetFileName: string;
@@ -107,14 +102,12 @@ type
     procedure SetFileName(const Value: string);
     procedure LoadFromFile(const AFileName: string);
     function GetImageName: string;
-    procedure SetChildForm(const Value: TMDIChildForm);
-    procedure UpdateFileNameInChildForm;
+    procedure UpdateTabSheetCaption;
   public
     EditFileType: TEditFileType;
     SynEditor: TSynEdit;
-    property ChildForm: TMDIChildForm read FChildForm write SetChildForm;
-    constructor Create(const EditFileName : string;
-      const AUseDarkStyle: Boolean);
+    TabSheet: TTabSheet;
+    constructor Create(const EditFileName : string);
     Destructor Destroy; override;
     property FileName: string read GetFileName write SetFileName; //with full path
     property Name: string read GetName; //only name of file
@@ -123,11 +116,11 @@ type
   end;
 
   TfrmMain = class(TForm, IDragDrop)
-    OpenDialog: TOpenDialog;
+    OpenDialog: TFileOpenDialog;
     ActionList: TActionList;
     acOpenFile: TAction;
     acSave: TAction;
-    SaveDialog: TSaveDialog;
+    SaveDialog: TFileSaveDialog;
     acEditCut: TEditCut;
     acEditCopy: TEditCopy;
     acEditPaste: TEditPaste;
@@ -165,7 +158,6 @@ type
     actnFormatXML: TAction;
     SynEditSearch: TSynEditSearch;
     ImagePanel: TPanel;
-    SVGIconImage: TSVGIconImage;
     RightSplitter: TSplitter;
     panelPreview: TPanel;
     SV: TSplitView;
@@ -185,10 +177,6 @@ type
     QuitToolButton: TStyledToolButton;
     SepToolButton: TStyledToolButton;
     FlowPanel: TFlowPanel;
-    SVGIconImage16: TSVGIconImage;
-    SVGIconImage32: TSVGIconImage;
-    SVGIconImage48: TSVGIconImage;
-    SVGIconImage96: TSVGIconImage;
     BackgroundTrackBar: TTrackBar;
     BackgroundGrayScaleLabel: TLabel;
     OpenRecentAction: TAction;
@@ -202,7 +190,6 @@ type
     ExportToPNGAction: TAction;
     N1: TMenuItem;
     CloseAllMenuItem: TMenuItem;
-    ClientPanel: TPanel;
     ExporttoPNGMenuItem: TMenuItem;
     StatusPanel: TPanel;
     StatusImage: TSVGIconImage;
@@ -210,12 +197,18 @@ type
     StatusSplitter: TSplitter;
     VirtualImageList20: TVirtualImageList;
     LoadTimer: TTimer;
+    SVGIconImage: TSVGIconImage;
+    SVGIconImage16: TSVGIconImage;
+    SVGIconImage32: TSVGIconImage;
+    SVGIconImage48: TSVGIconImage;
+    SVGIconImage96: TSVGIconImage;
     CheckFileChangedTimer: TTimer;
     ColorPanel: TPanel;
     GrayscaleCheckBox: TCheckBox;
     ApplyToRootCheckBox: TCheckBox;
     FixedColorBox: TColorBox;
     FixedColorCheckBox: TCheckBox;
+    ClientPanel: TPanel;
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure acOpenFileExecute(Sender: TObject);
     procedure acSaveExecute(Sender: TObject);
@@ -231,8 +224,7 @@ type
     procedure acSearchUpdate(Sender: TObject);
     procedure acReplaceUpdate(Sender: TObject);
     procedure acCloseExecute(Sender: TObject);
-    procedure ChildFormActivate(Sender: TObject);
-    procedure ChildFormClose(Sender: TObject; var Action: TCloseAction);
+    procedure PageControlChange(Sender: TObject);
     procedure acSaveUpdate(Sender: TObject);
     procedure acCloseAllUpdate(Sender: TObject);
     procedure acCloseAllExecute(Sender: TObject);
@@ -283,8 +275,7 @@ type
     procedure acEditPasteExecute(Sender: TObject);
     procedure acEditSelectAllExecute(Sender: TObject);
     procedure acEditUndoUpdate(Sender: TObject);
-    procedure SVGIconImageMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
+    procedure SVGIconImageMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
@@ -295,14 +286,15 @@ type
     procedure FixedColorCheckBoxClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure acEditCopyUpdate(Sender: TObject);
+    procedure PageControlMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure TabSheetCloseButtonClick(Sender: TObject);
     procedure CheckFileChangedTimerTimer(Sender: TObject);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure LoadTimerTimer(Sender: TObject);
     procedure AppDeactivate(Sender: TObject);
     procedure AppActivate(Sender: TObject);
-    procedure SVResize(Sender: TObject);
   private
-    FormTabsBar: TSpecialFormTabsBar;
+    PageControl: TPageControlEx;
     FEditingInProgress: Boolean;
     FirstAction: Boolean;
     MinFormWidth, MinFormHeight, MaxFormWidth, MaxFormHeight: Integer;
@@ -324,7 +316,6 @@ type
     FEditorOptions: TSynEditorOptionsContainer;
     FFontSize: Integer;
     FDropTarget: TDropTarget;
-    CurrentChildForm: TMDIChildForm;
     procedure OnExportToPng(const ASizes: TPngExportSizes; const SVGText: string;
       const AFolder, AFormat: string; ACustomSize: Integer);
     // implement IDragDrop
@@ -345,6 +336,7 @@ type
     function ModifiedCount: integer;
     procedure InitSynEditPrint;
     procedure InitEditorOptions;
+    procedure InitDialog(const ADialog: TCustomFileDialog; const ADefaultFolder: string);
     procedure SetSynEditPrintProperties(SynEditPrint : TSynEditPrint);
     procedure UpdateEditorsOptions;
     function CurrentEditorState : string;
@@ -359,8 +351,8 @@ type
     function CanAcceptFileName(const AFileName: string): Boolean;
     function AcceptedExtensions: string;
     procedure ConfirmChanges(EditingFile: TEditingFile);
-    procedure UpdateChildFormImage(AChildForm: TMDIChildForm; AModified: Boolean;
-      const AImageName: string);
+    procedure UpdateTabsheetImage(ATabSheet: TTabSheet; AModified: Boolean);
+    procedure UpdateRightSplitterPos;
     property EditorFontSize: Integer read FFontSize write SetEditorFontSize;
     function GetApplyToRootOnly: Boolean;
     function GetFixedColor: TColor;
@@ -369,6 +361,7 @@ type
     procedure SetFixedColor(const Value: TColor);
     procedure SetGrayScale(const Value: Boolean);
     procedure UpdateColorGUI;
+    procedure CreatePageControl;
   protected
     procedure CreateWindowHandle(const Params: TCreateParams); override;
     procedure DestroyWindowHandle; override;
@@ -433,14 +426,13 @@ begin
   LoadFromFile(FileName);
 end;
 
-constructor TEditingFile.Create(const EditFileName: string;
-  const AUseDarkStyle: Boolean);
+constructor TEditingFile.Create(const EditFileName: string);
 begin
   inherited Create;
-  FUseDarkStyle := AUseDarkStyle;
-
+  {$IFNDEF NO_VCL_STYLES}
   if not IsStyleHookRegistered(TCustomSynEdit, TScrollingStyleHook) then
     TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TScrollingStyleHook);
+  {$ENDIF}
 
   FileName := EditFileName;
   Fextension := ExtractFileExt(FileName);
@@ -453,10 +445,7 @@ end;
 
 function TEditingFile.GetImageName: string;
 begin
-  if FUseDarkStyle then
-    Result := 'svg-logo'
-  else
-    Result := 'svg-logo';
+  Result := TABSHEET_IMAGE;
 end;
 
 function TEditingFile.GetName: string;
@@ -464,19 +453,14 @@ begin
   Result := ExtractFileName(FFileName);
 end;
 
-procedure TEditingFile.UpdateFileNameInChildForm;
+procedure TEditingFile.UpdateTabSheetCaption;
 begin
-  if Assigned(FChildForm) then
+  if TabSheet <> nil then
   begin
-    FChildForm.Caption := ExtractFileName(Self.FFileName);
-    FChildForm.Hint := Self.FFileName;
+    TabSheet.Caption := Name+'      '; //Spaces for Close Button space
+    TabSheet.Hint := FFileName;
+    TabSheet.ShowHint := True;
   end;
-end;
-
-procedure TEditingFile.SetChildForm(const Value: TMDIChildForm);
-begin
-  FChildForm := Value;
-  UpdateFileNameInChildForm;
 end;
 
 procedure TEditingFile.SetFileName(const Value: string);
@@ -486,12 +470,11 @@ begin
   FFileName := Value;
   Ext := ExtractFileExt(FFileName);
   EditFileType := dmResources.GetEditFileType(Ext);
-  UpdateFileNameInChildForm;
+  UpdateTabSheetCaption;
 end;
 
 destructor TEditingFile.Destroy;
 begin
-  //FreeAndNil(FIcon);
   inherited;
 end;
 
@@ -510,6 +493,7 @@ begin
       raise;
   end;
   SynEditor.Modified := False;
+  SynEditor.OnChange(SynEditor);
   FileAge(AFileName, FFileAge);
 end;
 
@@ -583,7 +567,7 @@ begin
         begin
           EditingFile := TEditingFile(EditFileList.Items[J]);
           I := J;
-          EditingFile.ChildForm.Show;
+          PageControl.ActivePageIndex := I;
           break;
         end;
       end;
@@ -591,7 +575,7 @@ begin
       Try
         if not Assigned(EditingFile) then
         begin
-          EditingFile := TEditingFile.Create(FileName, FEditorSettings.UseDarkStyle);
+          EditingFile := TEditingFile.Create(FileName);
           //Add file to list
           I := AddEditingFile(EditingFile);
         end;
@@ -659,11 +643,6 @@ begin
   FreeAndNil(FEditorSettings);
   FreeAndNil(FEditorOptions);
   inherited;
-end;
-
-procedure TfrmMain.FormKeyPress(Sender: TObject; var Key: Char);
-begin
-  // if Key = Chr(27) then
 end;
 
 procedure TfrmMain.FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
@@ -765,6 +744,12 @@ begin
     SV.OpenedWidth := SV.Width;
 end;
 
+procedure TfrmMain.TabSheetCloseButtonClick(Sender: TObject);
+begin
+  PageControl.ActivePage := Sender as TTabSheet;
+  acClose.Execute;
+end;
+
 procedure TfrmMain.SVGIconImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 var
@@ -785,12 +770,6 @@ procedure TfrmMain.SVOpening(Sender: TObject);
 begin
   // When animating, change size of catMenuItems at the beginning of open
   catMenuItems.ButtonOptions := catMenuItems.ButtonOptions + [boShowCaptions];
-end;
-
-procedure TfrmMain.SVResize(Sender: TObject);
-begin
-//  StyledToolbar.Margins.Left :=
-//    Round(SV.Width - (SV_COLLAPSED_WIDTH * ScaleFactor) + (3 * ScaleFactor));
 end;
 
 procedure TfrmMain.DestroyWindowHandle;
@@ -901,9 +880,10 @@ var
 begin
   LFileList := TStringList.Create;
   try
-    for I := 0 to EditFileList.Count -1 do
+    //Save Opened File list, based on Pages
+    for I := 0 to PageControl.PageCount -1 do
     begin
-      LEditingFile := TEditingFile(EditFileList.Items[I]);
+      LEditingFile := TEditingFile(PageControl.Pages[I].Tag);
       //Confirm save changes
       ConfirmChanges(LEditingFile);
       LFileList.Add(LEditingFile.FileName);
@@ -925,22 +905,25 @@ var
   LFileName: string;
   LIndex: Integer;
   LCurrentFileName: string;
-  EditingFile: TEditingFile;
 begin
   LIndex := -1;
-  for I := 0 to FEditorSettings.OpenedFileList.Count-1 do
-  begin
-    LCurrentFileName := FEditorSettings.CurrentFileName;
-    LFileName := FEditorSettings.OpenedFileList.Strings[I];
-    if OpenFile(LFileName, False) and SameText(LFileName, LCurrentFileName) then
-      LIndex := I;
+  PageControl.Hide;
+  try
+    for I := 0 to FEditorSettings.OpenedFileList.Count-1 do
+    begin
+      LCurrentFileName := FEditorSettings.CurrentFileName;
+      LFileName := FEditorSettings.OpenedFileList.Strings[I];
+      if OpenFile(LFileName, False) and SameText(LFileName, LCurrentFileName) then
+        LIndex := I;
+    end;
+    if LIndex <> -1 then
+    begin
+      PageControl.ActivePageIndex := LIndex;
+      AssignSVGToImage;
+    end;
+  finally
+    PageControl.Show;
   end;
-  if LIndex <> -1 then
-  begin
-    EditingFile := TEditingFile(EditFileList.Items[LIndex]);
-    EditingFile.ChildForm.Show;
-  end;
-  AssignSVGToImage;
 end;
 
 procedure TfrmMain.LoadTimerTimer(Sender: TObject);
@@ -948,7 +931,6 @@ begin
   if FEditingInProgress then
   begin
     FEditingInProgress := False;
-    AssignSVGToImage;
   end;
 end;
 
@@ -956,16 +938,15 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 var
   FileVersionStr: string;
 begin
-  FormTabsBar := TSpecialFormTabsBar.CreateForMainForm(Self, ClientPanel);
+  CreatePageControl;
 
   //To check Application Focus
   Application.OnActivate := AppActivate;
   Application.OnDeactivate := AppDeactivate;
 
-
   //Initialize AnimatedTaskDialog font size and use of CommandLinks
   Screen.MessageFont.Size := Round(Screen.MessageFont.Size*1.2);
-  InitializeStyledTaskDialogs(True, Screen.MessageFont, True);
+  InitializeStyledTaskDialogs(True, Screen.MessageFont, False);
 
   //Build opened-files list
   EditFileList := TObjectList.Create(True);
@@ -986,8 +967,8 @@ begin
   ImagePreviewPanel.Font.Style := ImagePreviewPanel.Font.Style + [fsBold];
 
   //Version
-  FileVersionStr := uMisc.GetFileVersion(GetModuleLocation());
-  Application.Title := Application.Title + ' (Ver.'+FileVersionStr+')';
+  FileVersionStr := GetCurrentVersion(Application.ExeName);
+  Application.Title := Format('%s (%s)', [Application.Title, FileVersionStr]);
   Caption := Application.Title;
 
   WindowState := wsMaximized;
@@ -1024,8 +1005,7 @@ begin
     LNewFileName := Format('%s%s(%d).%s', [CurrentDir,'New',LCount,NewExt]);
   end;
 
-  EditingFile := TEditingFile.Create(LNewFileName,
-    FEditorSettings.UseDarkStyle);
+  EditingFile := TEditingFile.Create(LNewFileName);
   Try
     AddEditingFile(EditingFile);
     if EditingFile.SynEditor.CanFocus then
@@ -1049,8 +1029,7 @@ end;
 
 procedure TfrmMain.acCloseExecute(Sender: TObject);
 begin
-  //Remove editing file
-  CurrentChildForm.Close;
+  RemoveEditingFile(CurrentEditFile);
 end;
 
 procedure TfrmMain.acEditCopyExecute(Sender: TObject);
@@ -1090,25 +1069,22 @@ begin
   acEditUndo.Enabled := (CurrentEditor <> nil) and CurrentEditor.Modified;
 end;
 
-procedure TfrmMain.UpdateChildFormImage(AChildForm: TMDIChildForm;
-  AModified: Boolean; const AImageName: string);
-var
-  LImageName: string;
+procedure TfrmMain.UpdateTabsheetImage(ATabSheet: TTabSheet;
+  AModified: Boolean);
 begin
   if AModified then
-    LImageName := AImageName
+    ATabSheet.ImageName := TABSHEET_IMAGE
   else
-    LImageName := AImageName+'-gray';
-  AChildForm.SetIconByName(VirtualImageList20, LImageName);
-  FormTabsBar.Invalidate;
+    ATabSheet.ImageName := TABSHEET_IMAGE+'-gray';
 end;
 
 procedure TfrmMain.SynEditChange(Sender: TObject);
 begin
-  if Sender = CurrentEditor then
+  if (Sender = CurrentEditor) and not FProcessingFiles then
   begin
     FEditingInProgress := True;
     LoadTimer.Enabled := False;
+    UpdateTabsheetImage(pageControl.ActivePage, CurrentEditor.Modified);
     AssignSVGToImage;
   end;
 end;
@@ -1120,30 +1096,32 @@ end;
 
 function TfrmMain.AddEditingFile(const EditingFile: TEditingFile): Integer;
 var
-  LChildForm: TMDIChildForm;
+  LTabSheet: TTabSheet;
   LEditor: TSynEdit;
 begin
   //Add file to opened-list
   Result := EditFileList.Add(EditingFile);
-  //Create the Child Form associated to the file
-  LChildForm := nil;
+  //Create the Tabsheet page associated to the file
+  LTabSheet := nil;
   LEditor := nil;
   Try
-    LChildForm := TMDIChildForm.Create(Application);
-    LChildForm.OnClose := ChildFormClose;
-    LChildForm.EditingFile := EditingFile;
-    LChildForm.OnActivate := ChildFormActivate;
-    UpdateChildFormImage(LChildForm, False, EditingFile.ImageName);
-    EditingFile.ChildForm := LChildForm;
+    LTabSheet := TTabSheet.Create(self);
+    LTabSheet.PageControl := PageControl;
+    //Use TAG of tabsheet to store the object pointer
+    LTabSheet.Tag := NativeInt(EditingFile);
+    LTabSheet.Imagename := TABSHEET_IMAGE+'-gray';
+    LTabSheet.Parent := PageControl;
+    LTabSheet.TabVisible := True;
+    EditingFile.TabSheet := LTabSheet;
+    EditingFile.UpdateTabSheetCaption;
 
-
-    //Create the SynEdit object editor into the ChildForm that is the owner
-    LEditor := TSynEdit.Create(LChildForm);
+    //Create the SynEdit object editor into the TabSheet that is the owner
+    LEditor := TSynEdit.Create(LTabSheet);
     LEditor.OnChange := SynEditChange;
     LEditor.OnEnter := SynEditEnter;
     LEditor.MaxUndo := 5000;
     LEditor.Align := alClient;
-    LEditor.Parent := LChildForm;
+    LEditor.Parent := LTabSheet;
     LEditor.SearchEngine := SynEditSearch;
     LEditor.PopupMenu := popEditor;
 
@@ -1155,15 +1133,19 @@ begin
 
     LEditor.Visible := True;
 
-    //Make the ChildForm the current page
-    //and call "change" method passing EditingChild
-    ChildFormActivate(LChildForm);
-    AdjustViewerWidth(True);
+    //Show the tabsheet
+    LTabSheet.Visible := True;
   Except
-    LChildForm.Free;
+    LTabSheet.Free;
     LEditor.Free;
     raise;
   End;
+
+  //Make the Tabsheet the current page
+  PageControl.ActivePage := LTabSheet;
+
+  //and call "change" of pagecontrol
+  PageControl.OnChange(PageControl);
 end;
 
 procedure TfrmMain.AssignSVGToImage;
@@ -1221,31 +1203,6 @@ begin
   end;
 end;
 
-procedure TfrmMain.ChildFormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  //Remove editing file
-  var LEditingFile := (Sender as TMDIChildForm).EditingFile as TEditingFile;
-  RemoveEditingFile(LEditingFile);
-  //Reset CurrentChildForm pointer
-  CurrentChildForm := nil;
-  AssignSVGToImage;
-  Action := caFree;
-end;
-
-procedure TfrmMain.ChildFormActivate(Sender: TObject);
-begin
-  CurrentChildForm := Sender as TMDIChildForm;
-  CloseSplitViewMenu;
-  //Setting the Editor caption as the actual file opened
-  if CurrentEditFile <> nil then
-  begin
-    if (CurrentEditFile.SynEditor.CanFocus) then
-      CurrentEditFile.SynEditor.SetFocus;
-  end;
-  AssignSVGToImage;
-  AdjustViewerWidth;
-end;
-
 procedure TfrmMain.BackgroundTrackBarChange(Sender: TObject);
 var
   LValue: byte;
@@ -1256,6 +1213,42 @@ begin
     [LValue * 100 div 255]);
   ImagePanel.Color := RGB(LValue, LValue, LValue);
   FEditorSettings.LightBackground := BackgroundTrackBar.Position;
+end;
+
+procedure TfrmMain.PageControlChange(Sender: TObject);
+begin
+  CloseSplitViewMenu;
+  //Setting the Editor caption as the actual file opened
+  if CurrentEditFile <> nil then
+  begin
+    Caption := Application.Title+' - '+CurrentEditFile.FileName;
+    if (CurrentEditFile.SynEditor.CanFocus) then
+      CurrentEditFile.SynEditor.SetFocus;
+  end;
+  AssignSVGToImage;
+end;
+
+procedure TfrmMain.PageControlMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+var
+  LhintPause: Integer;
+  LTabIndex: Integer;
+begin
+  inherited;
+  LTabIndex := PageControl.IndexOfTabAt(X, Y);
+  if (LTabIndex >= 0) and (PageControl.Hint <> PageControl.Pages[LTabIndex].Hint) then
+  begin
+    LHintPause := Application.HintPause;
+    try
+      if PageControl.Hint <> '' then
+        Application.HintPause := 0;
+      Application.CancelHint;
+      PageControl.Hint := PageControl.Pages[LTabIndex].Hint;
+      PageControl.ShowHint := true;
+    finally
+      Application.HintPause := LHintPause;
+    end;
+  end;
 end;
 
 procedure TfrmMain.acSaveUpdate(Sender: TObject);
@@ -1282,7 +1275,7 @@ begin
           if LConfirm = mrYes then
           begin
             LEditFile.ReadFromFile;
-            UpdateChildFormImage(LEditFile.ChildForm, False, LEditFile.ImageName);
+            UpdateTabsheetImage(LEditFile.TabSheet, False);
             SynEditChange(LEditFile.SynEditor);
           end
           else
@@ -1328,8 +1321,8 @@ end;
 
 function TfrmMain.CurrentEditFile: TEditingFile;
 begin
-  if (CurrentChildForm <> nil) then
-    Result := TEditingFile(CurrentChildForm.EditingFile)
+  if (PageControl.ActivePage <> nil) then
+    Result := TEditingFile(PageControl.ActivePage.Tag)
   else
     Result := nil;
 end;
@@ -1379,8 +1372,17 @@ begin
   ConfirmChanges(EditingFile);
 
   //Delete the file from the Opened-List
-  CurrentChildForm := nil;
   EditFileList.Delete(pos);
+
+  //Delete the TabSheet
+  PageControl.Pages[pos].Free;
+
+  //Activate the previous page and call "change" of pagecontrol
+  if pos > 0 then
+    PageControl.ActivePageIndex := pos-1;
+
+  //Force "change" of Page
+  PageControl.OnChange(PageControl);
 end;
 
 procedure TfrmMain.acCloseAllUpdate(Sender: TObject);
@@ -1393,7 +1395,7 @@ begin
   FProcessingFiles := True;
   try
     while EditFileList.Count > 0 do
-      TEditingFile(EditFileList.items[0]).ChildForm.Close;
+      RemoveEditingFile(TEditingFile(EditFileList.items[0]));
   finally
     FProcessingFiles := False;
     AssignSVGToImage;
@@ -1457,7 +1459,7 @@ end;
 
 procedure TfrmMain.acAboutExecute(Sender: TObject);
 begin
-  ShowAboutForm(DialogPosRect, Title_SVGTextEditor);
+  ShowAboutForm(DialogPosRect, Title_SVGTextEditor, False);
 end;
 
 procedure TfrmMain.acSearchAgainExecute(Sender: TObject);
@@ -1739,11 +1741,20 @@ begin
   end;
 end;
 
+procedure TfrmMain.InitDialog(const ADialog: TCustomFileDialog;
+  const ADefaultFolder: string);
+begin
+  ADialog.DefaultFolder := ADefaultFolder;
+  // Add File Filters
+  with ADialog.FileTypes.Add do
+  begin
+    DisplayName := FILES_TYPE;
+    FileMask := '*.svg';
+  end;
+end;
+
 procedure TfrmMain.actnSaveAsExecute(Sender: TObject);
 begin
-  SaveDialog.FileName := ChangeFileExt(CurrentEditFile.FileName, '.svg');
-  SaveDialog.Filter := 'Scalable Vector Graphics (SVG) file (*.svg)';
-
   SaveDialog.FileName := CurrentEditFile.FileName;
   if SaveDialog.Execute then
   begin
@@ -1753,8 +1764,8 @@ begin
     end;
     CurrentEditFile.SaveToFile;
 
-    //call the "onactivate" event of ChildForm
-    ChildFormActivate(CurrentEditFile.ChildForm);
+    //call the "onchange" event of PageControl
+    PageControl.OnChange(PageControl);
   end;
 end;
 
@@ -1877,8 +1888,18 @@ begin
     else
       InitialDir := '.';
 
-    OpenDialog.InitialDir := InitialDir;
-    SaveDialog.InitialDir := InitialDir;
+    InitDialog(OpenDialog, InitialDir);
+    InitDialog(SaveDialog, InitialDir);
+
+    ImagePanel.Visible := True;
+    UpdateRightSplitterPos;
+
+    //Check for new version available
+    if FEditorSettings.IsTimeToCheckNewVersion then
+    begin
+      if AcceptNewSetup(False) then
+        ShowAboutForm(DialogPosRect, Title_SVGTextEditor, True);
+    end;
   end;
   LoadTimer.Enabled := True;
 end;
@@ -1966,7 +1987,15 @@ begin
       else if LViewerWidth > LMaxWidth then
         ImagePanel.Width := LMaxWidth;
     end;
+    UpdateRightSplitterPos;
   end;
+end;
+
+procedure TfrmMain.UpdateRightSplitterPos;
+begin
+  if ImagePanel.Visible then
+    RightSplitter.Left := ImagePanel.Left - RightSplitter.Width;
+  RightSplitter.Visible := ImagePanel.Visible;
 end;
 
 procedure TfrmMain.AdjustCompactWidth;
@@ -1976,7 +2005,7 @@ begin
     SV.CompactWidth := Round(SV_COLLAPSED_WIDTH * ScaleFactor)
   else
     SV.CompactWidth := Round(SV_COLLAPSED_WIDTH_WITH_SCROLLBARS * ScaleFactor);
-  if (CurrentEditFile <> nil) and (ImagePanel.Width > CurrentEditFile.ChildForm.Width) then
+  if (ImagePanel.Width > PageControl.Width) then
     ImagePanel.Width := width div 3;
 end;
 
@@ -2088,6 +2117,18 @@ begin
       TMsgDlgType.mtError,
       [TMsgDlgBtn.mbOK, TMsgDlgBtn.mbHelp], 0);
   end;
+end;
+
+procedure TfrmMain.CreatePageControl;
+begin
+  PageControl := TPageControlEx.Create(Self);
+  PageControl.Parent := ClientPanel;
+  PageControl.Align := alClient;
+  PageControl.Images := VirtualImageList;
+  PageControl.TabOrder := 0;
+  PageControl.OnChange := PageControlChange;
+  PageControl.OnMouseMove := PageControlMouseMove;
+  PageControl.OnCloseButtonClick := TabSheetCloseButtonClick;
 end;
 
 initialization

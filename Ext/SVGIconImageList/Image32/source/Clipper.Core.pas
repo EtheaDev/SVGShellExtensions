@@ -2,7 +2,7 @@ unit Clipper.Core;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Date      :  22 November 2024                                                *
+* Date      :  10 May 2025                                                     *
 * Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2010-2024                                         *
 * Purpose   :  Core Clipper Library module                                     *
@@ -325,6 +325,7 @@ function GetSegmentIntersectPt(const ln1a, ln1b, ln2a, ln2b: TPoint64;
   out ip: TPoint64): Boolean;
 
 function PointInPolygon(const pt: TPoint64; const polygon: TPath64): TPointInPolygonResult;
+function Path2ContainsPath1(const path1, path2: TPath64): Boolean;
 
 function GetClosestPointOnSegment(const pt, seg1, seg2: TPoint64): TPoint64;
   {$IFDEF INLINING} inline; {$ENDIF}
@@ -375,7 +376,7 @@ const
 implementation
 
 resourcestring
-  rsClipper_PrecisonErr = 'The decimal rounding value is invalid';
+  rsClipper_PrecisionErr = 'The decimal rounding value is invalid';
 
 //------------------------------------------------------------------------------
 // TRect64 methods ...
@@ -485,7 +486,7 @@ end;
 
 function TRectD.GetMidPoint: TPointD;
 begin
-  result := PointD((Left + Right) *0.5, (Top + Bottom) *0.5);
+  result := PointD((Left + Right) * 0.5, (Top + Bottom) * 0.5);
 end;
 //------------------------------------------------------------------------------
 
@@ -556,7 +557,7 @@ begin
   begin
     if fCapacity = 0 then
       fCapacity := 16 else
-      fCapacity := fCapacity *2;
+      fCapacity := fCapacity * 2;
     SetLength(fList, fCapacity);
   end;
   fList[fCount] := item;
@@ -707,7 +708,7 @@ end;
 procedure CheckPrecisionRange(var precision: integer);
 begin
   if (precision < -MaxDecimalPrecision) or (precision > MaxDecimalPrecision) then
-      Raise EClipper2LibException(rsClipper_PrecisonErr);
+      Raise EClipper2LibException(rsClipper_PrecisionErr);
 end;
 //------------------------------------------------------------------------------
 
@@ -1215,7 +1216,7 @@ var
   i, highI: Integer;
 begin
   highI := high(path);
-  SetLength(Result, highI +1);
+  SetLength(Result, highI + 1);
   for i := 0 to highI do
     Result[i] := path[highI - i];
 end;
@@ -1226,7 +1227,7 @@ var
   i, highI: Integer;
 begin
   highI := high(path);
-  SetLength(Result, highI +1);
+  SetLength(Result, highI + 1);
   for i := 0 to highI do
     Result[i] := path[highI - i];
 end;
@@ -1241,7 +1242,7 @@ begin
   for i := 0 to i -1 do
   begin
     highJ := high(paths[i]);
-    SetLength(Result[i], highJ+1);
+    SetLength(Result[i], highJ + 1);
     for j := 0 to highJ do
       Result[i][j] := paths[i][highJ - j];
   end;
@@ -1254,10 +1255,10 @@ var
 begin
   i := length(paths);
   SetLength(Result, i);
-  for i := 0 to i -1 do
+  for i := 0 to i - 1 do
   begin
     highJ := high(paths[i]);
-    SetLength(Result[i], highJ+1);
+    SetLength(Result[i], highJ + 1);
     for j := 0 to highJ do
       Result[i][j] := paths[i][highJ - j];
   end;
@@ -1276,8 +1277,8 @@ begin
   if shift = 0 then Exit;
   if shift < 0 then shift := len + shift;
   diff := len - shift;
-  Move(path[shift], Result[0], diff *SizeOf(TPoint64));
-  Move(path[0], Result[diff], shift *SizeOf(TPoint64));
+  Move(path[shift], Result[0], diff * SizeOf(TPoint64));
+  Move(path[0], Result[diff], shift * SizeOf(TPoint64));
 end;
 //------------------------------------------------------------------------------
 
@@ -1293,8 +1294,8 @@ begin
   if shift = 0 then Exit;
   if shift < 0 then shift := len + shift;
   diff := len - shift;
-  Move(path[shift], Result[0], diff *SizeOf(TPointD));
-  Move(path[0], Result[diff], shift *SizeOf(TPointD));
+  Move(path[shift], Result[0], diff * SizeOf(TPointD));
+  Move(path[0], Result[diff], shift * SizeOf(TPointD));
 end;
 //------------------------------------------------------------------------------
 
@@ -2043,20 +2044,20 @@ begin
   Result := nil;
   len := Length(path);
   while (len > 2) and
-   (IsCollinear(path[len-2], path[len-1], path[0])) do dec(len);
+   (IsCollinear(path[len-2], path[len - 1], path[0])) do dec(len);
   SetLength(Result, len);
   if (len < 2) then Exit;
   prev := path[len -1];
   j := 0;
   for i := 0 to len -2 do
   begin
-    if IsCollinear(prev, path[i], path[i+1]) then Continue;
+    if IsCollinear(prev, path[i], path[i + 1]) then Continue;
     Result[j] := path[i];
     inc(j);
     prev := path[i];
   end;
-  Result[j] := path[len -1];
-  SetLength(Result, j+1);
+  Result[j] := path[len - 1];
+  SetLength(Result, j + 1);
 end;
 //------------------------------------------------------------------------------
 
@@ -2212,6 +2213,38 @@ begin
 end;
 //------------------------------------------------------------------------------
 {$R+}
+
+function Path2ContainsPath1(const path1, path2: TPath64): Boolean;
+var
+  i   : integer;
+  mp  : TPoint64;
+  pip : TPointInPolygonResult;
+begin
+  // precondition: paths must not intersect, except for
+  // transient (and presumed 'micro') path intersections
+  Result := false;
+  pip := pipOn;
+  for i := 0 to High(path1) do
+  begin
+    case PointInPolygon(path1[i], path2) of
+      pipOutside:
+      begin
+        if (pip = pipOutside) then Exit;
+        pip := pipOutside;
+      end;
+      pipInside:
+      begin
+        if (pip = pipInside) then begin Result := true; Exit; end;
+        pip := pipInside;
+      end;
+    end;
+  end;
+  if (pip <> pipInside) then Exit;
+  // result is likely true but check midpoint
+  mp := GetBounds(path1).MidPoint;
+  Result := PointInPolygon(mp, path2) = pipInside;
+end;
+//------------------------------------------------------------------------------
 
 procedure GetSinCos(angle: double; out sinA, cosA: double);
   {$IFDEF INLINE} inline; {$ENDIF}

@@ -29,8 +29,8 @@ td{
   border:1px solid;
 }
 </style>
-<h1>SVG Shell Extensions <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg" alt="License"/></a></h1>
-<p><strong>Latest Version 3.3.0 - 01 Mar 2025</strong></p>
+<h1>SVG Editor and Shell Extensions <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg" alt="License"/></a></h1>
+<p><strong>Latest Version 3.3.1 - 07 Sep 2025</strong></p>
 <p><strong>A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):</strong></p>
 <ul>
 <li><p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers">Preview handler</a>  which allows you to see the SVG image and text without open it, in the &ldquo;Preview Panel&rdquo;.</p>
@@ -54,9 +54,9 @@ td{
 <p><img src="./Images/Setup.png" alt="SVG Setup_Program"/></p>
 <p><strong><em>For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</em></strong></p>
 <h3>Preview Panel and Thumbnails in action</h3>
-<p>In Windows 10 with Light theme:</p>
+<p>In Windows 11 with Light theme:</p>
 <p><img src="./Images/PreviewThumbnailsLight.png" alt="Preview Thumbnails Light"/></p>
-<p>In Windows 10 with Dark theme:</p>
+<p>In Windows 11 with Dark theme:</p>
 <p><img src="./Images/PreviewThumbnailsDark.png" alt="Preview Thumbnails Dark"/></p>
 <h3>SVG Text Editor</h3>
 <p>A useful Text editor with preview of SVG Image:</p>
@@ -65,12 +65,12 @@ td{
 <p>As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support">configuration guide&hellip;</a></p>
 <p><img src="./Images/XYplorer_Preview.png" alt="XYplorer"/></p>
 <h3>Manual Build and Installation (for Delphi developers)</h3>
-<p>If you have Delphi 12, you can manually build the project:</p>
+<p>If you have Delphi 12 or 13, you can manually build the project:</p>
 <p><strong><em>Warning: To build the DLL you need also other open-source projects</em></strong></p>
 <ul>
 <li><p><a href="https://github.com/EtheaDev/SVGIconImageList">SVGIconImageList</a></p>
 </li>
-<li><p><a href="https://github.com/SynEdit/SynEdit">Synedit</a></p>
+<li><p><a href="https://github.com/pyscripter/SynEdit">Synedit</a></p>
 </li>
 <li><p><a href="https://github.com/RRUZ/vcl-styles-utils">VCL-Style-Utils</a></p>
 </li>
@@ -89,6 +89,14 @@ td{
 </li>
 </ol>
 <h2>Release Notes</h2>
+<p>07 Sep 2025: ver. 3.3.1</p>
+<ul>
+<li>Built with Delphi 13</li>
+<li>Refactoring PageControl to speedup loading</li>
+<li>Added check for new version available, download and install</li>
+<li>Updated Setup</li>
+<li>Updated the latest Image32 library</li>
+</ul>
 <p>01 Mar 2025: ver. 3.3.0</p>
 <ul>
 <li>Added &ldquo;Wordwrap option&rdquo; for the editor (active by default)</li>
@@ -256,7 +264,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 <ul>
 <li><p><a href="https://github.com/RRUZ/vcl-styles-utils">VCLStyles Utils</a></p>
 </li>
-<li><p><a href="https://github.com/SynEdit/SynEdit">SynEdit</a></p>
+<li><p><a href="https://github.com/pyscripter/SynEdit">SynEdit of PyScripter project</a></p>
 </li>
 </ul>
 <p><img src="/Setup/SupportingDelphi.jpg" alt="Delphi Support"/></p>

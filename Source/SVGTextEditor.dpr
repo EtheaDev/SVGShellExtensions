@@ -3,7 +3,7 @@
 {       SVG Text Editor: Advanced Editor for SVG files                         }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2024 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -26,13 +26,13 @@
 program SVGTextEditor;
 
 uses
+  System.SysUtils,
   Vcl.Forms,
   Vcl.Themes,
   Vcl.Styles,
-  System.SysUtils,
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
   dlgReplaceText in 'dlgReplaceText.pas' {TextReplaceDialog},
-  ChildForm in 'ChildForm.pas' {MDIChildForm},
+  PageControlHook in 'PageControlHook.pas',
   EditorMainForm in 'EditorMainForm.pas' {frmMain},
   DResources in 'DResources.pas' {dmResources: TDataModule},
   DPageSetup in 'DPageSetup.pas' {PageSetupDlg},
@@ -45,6 +45,7 @@ uses
   uSettings in 'uSettings.pas',
   SettingsForm in 'SettingsForm.pas' {UserSettingsForm},
   uRegistry in 'uRegistry.pas',
+  GitHubAPI in 'GitHubAPI.pas',
   Vcl.StyledTaskDialogFormUnit in '..\Ext\StyledComponents\source\Vcl.StyledTaskDialogFormUnit.pas' {StyledTaskDialogForm},
   Skia.Vcl.StyledTaskDialogAnimatedUnit in '..\Ext\StyledComponents\source\Skia.Vcl.StyledTaskDialogAnimatedUnit.pas' {StyledTaskDialogAnimated};
 

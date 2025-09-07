@@ -1,6 +1,6 @@
-﻿# SVG Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+﻿# SVG Editor and Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.3.0 - 01 Mar 2025**
+**Latest Version 3.3.1 - 07 Sep 2025**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):**
 
@@ -28,11 +28,11 @@ Click to download the [SVGShellExtensionsSetup.exe][3] located also in the Relea
 
 ### Preview Panel and Thumbnails in action ###
 
-In Windows 10 with Light theme:
+In Windows 11 with Light theme:
 
 ![Preview Thumbnails Light](./Images/PreviewThumbnailsLight.png)
 
-In Windows 10 with Dark theme:
+In Windows 11 with Dark theme:
 
 ![Preview Thumbnails Dark](./Images/PreviewThumbnailsDark.png)
 
@@ -50,7 +50,7 @@ As requested by many users of popular shell alternative, the new version support
 
 ### Manual Build and Installation (for Delphi developers) ###
 
-If you have Delphi 12, you can manually build the project:
+If you have Delphi 12 or 13, you can manually build the project:
 
 ***Warning: To build the DLL you need also other open-source projects***
 
@@ -73,6 +73,12 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+07 Sep 2025: ver. 3.3.1
+- Built with Delphi 13
+- Refactoring PageControl to speedup loading
+- Added check for new version available, download and install
+- Updated Setup
+- Updated the latest Image32 library
 
 01 Mar 2025: ver. 3.3.0
 - Added "Wordwrap option" for the editor (active by default)
@@ -218,8 +224,7 @@ Third Party libraries and tools used:
 
 - [VCLStyles Utils][6]
 
-- [SynEdit][5]
-
+- [SynEdit of PyScripter project][5]
 
 ![Delphi Support](/Setup/SupportingDelphi.jpg)
 
@@ -234,7 +239,7 @@ Related links: [embarcadero.com][10] - [learndelphi.org][11]
 
 [4]: https://github.com/EtheaDev/SVGIconImageList
 
-[5]: https://github.com/SynEdit/SynEdit
+[5]: https://github.com/pyscripter/SynEdit
 
 [6]: https://github.com/RRUZ/vcl-styles-utils
 
@@ -249,3 +254,4 @@ Related links: [embarcadero.com][10] - [learndelphi.org][11]
 [11]: https://learndelphi.org/
 
 [12]: https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor
+

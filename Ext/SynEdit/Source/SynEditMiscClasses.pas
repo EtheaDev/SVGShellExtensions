@@ -54,6 +54,7 @@ uses
   Vcl.Menus,
   Vcl.ImgList,
   Vcl.ExtCtrls,
+  Vcl.StdActns,
   SynDWrite,
   SynEditTypes,
   SynEditKeyConst,
@@ -626,8 +627,11 @@ type
     Id: TGUID;
     CharStart, CharEnd: Integer;
     Tag: NativeInt;  // for storing user data
-    constructor Create(aId: TGUID; aCharStart, aCharEnd: Integer; aTag: NativeInt = 0);
-    class function New(aId: TGUID; aCharStart, aCharEnd: Integer; aTag: NativeInt = 0): TSynIndicator; static;
+    KeepOnLineChange: Boolean; // do not remove when line change but adjust CharStart/End
+    constructor Create(aId: TGUID; aCharStart, aCharEnd: Integer;
+      aTag: NativeInt = 0; aKeepOnLineChange: Boolean = False);
+    class function New(aId: TGUID; aCharStart, aCharEnd: Integer;
+      aTag: NativeInt = 0; aKeepOnLineChange: Boolean = False): TSynIndicator; static;
     class operator Equal(const A, B: TSynIndicator): Boolean;
   end;
 
@@ -641,17 +645,19 @@ type
     constructor Create(Owner: TCustomControl);
     destructor Destroy; override;
     procedure RegisterSpec(Id: TGUID; Spec: TSynIndicatorSpec);
-    function GetSpec(Id: TGUID): TSynIndicatorSpec;
+    function GetSpec(const Id: TGUID): TSynIndicatorSpec;
     procedure Add(Line: Integer; const Indicator: TSynIndicator; Invalidate: Boolean = True);
     // Clears all indicators
     procedure Clear; overload;
     // Clears all indicators with a given Id
-    procedure Clear(Id: TGUID; Invalidate: Boolean = True; Line: Integer = -1);
+    procedure Clear(const Id: TGUID; Invalidate: Boolean = True; Line: Integer = -1);
         overload;
     // Clears just one indicator
     procedure Clear(Line: Integer; const Indicator: TSynIndicator); overload;
     // Returns the indicators of a given line
     function LineIndicators(Line: Integer): TArray<TSynIndicator>;
+    // Get all indicatoros of with a given Id
+    function GetById(const Id: TGUID): TArray<TPair<Integer, TSynIndicator>>;
     // Return the indicator at a given buffer or window position
     function IndicatorAtPos(Pos: TBufferCoord; const Id: TGUID; var Indicator:
         TSynIndicator): Boolean; overload;
@@ -661,7 +667,7 @@ type
     // Should only used by Synedit
     procedure LinesInserted(FirstLine, Count: Integer);
     procedure LinesDeleted(FirstLine, Count: Integer);
-    procedure LinePut(aIndex: Integer);
+    procedure LinePut(aIndex: Integer; const OldLine: string);
     class procedure Paint(RT: ID2D1RenderTarget; Spec: TSynIndicatorSpec; const
         ClipR: TRect; StartOffset: Integer);
   end;
@@ -838,6 +844,12 @@ type
  end;
 
  {$ENDREGION 'TSynDisplayFlowControl'}
+
+{$REGION 'TSynEditRedo'}
+
+  TSynEditRedo = class(TEditAction);
+
+{$ENDREGION 'TSynEditRedo'}
 
 implementation
 
@@ -1715,7 +1727,8 @@ begin
     rcDest := rcDest.FitInto(Rect(X, Y, X + ScaledW, Y + LineHeight));
 
     BM := D2D1BitmapFromBitmap(FImages, RT);
-    RT.DrawBitmap(BM, @rcDest, 1, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, @rcSrc);
+    RT.DrawBitmap(BM, PD2D1RectF(@rcDest), 1,
+      D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, PD2D1RectF(@rcSrc));
   end;
 end;
 
@@ -2320,7 +2333,7 @@ begin
         RectF := RectF.FitInto(LineRect);
         RectF.Offset(LineRect.Right - RectF.Right, 0);
       end;
-      RT.DrawBitmap(WordWrapGlyph, @RectF, 1000);
+      RT.DrawBitmap(WordWrapGlyph, PD2D1RectF(@RectF), 1000);
     end
     else
     begin
@@ -2870,7 +2883,8 @@ begin
   FList.Clear;
 end;
 
-procedure TSynIndicators.Clear(Id: TGUID; Invalidate: Boolean = True; Line: Integer = -1);
+procedure TSynIndicators.Clear(const Id: TGUID; Invalidate: Boolean = True;
+    Line: Integer = -1);
 
   procedure ProcessLine(ALine: Integer);
   var
@@ -2938,7 +2952,26 @@ begin
   inherited;
 end;
 
-function TSynIndicators.GetSpec(Id: TGUID): TSynIndicatorSpec;
+function TSynIndicators.GetById(
+  const Id: TGUID): TArray<TPair<Integer, TSynIndicator>>;
+var
+  IndicatorList: TList<TPair<Integer, TSynIndicator>>;
+  Line: Integer;
+  Indicator: TSynIndicator;
+begin
+  IndicatorList := TList<TPair<Integer, TSynIndicator>>.Create;
+  try
+    for Line in FList.Keys do
+      for Indicator in FList[Line] do
+        if Indicator.Id = Id then
+          IndicatorList.Add(TPair<Integer, TSynIndicator>.Create(Line, Indicator));
+    Result := IndicatorList.ToArray;
+  finally
+    IndicatorList.Free;
+  end;
+end;
+
+function TSynIndicators.GetSpec(const Id: TGUID): TSynIndicatorSpec;
 begin
   Result := FRegister[Id];
 end;
@@ -2999,10 +3032,69 @@ begin
   FList.TryGetValue(Line, Result);
 end;
 
-procedure TSynIndicators.LinePut(aIndex: Integer);
+procedure TSynIndicators.LinePut(aIndex: Integer; const OldLine: string);
 {  aIndex 0-based Indicator lines 1-based}
+
+  function AdjustIndicator(const Indicator:
+    TSynIndicator; out AdjIndicator: TSynIndicator): Boolean;
+  // Returns False if the indicator is removed
+  var
+    Line: string;
+    StartPos, Len1, Len2: Integer;
+  begin
+    Result := False;
+    AdjIndicator := Indicator;
+    Line := TCustomSynEdit(FOwner).Lines[aIndex];
+    LineDiff(Line, OldLine, StartPos, Len1, Len2);
+    if StartPos > AdjIndicator.CharEnd then
+      Result := True
+    else if StartPos + Len1 < AdjIndicator.CharStart then
+    begin
+      Inc(AdjIndicator.CharStart, Len2 - Len1);
+      Inc(AdjIndicator.CharEnd, Len2 - Len1);
+      Result := True;
+    end
+    else if StartPos < AdjIndicator.CharStart then
+    begin
+      AdjIndicator.CharStart := StartPos;
+      Inc(AdjIndicator.CharEnd, Len2 - Len1);
+      Result := True;
+    end
+    else if StartPos + Len1 <= AdjIndicator.CharEnd then
+    begin
+      Inc(AdjIndicator.CharEnd, Len2 - Len1);
+      Result := True;
+    end
+    else if StartPos <= AdjIndicator.CharEnd then
+    begin
+      AdjIndicator.CharEnd := StartPos;
+      Result := True;
+    end;
+
+    if Result then
+    begin
+      AdjIndicator.CharStart := Max(1, AdjIndicator.CharStart);
+      if AdjIndicator.CharEnd < AdjIndicator.CharStart then
+        Result := False;
+    end;
+  end;
+
+var
+  Indicators, AdjIndicators: TArray<TSynIndicator>;
+  Indicator, AdjIndicator: TSynIndicator;
 begin
-  FList.Remove(aIndex + 1);
+  if not FList.TryGetValue(aIndex + 1, Indicators) then
+    Exit;
+
+  AdjIndicators := [];
+  for Indicator in Indicators do
+    if Indicator.KeepOnLineChange and AdjustIndicator(Indicator, AdjIndicator) then
+      AdjIndicators := AdjIndicators + [AdjIndicator];
+
+  if Length(AdjIndicators) = 0 then
+    FList.Remove(aIndex + 1)
+  else
+    FList[aIndex + 1] := AdjIndicators;
 end;
 
 procedure TSynIndicators.LinesDeleted(FirstLine, Count: Integer);
@@ -3104,7 +3196,7 @@ begin
     sisRectangle,
     sisFilledRectangle:
       begin
-        Dec(R.Right); Dec(R.Bottom);
+        R.Inflate(-1, -1);
         if Spec.Style = sisFilledRectangle then
           RT.FillRectangle(R, TSynDWrite.SolidBrush(Spec.Background));
         if TAlphaColorF(Spec.Foreground) <> TAlphaColorF(clNoneF) then
@@ -3113,7 +3205,7 @@ begin
     sisRoundedRectangle,
     sisRoundedFilledRectangle:
       begin
-        Dec(R.Right); Dec(R.Bottom);
+        R.Inflate(-1, -1);
         if Spec.Style = sisRoundedFilledRectangle then
          RT.FillRoundedRectangle(D2D1RoundedRect(R, R.Height div 4, R.Height div 4),
             TSynDWrite.SolidBrush(Spec.Background));
@@ -3164,12 +3256,13 @@ end;
 { TSynIndicator }
 
 constructor TSynIndicator.Create(aId: TGUID; aCharStart, aCharEnd: Integer;
-    aTag: NativeInt = 0);
+    aTag: NativeInt = 0; aKeepOnLineChange: Boolean = False);
 begin
   Self.Id := aId;
   Self.CharStart := aCharStart;
   Self.CharEnd := aCharEnd;
   Self.Tag := aTag;
+  Self.KeepOnLineChange := aKeepOnLineChange;
 end;
 
 class operator TSynIndicator.Equal(const A, B: TSynIndicator): Boolean;
@@ -3179,9 +3272,9 @@ begin
 end;
 
 class function TSynIndicator.New(aId: TGUID; aCharStart, aCharEnd: Integer;
-    aTag: NativeInt = 0): TSynIndicator;
+    aTag: NativeInt = 0; aKeepOnLineChange: Boolean = False): TSynIndicator;
 begin
-  Result.Create(aId, aCharStart, aCharEnd, aTag);
+  Result.Create(aId, aCharStart, aCharEnd, aTag, aKeepOnLineChange);
 end;
 
 {$ENDREGION}

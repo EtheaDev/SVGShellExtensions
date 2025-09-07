@@ -2,8 +2,8 @@ unit Img32.Fmt.SVG;
 
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Version   :  4.7                                                             *
-* Date      :  6 January 2025                                                  *
+* Version   :  4.9                                                             *
+* Date      :  9 August 2025                                                   *
 * Website   :  https://www.angusj.com                                          *
 * Copyright :  Angus Johnson 2019-2025                                         *
 * Purpose   :  SVG file format extension for TImage32                          *
@@ -116,7 +116,7 @@ function EnumResNameProc(hModule: HMODULE; lpszType, lpszName: PChar;
 var
   n: string;
 begin
-  n:= ResourceNameToString(lpszName);
+  n := ResourceNameToString(lpszName);
   TSvgImageList32(lParam).AddFromResource(n, n, lpszType);
   Result := true;
 end;
@@ -327,7 +327,7 @@ var
   len: integer;
 begin
   len := Length(fRecipientList);
-  SetLength(fRecipientList, len+1);
+  SetLength(fRecipientList, len + 1);
   fRecipientList[len] := Recipient;
 end;
 //------------------------------------------------------------------------------
@@ -341,7 +341,7 @@ begin
   while (i >= 0) and (fRecipientList[i] <> Recipient) do dec(i);
   if i < 0 then Exit;
   if i < highI then
-    System.Move(fRecipientList[i+1], fRecipientList[i],
+    System.Move(fRecipientList[i + 1], fRecipientList[i],
       (highI - i) * SizeOf(INotifyRecipient));
   SetLength(fRecipientList, highI);
 end;
@@ -382,23 +382,14 @@ begin
     try
       if img32.IsEmpty then
       begin
-        with RootElement do
-          if Width.IsValid and Height.IsValid then
-            img32.SetSize(
-              Round(Width.GetValue(defaultSvgWidth, 0)),
-              Round(Height.GetValue(defaultSvgHeight, 0)))
-          else if not r.IsEmpty then
-            img32.SetSize(Round(r.Width), Round(r.Height))
-          else
-            img32.SetSize(defaultSvgWidth, defaultSvgHeight);
-      end
-      else if not r.IsEmpty then
+        with GetImageSize do img32.SetSize(cx,cy);
+        if img32.IsEmpty then Exit; // should never happen
+      end else if not r.IsEmpty then
       begin
         // scale the SVG to best fit the image dimensions
         sx := GetScaleForBestFit(r.Width, r.Height, img32.Width, img32.Height);
         img32.SetSize(Round(r.Width * sx), Round(r.Height * sx));
       end;
-
       //draw the SVG image to fit inside the canvas
       DrawImage(img32, True);
     finally

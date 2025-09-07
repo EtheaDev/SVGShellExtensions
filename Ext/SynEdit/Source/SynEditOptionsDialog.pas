@@ -187,7 +187,7 @@ type
     btnFont: TButton;
     Panel3: TPanel;
     labFont: TLabel;
-    ckCompleteBrackets: TCheckBox;
+    ckWordWrap: TCheckBox;
     ckCompleteQuotes: TCheckBox;
     procedure PopupMenuClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -635,7 +635,7 @@ begin
   ckDisableScrollArrows.Checked := eoDisableScrollArrows in FSynEdit.ScrollOptions;
   ckHideShowScrollbars.Checked := eoHideShowScrollbars in FSynEdit.ScrollOptions;
   ckShowSpecialChars.Checked := FSynEdit.VisibleSpecialChars <> [];
-  ckCompleteBrackets.checked := eoCompleteBrackets in FSynEdit.Options;
+  ckWordWrap.checked := FSynEdit.WordWrap;
   ckCompleteQuotes.checked := eoCompleteQuotes in FSynEdit.Options;
   //Caret
   cInsertCaret.ItemIndex:= ord(FSynEdit.InsertCaret);
@@ -714,8 +714,8 @@ begin
   SetFlag(eoEnhanceHomeKey, ckEnhanceHomeKey.Checked);
   SetFlag(eoEnhanceEndKey, ckEnhanceEndKey.Checked);
   SetFlag(eoGroupUndo, ckGroupUndo.Checked);
-  SetFlag(eoCompleteBrackets, ckCompleteBrackets.checked);
   SetFlag(eoCompleteQuotes, ckCompleteQuotes.checked);
+  FSynEdit.WordWrap := ckWordWrap.checked;
   FSynEdit.Options := EdOptions;
   SetScrollFlag(eoHalfPageScroll, ckHalfPageScroll.Checked);
   SetScrollFlag(eoScrollByOneLess, ckScrollByOneLess.Checked);

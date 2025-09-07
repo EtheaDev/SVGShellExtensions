@@ -602,13 +602,13 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Caption = 'Show special chars'
           TabOrder = 21
         end
-        object ckCompleteBrackets: TCheckBox
+        object ckWordWrap: TCheckBox
           Left = 9
           Top = 224
           Width = 170
           Height = 17
-          Hint = 'Auto complete brackets'
-          Caption = 'Complete brackets'
+          Hint = 'Enable wrapping of long lines'
+          Caption = 'Word wrap'
           TabOrder = 22
         end
         object ckCompleteQuotes: TCheckBox

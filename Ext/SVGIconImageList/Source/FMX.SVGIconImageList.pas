@@ -47,7 +47,7 @@ uses
   ;
 
 const
-  SVGIconImageListVersion = '4.4.1';
+  SVGIconImageListVersion = '4.5.0';
   DEFAULT_SIZE = 32;
   ZOOM_DEFAULT = 100;
   SVG_INHERIT_COLOR = TAlphaColors.Null;
@@ -246,9 +246,15 @@ uses
   , FMX.Forms
   , FMX.Consts
   {$IFDEF Image32_SVGEngine}
+    {$IFNDEF SvgDisableEngineHint}
+    {$MESSAGE HINT 'Use Delphi native Image32 SVG-Engine for SVGIconImageList'}
+    {$ENDIF}
   , FMX.Image32SVG
   {$ENDIF}
   {$IFDEF Skia_SVGEngine}
+    {$IFNDEF SvgDisableEngineHint}
+    {$MESSAGE HINT 'Use Skia4Delphi "wrapper" SVG-Engine for SVGIconImageList'}
+    {$ENDIF}
   , FMX.ImageSkiaSVG
   {$ENDIF}
   ;
@@ -257,11 +263,11 @@ procedure PaintToBitmap(const ABitmap: TBitmap; const ASVG: TFmxImageSVG;
   const AZoom: Integer = 100; const AKeepAspectRatio: Boolean = True);
 var
   LRect: TRectF;
-  LWidth, LHeight: Integer;
+  LWidth, LHeight: Single;
 begin
   LWidth := ABitmap.Canvas.Width;
   LHeight := ABitmap.Canvas.Height;
-  LRect := TRect.Create(0, 0, LWidth, LHeight);
+  LRect := TRectF.Create(0, 0, LWidth, LHeight);
   ASVG.PaintToBitmap(ABitmap, AZoom, AKeepAspectRatio);
 end;
 

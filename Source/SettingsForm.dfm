@@ -14,7 +14,7 @@ object UserSettingsForm: TUserSettingsForm
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  Position = poDefault
+  Position = poScreenCenter
   ShowHint = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -38,8 +38,8 @@ object UserSettingsForm: TUserSettingsForm
       Caption = 'Text color'
       ImageName = 'palette'
       object VertSplitter: TSplitter
-        Left = 143
-        Top = 0
+        Left = 193
+        Top = 25
         Width = 4
         Height = 377
         MinSize = 366
@@ -251,20 +251,18 @@ object UserSettingsForm: TUserSettingsForm
           Left = 0
           Top = 65
           Width = 457
-          Height = 289
+          Height = 265
           Align = alClient
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -13
-          Font.Name = 'Courier New'
-          Font.Style = []
-          Font.Quality = fqClearTypeNatural
+          DoubleBuffered = True
+          Ctl3D = False
+          ParentCtl3D = False
+          ParentDoubleBuffered = False
+          ParentFont = True
           TabOrder = 1
+          TabStop = False
           OnClick = SynEditClick
           OnKeyUp = SynEditKeyUp
           CodeFolding.GutterShapeSize = 11
-          CodeFolding.IndentGuidesColor = clGray
-          CodeFolding.IndentGuides = True
           UseCodeFolding = False
           Gutter.Font.Charset = DEFAULT_CHARSET
           Gutter.Font.Color = clWindowText
@@ -272,15 +270,14 @@ object UserSettingsForm: TUserSettingsForm
           Gutter.Font.Name = 'Consolas'
           Gutter.Font.Style = []
           Gutter.Font.Quality = fqClearTypeNatural
-          Gutter.Width = 0
           Gutter.Bands = <>
+          ImeMode = imDisable
           ScrollbarAnnotations = <>
-          FontSmoothing = fsmNone
         end
         object ActiveLineColorGroupBox: TGroupBox
           Left = 0
-          Top = 354
-          Width = 453
+          Top = 330
+          Width = 457
           Height = 47
           Align = alBottom
           Caption = 'Active Line Color of Editor'
@@ -503,32 +500,94 @@ object UserSettingsForm: TUserSettingsForm
         Left = 13
         Top = 248
         Width = 284
-        Height = 73
+        Height = 97
         Caption = 'Apply Fixed Color to SVG'
         TabOrder = 3
         object ApplyToRootCheckBox: TCheckBox
+          AlignWithMargins = True
           Left = 15
-          Top = 47
-          Width = 185
+          Top = 74
+          Width = 254
           Height = 17
+          Margins.Left = 13
+          Margins.Right = 13
+          Align = alTop
           Caption = 'Applied to Root Only'
           TabOrder = 0
         end
         object FixedColorColorBox: TColorBox
+          AlignWithMargins = True
+          Left = 15
+          Top = 46
+          Width = 254
+          Height = 22
+          Margins.Left = 13
+          Margins.Right = 13
+          Align = alTop
+          TabOrder = 1
+        end
+        object FixedColorCheckBox: TCheckBox
+          AlignWithMargins = True
           Left = 15
           Top = 19
-          Width = 145
-          Height = 22
-          TabOrder = 1
+          Width = 254
+          Height = 21
+          Margins.Left = 13
+          Margins.Top = 2
+          Margins.Right = 13
+          Align = alTop
+          Caption = 'Fixed Color'
+          TabOrder = 2
         end
       end
       object GrayScaleCheckBox: TCheckBox
         Left = 28
-        Top = 327
+        Top = 351
         Width = 185
         Height = 17
         Caption = 'Apply GrayScale'
         TabOrder = 4
+      end
+    end
+    object tsUpdates: TTabSheet
+      Caption = 'Updates'
+      ImageIndex = 7
+      ImageName = 'update'
+      object UpdateGroupBox: TGroupBox
+        AlignWithMargins = True
+        Left = 3
+        Top = 3
+        Width = 648
+        Height = 94
+        Align = alTop
+        TabOrder = 0
+        object CheckNDaysLabel: TLabel
+          Left = 17
+          Top = 39
+          Width = 278
+          Height = 16
+          AutoSize = False
+          Caption = 'Interval in days:'
+        end
+        object AutoUpdateCheckBox: TCheckBox
+          Left = 17
+          Top = 16
+          Width = 278
+          Height = 17
+          Caption = 'Automatic check'
+          TabOrder = 0
+          OnClick = AutoUpdateCheckBoxClick
+        end
+        object CheckNDaysSpinEdit: TSpinEdit
+          Left = 17
+          Top = 60
+          Width = 90
+          Height = 24
+          MaxValue = 365
+          MinValue = -1
+          TabOrder = 1
+          Value = 0
+        end
       end
     end
   end
@@ -578,6 +637,11 @@ object UserSettingsForm: TUserSettingsForm
         Caption = '  Preview'
         ImageIndex = 4
         ImageName = 'eye-settings'
+      end
+      item
+        Caption = 'Updates'
+        ImageIndex = 7
+        ImageName = 'update'
       end>
     TabOrder = 2
     OnButtonClicked = MenuButtonGroupButtonClicked
@@ -664,6 +728,47 @@ object UserSettingsForm: TUserSettingsForm
           '5C7.14,4.5 2.78,7.5 1,12C3.39,18.08 10.25,21.06 16.33,18.67C19.3' +
           '8,17.47 21.8,15.06 23,12C21.22,7.5 16.86,4.5 12,4.5M7,22H9V24H7V' +
           '22M11,22H13V24H11V22M15,22H17V24H15V22Z" /></svg>'
+      end
+      item
+        IconName = 'developer-board'
+        SVGText = 
+          '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W' +
+          '3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg' +
+          '11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="htt' +
+          'p://www.w3.org/1999/xlink" version="1.1" id="mdi-developer-board' +
+          '" width="24" height="24" viewBox="0 0 24 24"><path d="M22,9V7H20' +
+          'V5A2,2 0 0,0 18,3H4A2,2 0 0,0 2,5V19A2,2 0 0,0 4,21H18A2,2 0 0,0' +
+          ' 20,19V17H22V15H20V13H22V11H20V9H22M18,19H4V5H18V19M6,13H11V17H6' +
+          'V13M12,7H16V10H12V7M6,7H11V12H6V7M12,11H16V17H12V11Z" /></svg>'
+      end
+      item
+        IconName = 'pdf-box'
+        SVGText = 
+          '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W' +
+          '3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg' +
+          '11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="htt' +
+          'p://www.w3.org/1999/xlink" version="1.1" id="mdi-pdf-box" width=' +
+          '"24" height="24" viewBox="0 0 24 24"><path d="M12,10.5H13V13.5H1' +
+          '2V10.5M7,11.5H8V10.5H7V11.5M20,6V18A2,2 0 0,1 18,20H6A2,2 0 0,1 ' +
+          '4,18V6A2,2 0 0,1 6,4H18A2,2 0 0,1 20,6M9.5,10.5A1.5,1.5 0 0,0 8,' +
+          '9H5.5V15H7V13H8A1.5,1.5 0 0,0 9.5,11.5V10.5M14.5,10.5A1.5,1.5 0 ' +
+          '0,0 13,9H10.5V15H13A1.5,1.5 0 0,0 14.5,13.5V10.5M18.5,9H15.5V15H' +
+          '17V13H18.5V11.5H17V10.5H18.5V9Z" /></svg>'
+      end
+      item
+        IconName = 'update'
+        SVGText = 
+          '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W' +
+          '3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg' +
+          '11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="htt' +
+          'p://www.w3.org/1999/xlink" version="1.1" id="mdi-update" width="' +
+          '24" height="24" viewBox="0 0 24 24"><path d="M21,10.12H14.22L16.' +
+          '96,7.3C14.23,4.6 9.81,4.5 7.08,7.2C4.35,9.91 4.35,14.28 7.08,17C' +
+          '9.81,19.7 14.23,19.7 16.96,17C18.32,15.65 19,14.08 19,12.1H21C21' +
+          ',14.08 20.12,16.65 18.36,18.39C14.85,21.87 9.15,21.87 5.64,18.39' +
+          'C2.14,14.92 2.11,9.28 5.62,5.81C9.13,2.34 14.76,2.34 18.27,5.81L' +
+          '21,3V10.12M12.5,8V12.25L16,14.33L15.28,15.54L11,13V8H12.5Z" /></' +
+          'svg>'
       end>
     Scaled = True
     Left = 500

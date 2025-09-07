@@ -46,6 +46,7 @@ const
   MinfontSize = 8;
   default_lightactivelinecolor = 15066597;
   default_darkactivelinecolor = 0;
+  default_checkdays = 7;
 
 resourcestring
   Background_Grayscale_Caption = 'Backlight %d%%';
@@ -69,6 +70,8 @@ type
   TSettings = class
   private
     FSplitterPos: Integer;
+    FVersionCheckTime: TDateTime;
+    FDaysForNextCheck: Integer;
     FFontSize: Integer;
     FStyleName: string;
     FUseDarkStyle: boolean;
@@ -99,6 +102,7 @@ type
     procedure SetFixedColor(const AValue: TColor);
     procedure SetGrayScale(const AValue: Boolean);
     procedure SetApplyToRootOnly(const AValue: Boolean);
+    procedure SetDaysForNextCheck(const Value: Integer);
   protected
     FIniFile: TIniFile;
   public
@@ -142,6 +146,7 @@ type
     property FixedColor: TColor read FFixedColor write SetFixedColor;
     property GrayScale: Boolean read FGrayScale write SetGrayScale;
     property ApplyToRootOnly: Boolean read FApplyToRootOnly write SetApplyToRootOnly;
+    property DaysForNextCheck: Integer read FDaysForNextCheck write SetDaysForNextCheck;
   end;
 
   TPreviewSettings = class(TSettings)
@@ -161,6 +166,7 @@ type
     HistoryFileList: TStrings;
     OpenedFileList: TStrings;
     CurrentFileName: string;
+    function IsTimeToCheckNewVersion: Boolean;
     procedure ReadSettings(const ASynEditHighilighter: TSynCustomHighlighter;
       const ASynEditorOptions: TSynEditorOptionsContainer;
       const LoadFileList: Boolean = False); override;
@@ -247,6 +253,7 @@ begin
   if StyleServices.Enabled then
   begin
     //High-DPI Themes
+//    RegisterThemeAttributes('Windows'                   ,ttLight );
     RegisterThemeAttributes('Sky'                       ,ttLight );
     RegisterThemeAttributes('Windows10'                 ,ttLight );
     RegisterThemeAttributes('Windows11 Impressive Light',ttLight );
@@ -337,6 +344,8 @@ var
   LName: string;
 begin
   TLogPreview.Add('ReadSettings '+SettingsFileName);
+  FVersionCheckTime := FIniFile.ReadDateTime('Global', 'VersionCheckTime', Now());
+  FDaysForNextCheck := FIniFile.ReadInteger('Global', 'DaysForNextCheck', default_checkdays);
   FFontSize := FIniFile.ReadInteger('Global', 'FontSize', 10);
   FFontName := FIniFile.ReadString('Global', 'FontName', 'Consolas');
   FShowEditor := FIniFile.ReadInteger('Global', 'ShowEditor', 0) = 1;
@@ -445,6 +454,9 @@ var
   LAttribute: TSynHighlighterAttributes;
   LThemeSection: string;
 begin
+  FIniFile.WriteDateTime('Global', 'VersionCheckTime', FVersionCheckTime);
+  FIniFile.WriteInteger('Global', 'DaysForNextCheck', FDaysForNextCheck);
+
   FIniFile.WriteInteger('Global', 'FontSize', FFontSize);
   FIniFile.WriteString('Global', 'FontName', FFontName);
   FIniFile.WriteString('Global', 'StyleName', FStyleName);
@@ -509,6 +521,11 @@ begin
   FGrayScale := AValue;
 end;
 
+procedure TSettings.SetDaysForNextCheck(const Value: Integer);
+begin
+  FDaysForNextCheck := Value;
+end;
+
 { TPreviewSettings }
 
 constructor TPreviewSettings.CreateSettings(
@@ -539,6 +556,13 @@ begin
   HistoryFileList.Free;
   OpenedFileList.Free;
   inherited;
+end;
+
+function TEditorSettings.IsTimeToCheckNewVersion: Boolean;
+begin
+  Result := Now() > FVersionCheckTime + FDaysForNextCheck;
+  if Result then
+    FVersionCheckTime := Now(); //Update Next time for check
 end;
 
 procedure TEditorSettings.ReadSettings(
@@ -731,6 +755,7 @@ procedure TEditorSettings.WriteSynEditorOptions(
   begin
     FIniFile.WriteBool(EDITOPTION_OPTIONS, AName, AValue in ASynEditorOptions.Options);
   end;
+
 
   procedure WriteEditorScrollOptions(const AName: string;
     const AValue: TSynEditorScrollOption);

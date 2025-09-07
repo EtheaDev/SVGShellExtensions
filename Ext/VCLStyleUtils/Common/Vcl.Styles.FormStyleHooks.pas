@@ -147,7 +147,7 @@ type
     property _FSysMenuButtonRect: TRect read GetFSysMenuButtonRect
       Write SetFSysMenuButtonRect;
     property _FCaptionRect: TRect read GetFCaptionRect Write SetFCaptionRect;
-    function _GetBorderSize: TRect;
+    function _GetBorderSize{$IF CompilerVersion >= 36}(UseActiveStyle: Boolean = True){$IFEND}: TRect;
     property _FFormActive: Boolean read GetFFormActive;
     property _FChangeSizeCalled: Boolean read GetFChangeSizeCalled
       write SetFChangeSizeCalled;
@@ -1433,19 +1433,15 @@ begin
     ChangeSize;
 end;
 
-function TFormStyleHookHelper._GetBorderSize: TRect;
+function TFormStyleHookHelper._GetBorderSize{$IF CompilerVersion >= 36}(UseActiveStyle: Boolean = True){$IFEND}: TRect;
 begin
   with Self do
-   Result := GetBorderSize;
+    Result := GetBorderSize;
 end;
 
 function TFormStyleHookHelper._GetBorderSizeAddr: Pointer;
 var
-  {$if compilerversion >35}
-  MethodAddr: function(UseActiveStyle: Boolean): TRect of object;
-  {$else}
-  MethodAddr: function: TRect of object;
-  {$ifend}
+  MethodAddr: function{$IF CompilerVersion >= 36}(UseActiveStyle: Boolean = True){$IFEND}: TRect of object;
 begin
   with Self do
     MethodAddr := GetBorderSize;

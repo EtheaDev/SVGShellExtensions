@@ -3,11 +3,9 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
-  ClientHeight = 286
+  ClientHeight = 311
   ClientWidth = 992
   Color = clWindow
-  Constraints.MinHeight = 200
-  Constraints.MinWidth = 400
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
@@ -22,10 +20,9 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   OnShow = FormShow
   TextHeight = 15
   object FooterPanel: TPanel
-    AlignWithMargins = True
-    Left = 4
-    Top = 260
-    Width = 984
+    Left = 0
+    Top = 285
+    Width = 992
     Height = 26
     Margins.Left = 4
     Margins.Top = 0
@@ -83,14 +80,11 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     TabOrder = 0
     object ImagePanel: TPanel
       AlignWithMargins = True
-      Left = 4
-      Top = 4
+      Left = 0
+      Top = 3
       Width = 64
-      Height = 65
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Height = 67
+      Margins.Left = 0
       Align = alLeft
       BevelOuter = bvNone
       ParentColor = True
@@ -107,9 +101,9 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
       end
     end
     object MessageScrollBox: TScrollBox
-      Left = 72
+      Left = 67
       Top = 0
-      Width = 912
+      Width = 917
       Height = 73
       HorzScrollBar.Visible = False
       VertScrollBar.Visible = False
@@ -122,7 +116,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
         AlignWithMargins = True
         Left = 4
         Top = 4
-        Width = 904
+        Width = 909
         Height = 15
         Margins.Left = 4
         Margins.Top = 4
@@ -131,13 +125,12 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
         Align = alTop
         Caption = 'Title Text'
         WordWrap = True
-        ExplicitWidth = 46
       end
       object AutoSizeLabel: TLabel
         AlignWithMargins = True
         Left = 4
         Top = 27
-        Width = 904
+        Width = 909
         Height = 15
         Margins.Left = 4
         Margins.Top = 4
@@ -170,7 +163,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   object CommandLinksPanel: TPanel
     AlignWithMargins = True
     Left = 4
-    Top = 130
+    Top = 155
     Width = 984
     Height = 62
     Margins.Left = 4
@@ -184,10 +177,9 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     Visible = False
   end
   object VerificationPanel: TPanel
-    AlignWithMargins = True
-    Left = 4
-    Top = 236
-    Width = 984
+    Left = 0
+    Top = 261
+    Width = 992
     Height = 24
     Margins.Left = 4
     Margins.Top = 0
@@ -202,7 +194,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
       AlignWithMargins = True
       Left = 8
       Top = 0
-      Width = 972
+      Width = 980
       Height = 24
       Margins.Left = 8
       Margins.Top = 0
@@ -217,7 +209,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
   object RadioGroupPanel: TPanel
     AlignWithMargins = True
     Left = 4
-    Top = 105
+    Top = 130
     Width = 984
     Height = 21
     Margins.Left = 4
@@ -246,21 +238,19 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     Visible = False
     object ExpandLabel: TLabel
       AlignWithMargins = True
-      Left = 31
+      Left = 29
       Top = 4
-      Width = 950
+      Width = 952
       Height = 16
       Margins.Top = 4
       Margins.Bottom = 4
       Align = alClient
-      ExplicitWidth = 3
-      ExplicitHeight = 15
     end
     object ExpandButton: TStyledButton
       AlignWithMargins = True
       Left = 3
       Top = 2
-      Width = 22
+      Width = 20
       Height = 20
       Margins.Top = 2
       Margins.Bottom = 2
@@ -271,10 +261,9 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
   end
   object ButtonsPanel: TPanel
-    AlignWithMargins = True
-    Left = 4
-    Top = 196
-    Width = 984
+    Left = 0
+    Top = 221
+    Width = 992
     Height = 40
     Margins.Left = 4
     Margins.Top = 0
@@ -288,7 +277,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     TabOrder = 3
     object YesButton: TStyledButton
       AlignWithMargins = True
-      Left = 27
+      Left = 35
       Top = 4
       Width = 74
       Height = 30
@@ -302,7 +291,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object NoButton: TStyledButton
       AlignWithMargins = True
-      Left = 107
+      Left = 115
       Top = 4
       Width = 74
       Height = 30
@@ -316,7 +305,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object OKButton: TStyledButton
       AlignWithMargins = True
-      Left = 187
+      Left = 195
       Top = 4
       Width = 74
       Height = 30
@@ -330,7 +319,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object CancelButton: TStyledButton
       AlignWithMargins = True
-      Left = 267
+      Left = 275
       Top = 4
       Width = 74
       Height = 30
@@ -344,7 +333,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object AbortButton: TStyledButton
       AlignWithMargins = True
-      Left = 347
+      Left = 355
       Top = 4
       Width = 74
       Height = 30
@@ -358,7 +347,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object RetryButton: TStyledButton
       AlignWithMargins = True
-      Left = 427
+      Left = 435
       Top = 4
       Width = 74
       Height = 30
@@ -372,7 +361,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object IgnoreButton: TStyledButton
       AlignWithMargins = True
-      Left = 507
+      Left = 515
       Top = 4
       Width = 74
       Height = 30
@@ -386,7 +375,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object AllButton: TStyledButton
       AlignWithMargins = True
-      Left = 587
+      Left = 595
       Top = 4
       Width = 74
       Height = 30
@@ -400,7 +389,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object NoToAllButton: TStyledButton
       AlignWithMargins = True
-      Left = 667
+      Left = 675
       Top = 4
       Width = 74
       Height = 30
@@ -414,7 +403,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object YesToAllButton: TStyledButton
       AlignWithMargins = True
-      Left = 747
+      Left = 755
       Top = 4
       Width = 74
       Height = 30
@@ -428,7 +417,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object HelpButton: TStyledButton
       AlignWithMargins = True
-      Left = 827
+      Left = 835
       Top = 4
       Width = 74
       Height = 30
@@ -442,7 +431,7 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
     end
     object CloseButton: TStyledButton
       AlignWithMargins = True
-      Left = 907
+      Left = 915
       Top = 4
       Width = 74
       Height = 30
@@ -453,6 +442,30 @@ object StyledTaskDialogForm: TStyledTaskDialogForm
       ModalResult = 8
       TabOrder = 11
       OnClick = ButtonClick
+    end
+  end
+  object ProgressBarPanel: TPanel
+    AlignWithMargins = True
+    Left = 4
+    Top = 105
+    Width = 984
+    Height = 25
+    Margins.Left = 4
+    Margins.Top = 0
+    Margins.Right = 4
+    Margins.Bottom = 0
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 7
+    Visible = False
+    object InternalProgressBar: TProgressBar
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 978
+      Height = 19
+      Align = alClient
+      TabOrder = 0
     end
   end
 end
