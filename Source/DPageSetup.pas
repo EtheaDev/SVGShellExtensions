@@ -41,11 +41,29 @@ unit DPageSetup;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Forms, Controls, StdCtrls,
-  Buttons, ExtCtrls, ComCtrls, ToolWin, ImgList, ActnList, Dialogs,
-  SynEditPrintTypes, SynEditPrint, SynEditPrintMargins,
-  SynEditPrintHeaderFooter, SynEditPrintPreview, System.Actions,
-  System.ImageList, SVGIconImageListBase, SVGIconImageList;
+  Winapi.Windows,
+  System.SysUtils,
+  System.Classes,
+  System.Actions,
+  System.ImageList,
+  Vcl.Graphics,
+  Vcl.Forms,
+  Vcl.Controls,
+  Vcl.StdCtrls,
+  Vcl.Buttons,
+  Vcl.ExtCtrls,
+  Vcl.ComCtrls,
+  Vcl.ToolWin,
+  Vcl.ImgList,
+  Vcl.ActnList,
+  Vcl.Dialogs,
+  SynEditPrintTypes,
+  SynEditPrint,
+  SynEditPrintMargins,
+  SynEditPrintHeaderFooter,
+  SynEditPrintPreview,
+  SVGIconImageListBase,
+  SVGIconImageList;
 
 resourcestring
   INVALID_NUMBER = 'Invalid number!';
@@ -196,10 +214,10 @@ var
 implementation
 
 uses
-  RichEdit
-  , ShellAPI
+  WinApi.RichEdit
+  , WinApi.ShellAPI
   , System.UITypes
-  , Messages
+  , WinApi.Messages
   , Vcl.StyledTaskDialog
   ;
 

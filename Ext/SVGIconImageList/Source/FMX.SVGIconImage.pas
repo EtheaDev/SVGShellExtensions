@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/FMX                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -138,10 +138,10 @@ implementation
 
 uses
   System.Math
-  {$IFDEF Image32_SVGEngine}
+  {$IFDEF FMX_Image32_SVGEngine}
   , FMX.Image32SVG
   {$ENDIF}
-  {$IFDEF Skia_SVGEngine}
+  {$IFDEF FMX_Skia_SVGEngine}
   , FMX.ImageSkiaSVG
   {$ENDIF}
   , FMX.SVGIconImageList
@@ -216,10 +216,10 @@ begin
     FOwnerCollection := Collection as TSVGIconFixedMultiResBitmap;
   FZoom := ZOOM_DEFAULT;
   FOpacity := 1;
-  {$IFDEF Image32_SVGEngine}
+  {$IFDEF FMX_Image32_SVGEngine}
   FSVG := TFmxImage32SVG.Create;
   {$ENDIF}
-  {$IFDEF Skia_SVGEngine}
+  {$IFDEF FMX_Skia_SVGEngine}
   FSVG := TFmxImageSKIASVG.Create;
   {$ENDIF}
 end;

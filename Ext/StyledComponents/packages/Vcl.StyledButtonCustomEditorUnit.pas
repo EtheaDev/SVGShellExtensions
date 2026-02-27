@@ -2,7 +2,7 @@
 {                                                                              }
 {  StyledButton Attributes Editor: Component editor for Styled Button          }
 {                                                                              }
-{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2026 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -43,6 +43,7 @@ uses
   Vcl.Forms,
   Vcl.StdCtrls,
   Vcl.StyledButton,
+  Vcl.StyledPanel,
   Vcl.ButtonStylesAttributes,
   Vcl.StandardButtonStyles,
   Vcl.BootstrapButtonStyles,
@@ -105,6 +106,7 @@ function EditStyledButtonAttributes(const AButton: TControl): Boolean; overload;
 function EditStyledButtonAttributes(const AButton: TStyledGraphicButton): Boolean; overload;
 function EditStyledButtonAttributes(const AButton: TStyledButton): Boolean; overload;
 function EditStyledButtonAttributes(const AButtonRender: TStyledButtonRender): Boolean; overload;
+function EditStyledPanelAttributes(const APanel: TStyledPanel): Boolean; overload;
 
 implementation
 

@@ -291,21 +291,22 @@ end;
 function TComPreviewHandler.SetRect(var prc: TRect): HRESULT;
 var
   LNewPPI: Integer;
-  LRect: TRect;
 begin
   LNewPPI := GetDpiForWindow(FParentWindow);
 
   TLogPreview.Add('SetRect Init:'+
+    ' prc.Left: '+prc.Left.ToString+
+    ' prc.Top: '+prc.Top.ToString+
     ' prc.Width: '+prc.Width.ToString+
     ' prc.Height: '+prc.Height.ToString+
     ' GetDpiForWindow: '+LNewPPI.ToString);
 
-  GetWindowRect(FParentWindow, LRect);
-  TLogPreview.Add('SetRect'+GetRect(LRect,' - GetWindowRect'));
+  // Use the rect provided by Windows Shell - it's already in the correct coordinate space
+  if (prc.Width > 0) and (prc.Height > 0) then
+    Bounds := prc
+  else
+    TLogPreview.Add('SetRect: prc has zero size, ignoring');
 
-  //Bounds is calculated on Windows Rect
-  TLogPreview.Add('SetRect: Imposto Bounds dalla Window'+GetRect(LRect, ' LRect'));
-  Bounds := TRect.Create(0,0,LRect.Width,LRect.Height);
   FCurrentPPI := LNewPPI;
   TLogPreview.Add('FCurrentPPI := LNewPPI: '+LNewPPI.ToString);
   Result := S_OK;
@@ -335,44 +336,30 @@ end;
 function TComPreviewHandler.SetWindow(hwnd: HWND; var prc: TRect): HRESULT;
 var
   LMonitor: TMonitor;
-  LRect: TRect;
 begin
-  TLogPreview.Add('SetWindow Init'+GetRect(prc, '-prc:'));
+  TLogPreview.Add('SetWindow Init'+GetRect(prc, ' prc:'));
   FParentWindow := hwnd;
-//  FCurrentPPI := 96;
   FCurrentPPI := GetDpiForWindow(hwnd);
-
-  GetWindowRect(FParentWindow, LRect);
-  TLogPreview.Add('SetWindow'+GetRect(LRect,' - GetWindowRect'));
 
   TLogPreview.Add('SetWindow: Window DPI: '+FCurrentPPI.ToString);
 
   LMonitor := Screen.MonitorFromWindow(hwnd);
-//  FCurrentPPI := LMonitor.PixelsPerInch;
   TLogPreview.Add('SetWindow: Monitor - '+
-  ' Width: '+LMonitor.Width.ToString+
-  ' Height: '+LMonitor.Height.ToString+
-  ' PPI: '+LMonitor.PixelsPerInch.ToString);
+    ' Width: '+LMonitor.Width.ToString+
+    ' Height: '+LMonitor.Height.ToString+
+    ' PPI: '+LMonitor.PixelsPerInch.ToString);
 
-  TLogPreview.Add('SetWindow: Imposto Bounds'+GetRect(LRect, ' LRect'));
-  Bounds := TRect.Create(0,0,LRect.Width,LRect.Height);
-
-  Result := S_OK;
-(*
-  if (prc.Width <> 0) and (prc.Height <> 0) then
+  // Use the rect provided by Windows Shell if valid, otherwise ignore
+  // The prc parameter contains the rect in parent window client coordinates
+  if (prc.Width > 0) and (prc.Height > 0) then
   begin
+    TLogPreview.Add('SetWindow: Using prc from Shell');
     Bounds := prc;
-    Result := S_OK;
   end
   else
-  begin
-    FCurrentPPI := LMonitor.PixelsPerInch;
-    LRect.Width := 320;
-    LRect.Height := 240;
-    Bounds := LRect;
-    Result := S_OK;
-  end;
-*)
+    TLogPreview.Add('SetWindow: prc has zero size, will wait for SetRect');
+
+  Result := S_OK;
   TLogPreview.Add('SetWindow Done');
 end;
 

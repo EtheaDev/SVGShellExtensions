@@ -3,7 +3,7 @@
 {  ColorButtonStyles: Button Styles based on VCL color names                   }
 {  Unit System.UIConsts                                                        }
 {                                                                              }
-{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2026 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }

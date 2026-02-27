@@ -1,6 +1,6 @@
 ﻿# SVG Editor and Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.3.1 - 07 Sep 2025**
+**Latest Version 3.4.0 - 27 Feb 2026**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):**
 
@@ -42,6 +42,33 @@ A useful Text editor with preview of SVG Image:
 
 ![SVG Text Editor Dark](./Images/SVGTextEditorDark.png)
 
+### COMMAND LINE TOOLS
+![svg_png Tool](./Images/svg_png_128.png)
+
+**SVGToPNG** is a command-line utility for batch converting SVG files to PNG images.
+
+It supports:
+
+- Wildcard patterns for batch processing (e.g. `*.svg`)
+- Multiple output sizes in a single run (e.g. `16,32,48,64,128,256`)
+- Optional fixed color, grayscale and opacity settings
+
+**Usage:**
+```
+SVGToPNG convert -in:<InputPattern> -size:<Sizes> <options>
+Options:
+ -color|-c:<color>            Fixed color to apply (e.g. clBlack, #FF0000) ((Optional))
+ -grayscale|-g:<grayscale>    Convert to grayscale ((Optional))
+ -in|-i:<in>                  SVG input file or wildcard pattern (e.g. *.svg) ((Required))
+ -opacity|-a:<opacity>        Opacity value from 0.0 to 1.0 ((Optional))
+ -out|-o:<out>                Output folder for generated PNG files ((Optional))
+ -size|-s:<size>              PNG sizes separated by comma (e.g. 16,32,48,64) ((Required))
+Examples:
+  SVGToPNG convert -in:"C:\icons\*.svg" -size:32
+  SVGToPNG convert -in:"C:\icons\home.svg" -size:16,32,48,64 -out:"C:\output"
+  SVGToPNG convert -in:"*.svg" -size:256 -grayscale
+```
+
 ### Support for XYplorer ###
 
 As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the [configuration guide...](https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support)
@@ -60,6 +87,8 @@ If you have Delphi 12 or 13, you can manually build the project:
 
 - [VCL-Style-Utils][6]
 
+To build SVGToPNG Tool you can use `BuildSVGToPNG.cmd` in the `Tools/SVGToPNG/Project/` folder.
+
 To manually install the SVGShellExtensions.dll follow these steps:
 
 1. Close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).
@@ -73,6 +102,9 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+27 Feb 2026: ver. 3.4.0
+- Added command line Tool SVGToPNG
+
 07 Sep 2025: ver. 3.3.1
 - Built with Delphi 13
 - Refactoring PageControl to speedup loading

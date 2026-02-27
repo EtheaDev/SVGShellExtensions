@@ -2,7 +2,7 @@ object StyledButtonEditor: TStyledButtonEditor
   Left = 0
   Top = 0
   ActiveControl = TabControl
-  Caption = 'Styled Button Editor %s - Copyright Ethea S.r.l.'
+  Caption = 'Styled %s Editor %s - Copyright Ethea S.r.l.'
   ClientHeight = 543
   ClientWidth = 935
   Color = clBtnFace
@@ -99,16 +99,6 @@ object StyledButtonEditor: TStyledButtonEditor
       Align = alLeft
       Caption = 'ACTUAL'
       TabOrder = 0
-      object SourceButton: TStyledGraphicButton
-        AlignWithMargins = True
-        Left = 3
-        Top = 24
-        Width = 120
-        Height = 34
-        StyleElements = [seFont, seBorder]
-        Caption = 'Source Button'
-        StyleClass = 'Windows10'
-      end
     end
     object NewGroupBox: TGroupBox
       AlignWithMargins = True
@@ -119,17 +109,6 @@ object StyledButtonEditor: TStyledButtonEditor
       Align = alClient
       Caption = 'NEW'
       TabOrder = 1
-      object DestButton: TStyledGraphicButton
-        AlignWithMargins = True
-        Left = 12
-        Top = 24
-        Width = 120
-        Height = 34
-        OnClick = DestButtonClick
-        StyleElements = [seFont, seBorder]
-        Caption = 'Dest Button'
-        StyleClass = 'Windows10'
-      end
     end
   end
   object TabControl: TTabControl
@@ -179,7 +158,7 @@ object StyledButtonEditor: TStyledButtonEditor
       object StyleDrawTypeLabel: TLabel
         Left = 294
         Top = 21
-        Width = 56
+        Width = 55
         Height = 13
         Caption = 'Draw Type:'
       end

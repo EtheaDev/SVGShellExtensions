@@ -3,18 +3,12 @@
 {       SVGIconImageList: An extended ImageList for Delphi/VCL                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors: Vincent Parrett, Kiriakos Vlahos                         }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGIconImageList                           }
 {                                                                              }
-{******************************************************************************}
-{       Original version (c) 2005, 2008 Martin Walter with license:            }
-{       Use of this file is permitted for commercial and non-commercial        }
-{       use, as long as the author is credited.                                }
-{       home page: http://www.mwcs.de                                          }
-{       email    : martin.walter@mwcs.de                                       }
 {******************************************************************************}
 {                                                                              }
 {  Licensed under the Apache License, Version 2.0 (the "License");             }

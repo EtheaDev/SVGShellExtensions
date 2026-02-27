@@ -35,26 +35,25 @@ unit SynEditOptionsDialog;
 interface
 
 uses
-  Windows,
-  Messages,
-  Graphics,
-  Controls,
-  Forms,
-  Dialogs,
-  StdCtrls,
-  ComCtrls,
-  CommCtrl,
+  WinApi.Windows,
+  WinApi.Messages,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.StdCtrls,
+  Vcl.ComCtrls,
   Registry,
-  ExtCtrls,
-  Buttons,
-  ImgList,
-  Menus,
+  Vcl.ExtCtrls,
+  Vcl.Buttons,
+  Vcl.ImgList,
+  Vcl.Menus,
   SynEdit,
   SynEditHighlighter,
   SynEditMiscClasses,
   SynEditKeyCmds,
-  Classes,
-  SysUtils, 
+  System.Classes,
+  System.SysUtils,
   System.ImageList,
   Vcl.ButtonStylesAttributes,
   Vcl.StyledButton;
@@ -344,7 +343,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Types,
+  System.Types,
   SynEditKeyConst,
   SynEditMiscProcs;
 

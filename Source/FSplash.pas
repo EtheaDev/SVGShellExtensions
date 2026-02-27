@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -28,8 +28,19 @@ unit FSplash;
 interface
 
 uses
-  SysUtils, Windows, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, StdCtrls, ExtCtrls, jpeg, SVGIconImage, Vcl.Imaging.pngimage;
+  System.SysUtils,
+  WinApi.Windows,
+  WinApi.Messages,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls,
+  Vcl.Imaging.jpeg,
+  SVGIconImage,
+  Vcl.Imaging.pngimage;
 
 type
   TSplashForm = class(TForm)

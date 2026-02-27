@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -30,8 +30,14 @@ unit dlgConfirmReplace;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms,
-  StdCtrls, ExtCtrls;
+  Winapi.Windows,
+  System.SysUtils,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls;
 
 type
   TConfirmReplaceDialog = class(TForm)

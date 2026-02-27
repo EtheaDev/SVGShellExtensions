@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -28,10 +28,29 @@ unit FTestPrintPreview;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Forms, Controls, StdCtrls,
-  Buttons, ExtCtrls, ComCtrls, ToolWin, ActnList, ImgList, Dialogs,
-  SynEditPrintPreview, Menus, AppEvnts, Printers, System.Actions,
-  System.ImageList, Vcl.VirtualImageList, Vcl.ButtonGroup, Vcl.CategoryButtons;
+  WinApi.Windows,
+  System.SysUtils,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Forms,
+  Vcl.Controls,
+  Vcl.StdCtrls,
+  Vcl.Buttons,
+  Vcl.ExtCtrls,
+  Vcl.ComCtrls,
+  Vcl.ToolWin,
+  Vcl.ActnList,
+  Vcl.ImgList,
+  Vcl.Dialogs,
+  SynEditPrintPreview,
+  Vcl.Menus,
+  Vcl.AppEvnts,
+  Vcl.Printers,
+  System.Actions,
+  System.ImageList,
+  Vcl.VirtualImageList,
+  Vcl.ButtonGroup,
+  Vcl.CategoryButtons;
 
 resourcestring
   PRINT_CMD_HINT = 'Print ( %s )|Print the document on %s';

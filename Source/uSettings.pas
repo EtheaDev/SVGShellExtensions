@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -39,7 +39,7 @@ uses
   System.Generics.Collections,
   SynEditOptionsDialog,
   SVGIconUtils,
-  IniFiles;
+  System.IniFiles;
 
 const
   MaxfontSize = 30;

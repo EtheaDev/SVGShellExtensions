@@ -3,13 +3,16 @@
         <ProjectGuid>{68E0D2A4-9F7D-409B-9373-BA6AC49A07FE}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="SvgShellExtensions32.dproj">
+        <Projects Include="SVGShellExtensions32.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="SvgShellExtensions.dproj">
+        <Projects Include="SVGShellExtensions.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="SvgTextEditor.dproj">
+        <Projects Include="SVGTextEditor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SVGToPNG.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -20,41 +23,50 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="SvgShellExtensions32">
-        <MSBuild Projects="SvgShellExtensions32.dproj"/>
+    <Target Name="SVGShellExtensions32">
+        <MSBuild Projects="SVGShellExtensions32.dproj"/>
     </Target>
-    <Target Name="SvgShellExtensions32:Clean">
-        <MSBuild Projects="SvgShellExtensions32.dproj" Targets="Clean"/>
+    <Target Name="SVGShellExtensions32:Clean">
+        <MSBuild Projects="SVGShellExtensions32.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="SvgShellExtensions32:Make">
-        <MSBuild Projects="SvgShellExtensions32.dproj" Targets="Make"/>
+    <Target Name="SVGShellExtensions32:Make">
+        <MSBuild Projects="SVGShellExtensions32.dproj" Targets="Make"/>
     </Target>
-    <Target Name="SvgShellExtensions">
-        <MSBuild Projects="SvgShellExtensions.dproj"/>
+    <Target Name="SVGShellExtensions">
+        <MSBuild Projects="SVGShellExtensions.dproj"/>
     </Target>
-    <Target Name="SvgShellExtensions:Clean">
-        <MSBuild Projects="SvgShellExtensions.dproj" Targets="Clean"/>
+    <Target Name="SVGShellExtensions:Clean">
+        <MSBuild Projects="SVGShellExtensions.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="SvgShellExtensions:Make">
-        <MSBuild Projects="SvgShellExtensions.dproj" Targets="Make"/>
+    <Target Name="SVGShellExtensions:Make">
+        <MSBuild Projects="SVGShellExtensions.dproj" Targets="Make"/>
     </Target>
-    <Target Name="SvgTextEditor">
-        <MSBuild Projects="SvgTextEditor.dproj"/>
+    <Target Name="SVGTextEditor">
+        <MSBuild Projects="SVGTextEditor.dproj"/>
     </Target>
-    <Target Name="SvgTextEditor:Clean">
-        <MSBuild Projects="SvgTextEditor.dproj" Targets="Clean"/>
+    <Target Name="SVGTextEditor:Clean">
+        <MSBuild Projects="SVGTextEditor.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="SvgTextEditor:Make">
-        <MSBuild Projects="SvgTextEditor.dproj" Targets="Make"/>
+    <Target Name="SVGTextEditor:Make">
+        <MSBuild Projects="SVGTextEditor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SVGToPNG">
+        <MSBuild Projects="SVGToPNG.dproj"/>
+    </Target>
+    <Target Name="SVGToPNG:Clean">
+        <MSBuild Projects="SVGToPNG.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SVGToPNG:Make">
+        <MSBuild Projects="SVGToPNG.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="SvgShellExtensions32;SvgShellExtensions;SvgTextEditor"/>
+        <CallTarget Targets="SVGShellExtensions32;SVGShellExtensions;SVGTextEditor;SVGToPNG"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="SvgShellExtensions32:Clean;SvgShellExtensions:Clean;SvgTextEditor:Clean"/>
+        <CallTarget Targets="SVGShellExtensions32:Clean;SVGShellExtensions:Clean;SVGTextEditor:Clean;SVGToPNG:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="SvgShellExtensions32:Make;SvgShellExtensions:Make;SvgTextEditor:Make"/>
+        <CallTarget Targets="SVGShellExtensions32:Make;SVGShellExtensions:Make;SVGTextEditor:Make;SVGToPNG:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

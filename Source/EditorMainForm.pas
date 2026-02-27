@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -28,16 +28,45 @@ unit EditorMainForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, ExtCtrls, ImgList, Contnrs,
-  SynEdit, ActnList, Menus, ToolWin,
-  StdActns, SynEditHighlighter,
-  DResources, SynEditPrint, SynEditOptionsDialog, ActnCtrls, ActnMan,
-  ActnMenus, SynCompletionProposal, SynEditTypes, SynEditMiscClasses,
-  SynEditSearch, XPStyleActnCtrls, System.Actions, SVGIconImage, Vcl.Buttons,
-  Vcl.CategoryButtons, Vcl.WinXCtrls, System.ImageList, Vcl.VirtualImageList,
+  WinApi.Windows,
+  WinApi.Messages,
+  System.SysUtils,
+  System.Classes,
+  System.Contnrs,
+  System.Actions,
+  System.ImageList,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.ComCtrls,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls,
+  Vcl.ImgList,
+  Vcl.ActnList,
+  Vcl.Menus,
+  Vcl.ToolWin,
+  Vcl.StdActns,
+  Vcl.ActnCtrls,
+  Vcl.ActnMan,
+  Vcl.ActnMenus,
+  Vcl.XPStyleActnCtrls,
+  Vcl.Buttons,
+  Vcl.CategoryButtons,
+  Vcl.WinXCtrls,
+  Vcl.VirtualImageList,
+  Vcl.PlatformVclStylesActnCtrls,
+  DResources,
+  SynEdit,
+  SynEditHighlighter,
+  SynEditPrint,
+  SynEditOptionsDialog,
+  SynCompletionProposal,
+  SynEditTypes,
+  SynEditMiscClasses,
+  SynEditSearch,
+  SVGIconImage,
   uSettings
-  , Vcl.PlatformVclStylesActnCtrls
   {$IFNDEF NO_VCL_STYLES}
   , Vcl.Styles.Fixes
   , Vcl.Styles.FormStyleHooks
@@ -392,7 +421,7 @@ uses
   , FTestPrintPreview
   , DPageSetup
   , FSynHighlightProp
-  , Math
+  , System.Math
   , Winapi.SHFolder
   , SettingsForm
   , Vcl.StyledTaskDialog
@@ -2001,7 +2030,7 @@ end;
 procedure TfrmMain.AdjustCompactWidth;
 begin
   //Change size of compact view because Scrollbars appears
-  if (Height / ScaleFactor) > 900 then
+  if (Height / ScaleFactor) > 910 then
     SV.CompactWidth := Round(SV_COLLAPSED_WIDTH * ScaleFactor)
   else
     SV.CompactWidth := Round(SV_COLLAPSED_WIDTH_WITH_SCROLLBARS * ScaleFactor);

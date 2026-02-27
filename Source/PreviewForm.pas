@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -92,6 +92,8 @@ type
     procedure GrayscaleCheckBoxClick(Sender: TObject);
     procedure FixedColorBoxSelect(Sender: TObject);
     procedure FixedColorCheckBoxClick(Sender: TObject);
+    procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI, NewDPI: Integer);
+    procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI, NewDPI: Integer);
   private
     FFontSize: Integer;
     FSimpleText: string;
@@ -306,6 +308,22 @@ begin
     StyledToolBar.ButtonWidth := Round(110 * Self.ScaleFactor);
   end;
   UpdateGUI;
+end;
+
+procedure TFrmPreview.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+begin
+  TLogPreview.Add('FormAfterMonitorDpiChanged: OldDPI='+OldDPI.ToString+' NewDPI='+NewDPI.ToString);
+  LockWindowUpdate(0);
+  // Scale icon image list for new DPI
+  ScaleControls(NewDPI);
+end;
+
+procedure TFrmPreview.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+begin
+  TLogPreview.Add('FormBeforeMonitorDpiChanged: OldDPI='+OldDPI.ToString+' NewDPI='+NewDPI.ToString);
+  LockWindowUpdate(Handle);
 end;
 
 function TFrmPreview.GetApplyToRootOnly: Boolean;

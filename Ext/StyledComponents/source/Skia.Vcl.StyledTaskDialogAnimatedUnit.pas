@@ -3,7 +3,7 @@
 {  StyledTaskDialogAnimated: an example of Task Dialog Form                    }
 {  using a TSkAnimatedImage with Lottie Animations                             }
 {                                                                              }
-{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2026 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -71,7 +71,6 @@ type
       const ATaskDialogIcon: TTaskDialogIcon); override;
     procedure LoadCustomFooterIcon(const AIcon: TIcon;
       const ATaskDialogIcon: TTaskDialogIcon); override;
-  public
   end;
 
 implementation
@@ -129,7 +128,8 @@ begin
   LStream := TResourceStream.Create(HInstance, LImageName, RT_RCDATA);
   try
     AAnimatedImage.LoadFromStream(LStream);
-    AAnimatedImage.Animation.Loop := False;
+    AAnimatedImage.Animation.Loop := AnimationLoop;
+    AAnimatedImage.Animation.Inverse := AnimationInverse;
     AAnimatedImage.Animation.Start;
   finally
     LStream.Free;

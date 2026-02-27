@@ -5,6 +5,8 @@ inherited FrmPreview: TFrmPreview
   ClientWidth = 617
   DoubleBuffered = True
   Font.Name = 'Segoe UI'
+  OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
+  OnBeforeMonitorDpiChanged = FormBeforeMonitorDpiChanged
   OnResize = FormResize
   ExplicitWidth = 633
   ExplicitHeight = 656

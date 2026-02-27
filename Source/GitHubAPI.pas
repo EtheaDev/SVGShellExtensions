@@ -3,7 +3,7 @@
 {       GitHub API                                                             }
 {       (Check and Download new Setup from GitHub Project)                     }
 {                                                                              }
-{       Copyright (c) 2025 (Ethea S.r.l.)                                      }
+{       Copyright (c) 2026 (Ethea S.r.l.)                                      }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {                                                                              }

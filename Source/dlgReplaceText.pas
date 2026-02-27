@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -30,8 +30,13 @@ unit dlgReplaceText;
 interface
 
 uses
-  SysUtils, Classes, Controls, Forms,
-  dlgSearchText, StdCtrls, ExtCtrls;
+  System.SysUtils,
+  System.Classes,
+  Vcl.Controls,
+  Vcl.Forms,
+  dlgSearchText,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls;
 
 type
   TTextReplaceDialog = class(TTextSearchDialog)

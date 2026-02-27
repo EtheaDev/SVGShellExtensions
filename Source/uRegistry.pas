@@ -24,8 +24,8 @@ unit uRegistry;
 interface
 
 uses
-  Windows,
-  Registry;
+  Winapi.Windows,
+  System.Win.Registry;
 
 function RegReadStr(const RegPath, RegValue: string; var Str: string; const RootKey: HKEY): boolean;
 function RegReadInt(const RegPath, RegValue: string; var IntValue: integer; const RootKey: HKEY): boolean;
@@ -39,7 +39,7 @@ function IsWindowsAppThemeLight: Boolean;
 implementation
 
 uses
-  SysUtils;
+  System.SysUtils;
 
 function RegWriteStr(const RegPath, RegValue: string; const Str: string; const RootKey: HKEY): boolean;
 var

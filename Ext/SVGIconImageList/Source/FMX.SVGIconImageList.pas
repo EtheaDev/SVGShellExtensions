@@ -3,7 +3,7 @@
 {       SVGIconImageList: An extended ImageList for Delphi/FMX                 }
 {       to simplify use of SVG Icons (resize, opacity and more...)             }
 {                                                                              }
-{       Copyright (c) 2019-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2019-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {       Contributors:                                                          }
 {                                                                              }
@@ -47,7 +47,7 @@ uses
   ;
 
 const
-  SVGIconImageListVersion = '4.5.0';
+  SVGIconImageListVersion = '4.7.0';
   DEFAULT_SIZE = 32;
   ZOOM_DEFAULT = 100;
   SVG_INHERIT_COLOR = TAlphaColors.Null;
@@ -245,13 +245,13 @@ uses
   , System.SysUtils
   , FMX.Forms
   , FMX.Consts
-  {$IFDEF Image32_SVGEngine}
+  {$IFDEF FMX_Image32_SVGEngine}
     {$IFNDEF SvgDisableEngineHint}
     {$MESSAGE HINT 'Use Delphi native Image32 SVG-Engine for SVGIconImageList'}
     {$ENDIF}
   , FMX.Image32SVG
   {$ENDIF}
-  {$IFDEF Skia_SVGEngine}
+  {$IFDEF FMX_Skia_SVGEngine}
     {$IFNDEF SvgDisableEngineHint}
     {$MESSAGE HINT 'Use Skia4Delphi "wrapper" SVG-Engine for SVGIconImageList'}
     {$ENDIF}
@@ -307,8 +307,12 @@ end;
 
 function TSVGIconBitmapItem.GetBitmap: TBitmapOfItem;
 begin
-  DrawSVGIcon;
   Result := inherited Bitmap;
+  //Draw SVG Icon only if not already drawn at the correct size
+  //to prevent infinite notification loop (DoChange/ClearCache/Timer cycle)
+  if (Result.Width <> Round(FWidth * Scale)) or
+     (Result.Height <> Round(FHeight * Scale)) then
+    DrawSVGIcon;
 end;
 
 function TSVGIconBitmapItem.GetDisplayName: string;
@@ -488,10 +492,10 @@ constructor TSVGIconSourceItem.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
 
-  {$IFDEF Image32_SVGEngine}
+  {$IFDEF FMX_Image32_SVGEngine}
   FSVG := TFmxImage32SVG.Create;
   {$ENDIF}
-  {$IFDEF Skia_SVGEngine}
+  {$IFDEF FMX_Skia_SVGEngine}
   FSVG := TFmxImageSKIASVG.Create;
   {$ENDIF}
   FOpacity := -1;
@@ -674,6 +678,8 @@ function TSVGIconImageList.InsertIcon(const AIndex: Integer;
 var
   LItem: TSVGIconSourceItem;
   LDest: TCustomDestinationItem;
+  LIconName: string;
+  LCount: Integer;
 begin
   LItem := Self.Source.Insert(AIndex) as TSVGIconSourceItem;
   Result := LItem;
@@ -682,7 +688,20 @@ begin
   LDest := Self.Destination.Insert(AIndex);
   if AIconName <> '' then
   begin
-    LItem.Name := AIconName;
+    LCount := 1;
+    LIconName := AIconName;
+    //Check dup Names
+    while true do
+    begin
+      if GetIconByName(LIconName) = nil then
+        break
+      else
+      begin
+        LIconName := AIconName+IntToStr(LCount);
+        Inc(LCount)
+      end;
+    end;
+    LItem.Name := LIconName;
     with LDest.Layers.Add do
       Name := AIconName;
   end;
@@ -730,10 +749,10 @@ begin
 
   if Assigned(LItem) then
   begin
-    {$IFDEF Image32_SVGEngine}
+    {$IFDEF FMX_Image32_SVGEngine}
     Result := TFmxImage32SVG.Create;
     {$ENDIF}
-    {$IFDEF Skia_SVGEngine}
+    {$IFDEF FMX_Skia_SVGEngine}
     Result := TFmxImageSKIASVG.Create;
     {$ENDIF}
 
@@ -767,10 +786,10 @@ var
   LErrors: string;
 begin
   Result := 0;
-  {$IFDEF Image32_SVGEngine}
+  {$IFDEF FMX_Image32_SVGEngine}
   LSVG := TFmxImage32SVG.Create;
   {$ENDIF}
-  {$IFDEF Skia_SVGEngine}
+  {$IFDEF FMX_Skia_SVGEngine}
   LSVG := TFmxImageSKIASVG.Create;
   {$ENDIF}
   try

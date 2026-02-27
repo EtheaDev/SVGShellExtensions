@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -123,41 +123,32 @@ procedure TPreviewContainer.SetBoundsRectAndPPI(const ARect: TRect;
   AOldPPI, ANewPPI: Integer);
 var
   Lmsg: string;
-  LActualMonitor, LMainMonitor: TMonitor;
-  LScaleFactor: Double;
-  I: Integer;
+  LRect: TRect;
 begin
-  LActualMonitor := Screen.MonitorFromWindow(Self.Handle);
-  LMainMonitor := LActualMonitor;
-  for I := 0 to Screen.MonitorCount do
-  begin
-    LMainMonitor := Screen.Monitors[I];
-    if LMainMonitor.Primary then
-      Break;
-  end;
-
-  if LMainMonitor <> LActualMonitor then
-  begin
-    LScaleFactor := LActualMonitor.PixelsPerInch / LMainMonitor.PixelsPerInch;
-    ARect.Width := Round(ARect.Width * LScaleFactor);
-    ARect.Height := Round(ARect.Height * LScaleFactor);
-  end;
+  // Use the rect as provided - Windows Shell already gives us the correct coordinates
+  LRect := ARect;
 
   Lmsg := 'TPreviewContainer.SetBoundsRect:'+
-  ' Visible: '+Self.Visible.Tostring+slineBreak+
-    ' ANewPPI = AOldPPI'+slineBreak+
+    ' Visible: '+Self.Visible.ToString+slineBreak+
     ' Form.CurrentPPI:'+Self.CurrentPPI.ToString+slineBreak+
     ' Form.Scaled:'+Self.Scaled.ToString+slineBreak+
     ' AOldPPI:'+AOldPPI.ToString+slineBreak+
     ' ANewPPI:'+ANewPPI.ToString+slineBreak+
-    ' Scaled:'+Self.Scaled.ToString+slineBreak+
-    ' ARect.Width: '+ARect.Width.ToString+slineBreak+
-    ' ARect.Height: '+ARect.Height.ToString+slineBreak;
+    ' LRect.Width: '+LRect.Width.ToString+slineBreak+
+    ' LRect.Height: '+LRect.Height.ToString+slineBreak;
 
-  SetWindowPos(WindowHandle, 0, ARect.Left, ARect.Top, ARect.Width, ARect.Height, SWP_NOZORDER + SWP_NOACTIVATE);
-  //if LMainMonitor <> LActualMonitor then
-  //  ChangeScale(LMainMonitor.PixelsPerInch, LActualMonitor.PixelsPerInch);
-  FActualRect := ARect;
+  SetWindowPos(WindowHandle, 0, LRect.Left, LRect.Top, LRect.Width, LRect.Height,
+    SWP_NOZORDER or SWP_NOACTIVATE);
+
+  FActualRect := LRect;
+
+  // Scale form contents if DPI changed
+  if (AOldPPI <> ANewPPI) and (AOldPPI > 0) then
+  begin
+    TLogPreview.Add('DPI changed from '+AOldPPI.ToString+' to '+ANewPPI.ToString+' - scaling form');
+    ScaleForPPI(ANewPPI);
+  end;
+
   FCurrentPPI := ANewPPI;
 
   TLogPreview.Add(Lmsg);

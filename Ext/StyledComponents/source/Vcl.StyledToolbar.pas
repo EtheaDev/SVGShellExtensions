@@ -3,7 +3,7 @@
 {  StyledToolbar: a Toolbar with TStyledToolButtons inside                     }
 {  Based on TFlowPanel and TStyledGraphicButton                                }
 {                                                                              }
-{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2026 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors: Lance Rasmussen                                               }
 {                                                                              }
@@ -61,16 +61,30 @@ const
   DEFAULT_SORT_ORDER = -1;
 
 type
+  /// <summary>Exception class for styled toolbar errors</summary>
   EStyledToolbarError = Exception;
 
   TStyledToolbar = class;
   TStyledToolButton = class;
+  /// <summary>Class reference type for TStyledToolButton descendants</summary>
   TStyledToolButtonClass = class of TStyledToolButton;
 
+  /// <summary>Callback procedure for iterating toolbar buttons</summary>
+  /// <param name="Button">The current toolbar button being processed</param>
   TButtonProc = reference to procedure (Button: TStyledToolButton);
+  /// <summary>Callback procedure for iterating toolbar controls</summary>
+  /// <param name="Control">The current control being processed</param>
   TControlProc = reference to procedure (Control: TControl);
 
-  { TStyledToolButton }
+  /// <summary>Styled toolbar button component</summary>
+  /// <remarks>
+  ///   TStyledToolButton is a specialized styled button designed for use within
+  ///   TStyledToolbar. It extends TCustomStyledGraphicButton with toolbar-specific
+  ///   features including Style property (tbsButton, tbsCheck, tbsSeparator, tbsDropDown),
+  ///   Grouped and Marked properties for radio-button behavior, MenuItem integration,
+  ///   and automatic sizing based on toolbar settings. Buttons inherit styling from
+  ///   their parent toolbar unless explicitly overridden.
+  /// </remarks>
   TStyledToolButton = class(TCustomStyledGraphicButton)
   private
     FAutoSize: Boolean;
@@ -230,12 +244,27 @@ type
   end;
 
 
+  /// <summary>Event for customizing newly created toolbar buttons</summary>
+  /// <param name="Sender">The toolbar creating the button</param>
+  /// <param name="AIndex">Index position for the new button</param>
+  /// <param name="AButton">The button instance (can be replaced)</param>
   TSTBNewButtonEvent = procedure(Sender: TStyledToolbar; AIndex: Integer;
     var AButton: TStyledToolButton) of object;
+  /// <summary>Event fired when a button is added to the toolbar</summary>
+  /// <param name="Sender">The toolbar containing the button</param>
+  /// <param name="AButton">The button that was added</param>
   TSTBButtonEvent = procedure(Sender: TStyledToolbar;
     AButton: TCustomStyledGraphicButton) of object;
 
-  { TStyledToolbar }
+  /// <summary>Styled toolbar component based on TFlowPanel</summary>
+  /// <remarks>
+  ///   TStyledToolbar is a container component for TStyledToolButton controls.
+  ///   Unlike the standard TToolBar, it is based on TFlowPanel for flexible layout.
+  ///   All contained buttons inherit styling from the toolbar's StyleFamily,
+  ///   StyleClass, and StyleAppearance properties. Supports features like
+  ///   ShowCaptions, Flat mode, automatic button sizing, and wrapping.
+  ///   Use RegisterDefaultRenderingStyle to set global defaults for all toolbars.
+  /// </remarks>
   [ComponentPlatforms(pidWin32 or pidWin64)]
   TStyledToolbar = class(TCustomFlowPanel)
   private
@@ -259,6 +288,7 @@ type
     FInMenuLoop: Boolean;
     FAutoSize: Boolean;
     FButtonsCursor: TCursor;
+    FRescaling: Boolean;
 
     //Properties ignores (only for backward compatibility)
     FGradientDrawingOptions: TTBGradientDrawingOptions;
@@ -351,6 +381,7 @@ type
     procedure SetButtonsCursor(const AValue: TCursor);
     property DisableButtonAlign: Boolean read GetDisableButtonAlign write SetDisableButtonAlign;
   protected
+    procedure ChangeScale(M, D: Integer); override;
     {$IFDEF D10_1+}
     procedure ChangeScale(M, D: Integer; isDpiChange: Boolean); override;
     {$ENDIF}
@@ -370,35 +401,67 @@ type
     function GetStyledToolButtonClass: TStyledToolButtonClass; virtual;
     procedure Loaded; override;
   public
+    /// <summary>Copies properties from another toolbar</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>Registers default rendering style for all new toolbar instances</summary>
+    /// <param name="ADrawType">Default draw type (shape) for buttons</param>
+    /// <param name="AFamily">Default style family</param>
+    /// <param name="AClass">Default style class within the family</param>
+    /// <param name="AAppearance">Default style appearance variant</param>
+    /// <param name="AStyleRadius">Default corner radius for buttons</param>
     class procedure RegisterDefaultRenderingStyle(
       const ADrawType: TStyledButtonDrawType;
       const AFamily: TStyledButtonFamily = DEFAULT_CLASSIC_FAMILY;
       const AClass: TStyledButtonClass = DEFAULT_WINDOWS_CLASS;
       const AAppearance: TStyledButtonAppearance = DEFAULT_APPEARANCE;
       const AStyleRadius: Integer = DEFAULT_RADIUS); virtual;
+    /// <summary>Begins batch update to prevent excessive repainting</summary>
     procedure BeginUpdate; virtual;
+    /// <summary>Ends batch update and triggers layout refresh</summary>
     procedure EndUpdate; virtual;
+    /// <summary>Removes all buttons from the toolbar</summary>
     procedure ClearButtons;
+    /// <summary>Handles toolbar click event</summary>
     procedure Click; override;
+    /// <summary>Sets the style for the toolbar and all its buttons</summary>
+    /// <param name="AStyleFamily">Style family name</param>
+    /// <param name="AStyleClass">Style class within the family</param>
+    /// <param name="AStyleAppearance">Style appearance variant</param>
     procedure SetToolbarStyle(const AStyleFamily: TStyledButtonFamily;
       const AStyleClass: TStyledButtonClass;
       const AStyleAppearance: TStyledButtonAppearance);
+    /// <summary>Sets the toolbar bounds and adjusts layout</summary>
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
-    //Styled constructor
+    /// <summary>Creates toolbar with specified style settings</summary>
+    /// <param name="AOwner">Component owner</param>
+    /// <param name="AFamily">Initial style family</param>
+    /// <param name="AClass">Initial style class</param>
+    /// <param name="AAppearance">Initial style appearance</param>
     constructor CreateStyled(AOwner: TComponent;
       const AFamily: TStyledButtonFamily;
       const AClass: TStyledButtonClass;
       const AAppearance: TStyledButtonAppearance); virtual;
+    /// <summary>Creates toolbar with default style settings</summary>
     constructor Create(AOwner: TComponent); override;
+    /// <summary>Destroys the toolbar and all contained buttons</summary>
     destructor Destroy; override;
+    /// <summary>Creates a new button and adds it to the toolbar</summary>
+    /// <param name="ANewToolButton">Returns the created button</param>
+    /// <param name="AStyle">Button style type (tbsButton, tbsSeparator, etc.)</param>
+    /// <returns>True if button was created successfully</returns>
     function NewButton(out ANewToolButton: TStyledToolButton;
         const AStyle: TToolButtonStyle = tbsButton): Boolean;
+    /// <summary>Renders as standard VCL component when True</summary>
     property AsVCLComponent: Boolean read GetAsVCLComponent write SetAsVCLComponent stored False;
+    /// <summary>Number of buttons in the toolbar</summary>
     property ButtonCount: Integer read GetButtonCount;
+    /// <summary>Array access to toolbar buttons by index</summary>
     property Buttons[Index: Integer]: TStyledToolButton read GetButton;
+    /// <summary>Indicates if style attributes have been applied</summary>
     property StyleApplied: Boolean read FStyleApplied write SetStyleApplied;
+    /// <summary>Indicates if toolbar wraps buttons automatically</summary>
     property AutoWrap: Boolean read GetAutoWrap;
+    /// <summary>Sorts buttons by their SortOrder property</summary>
     procedure SortBySortOrder;
   published
     property Align default alTop;
@@ -706,8 +769,8 @@ begin
   LWidth := Width;
   if IsDropDown then
     LWidth := FToolBar.ButtonWidth + GetSplitButtonWidth;
-  LUpdateToolBar := (not RescalingButton)
-    and Assigned(FToolBar) and ((AWidth <> Width) or (AHeight <> Height))
+  LUpdateToolBar := Assigned(FToolBar) and not FToolBar.FRescaling
+    and ((AWidth <> Width) or (AHeight <> Height))
     and not IsSeparator
     and not (csLoading in ComponentState);
   inherited SetBounds(ALeft, ATop, AWidth, AHeight);
@@ -717,12 +780,12 @@ begin
     if AHeight <> LHeight then
     begin
       FToolBar.FButtonHeight := AHeight;
-      LUpdateToolbar := True;
+      LUpdateToolbar := not (sfHeight in ScalingFlags);
     end;
     if AWidth <> LWidth then
     begin
       FToolBar.FButtonWidth := AWidth;
-      LUpdateToolbar := True;
+      LUpdateToolbar := not (sfWidth in ScalingFlags);
     end;
     if LUpdateToolbar and (AWidth <> 0) and (AHeight <> 0) then
       FToolBar.ResizeButtons;
@@ -1056,12 +1119,27 @@ begin
   FCaptureChangeCancels := False;
 end;
 
+procedure TStyledToolbar.ChangeScale(M, D: Integer);
+begin
+  FRescaling := True;
+  try
+    inherited;
+  finally
+    FRescaling := True;
+  end;
+end;
+
 {$IFDEF D10_1+}
 procedure TStyledToolbar.ChangeScale(M, D: Integer; isDpiChange: Boolean);
 begin
-  FButtonWidth := MulDiv(FButtonWidth, M, D);
-  FButtonHeight := MulDiv(FButtonHeight, M, D);
-  inherited ChangeScale(M, D, isDpiChange);
+  FRescaling := True;
+  try
+    FButtonWidth := MulDiv(FButtonWidth, M, D);
+    FButtonHeight := MulDiv(FButtonHeight, M, D);
+    inherited ChangeScale(M, D, isDpiChange);
+  finally
+    FRescaling := True;
+  end;
 end;
 {$ENDIF}
 

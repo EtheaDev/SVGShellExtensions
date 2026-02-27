@@ -3,7 +3,7 @@
 {  StyledAnimatedComponents: a set of Styled VCL Component                     }
 {  with animations                                                             }
 {                                                                              }
-{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2026 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -170,7 +170,7 @@ begin
         LNewButton.Name := Designer.UniqueName('Button');
         LNewButton.Caption := 'Button';
       end;
-      if EditStyledButton(LNewButton) then
+      if EditStyledControl(LNewButton) then
       begin
         LToolbar.SetToolbarStyle(LNewButton.StyleFamily,
           LNewButton.StyleClass, LNewButton.StyleAppearance);

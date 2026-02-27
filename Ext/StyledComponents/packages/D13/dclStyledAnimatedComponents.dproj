@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{53C0431B-B098-4665-9C3C-189698B0344B}</ProjectGuid>
         <MainSource>dclStyledAnimatedComponents.dpk</MainSource>
-        <ProjectVersion>20.3</ProjectVersion>
+        <ProjectVersion>20.4</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>

@@ -3,7 +3,7 @@
 {  StyledButtonGroup: a Styled ButtonGroup with TStyledGrpButtonItem           }
 {  Based on TButtonGroup and TStyledButton                                     }
 {                                                                              }
-{  Copyright (c) 2022-2025 (Ethea S.r.l.)                                      }
+{  Copyright (c) 2022-2026 (Ethea S.r.l.)                                      }
 {  Author: Carlo Barazzetta                                                    }
 {  Contributors:                                                               }
 {                                                                              }
@@ -58,17 +58,31 @@ resourcestring
   ERROR_SETTING_BUTTONGROUP_STYLE = 'Error setting ButtonGroup Style: %s/%s/%s not available';
 
 type
+  /// <summary>Exception class for styled button group errors</summary>
   EStyledButtonGroupError = Exception;
 
   TStyledButtonGroup = class;
+  /// <summary>Class reference type for TStyledButtonGroup descendants</summary>
   TStyledButtonGroupClass = class of TStyledButtonGroup;
   TStyledGrpButtonItem = class;
+  /// <summary>Class reference type for TStyledGrpButtonItem descendants</summary>
   TStyledGrpButtonItemClass = class of TGrpButtonItem;
   TStyledGrpButtonItems = class;
+  /// <summary>Class reference type for TStyledGrpButtonItems descendants</summary>
   TStyledGrpButtonItemsClass = class of TGrpButtonItems;
 
+  /// <summary>Callback procedure for iterating button group items</summary>
+  /// <param name="Button">The current button item being processed</param>
   TGrpButtonProc = reference to procedure (Button: TStyledGrpButtonItem);
 
+  /// <summary>Event handler for retrieving notification badge information</summary>
+  /// <param name="AButtonItemIndex">Index of the button item</param>
+  /// <param name="ABadgeContent">Badge text content</param>
+  /// <param name="ASize">Badge size</param>
+  /// <param name="APosition">Badge position on the button</param>
+  /// <param name="AColor">Badge background color</param>
+  /// <param name="AFontColor">Badge text color</param>
+  /// <param name="AFontStyle">Badge font style</param>
   TGetButtonGroupBadgeInfo = procedure (
     const AButtonItemIndex: Integer;
     var ABadgeContent: string;
@@ -78,7 +92,12 @@ type
     var AFontColor: TColor;
     var AFontStyle: TFontStyles) of Object;
 
-  { TStyledGrpButtonItems }
+  /// <summary>Collection class for styled button group items</summary>
+  /// <remarks>
+  ///   TStyledGrpButtonItems is a specialized collection that holds
+  ///   TStyledGrpButtonItem objects. Each item can have individual
+  ///   style settings or inherit from the parent button group.
+  /// </remarks>
   TStyledGrpButtonItems = class(TGrpButtonItems)
   private
     function GetStyledButtonGroup: TStyledButtonGroup;
@@ -88,7 +107,13 @@ type
     property ButtonGroup: TStyledButtonGroup read GetStyledButtonGroup;
   end;
 
-  { TStyledGrpButtonItem }
+  /// <summary>Styled button group item with individual style support</summary>
+  /// <remarks>
+  ///   TStyledGrpButtonItem represents a single button within a TStyledButtonGroup.
+  ///   Each item can have its own StyleFamily, StyleClass, StyleAppearance,
+  ///   StyleDrawType, StyleRadius, and StyleRoundedCorners properties, allowing
+  ///   individual buttons to have different appearances within the same group.
+  /// </remarks>
   TStyledGrpButtonItem = class(TGrpButtonItem)
   private
     //Styled Attributes
@@ -130,7 +155,15 @@ type
     property StyleAppearance: TStyledButtonAppearance read FStyleAppearance write SetStyleAppearance stored IsStoredStyle;
   end;
 
-  { TStyledButtonGroup }
+  /// <summary>Styled button group component with modern appearance</summary>
+  /// <remarks>
+  ///   TStyledButtonGroup is a styled alternative to TButtonGroup that provides
+  ///   modern visual appearance through the StyledComponents styling system.
+  ///   Supports custom button styles (StyleFamily, StyleClass, StyleAppearance),
+  ///   notification badges via OnGetNotificationBadgeInfo, and all standard
+  ///   button group features. Individual items can override the group's default
+  ///   style. Use RegisterDefaultRenderingStyle to set global defaults.
+  /// </remarks>
   [ComponentPlatforms(pidWin32 or pidWin64)]
   TStyledButtonGroup = class(TButtonGroup)
   private
@@ -211,10 +244,6 @@ type
     procedure SetCaptionAlignment(const AValue: TAlignment);
     function GetImageSize(out AWidth, AHeight: Integer;
       out AImageList: TCustomImageList): boolean;
-    procedure DrawText(const ASurfaceRect: TRect;
-      const ACanvas: TCanvas; const AText: string;
-      const AAlignment: TAlignment; const ASpacing: Integer; var ARect: TRect;
-      AFlags: Cardinal);
     procedure SetSpacing(const AValue: Integer);
     procedure SetFlat(const AValue: Boolean);
     function IsStyleEnabled: Boolean;
@@ -313,7 +342,7 @@ constructor TStyledButtonGroup.CreateStyled(AOwner: TComponent;
   const AFamily: TStyledButtonFamily; const AClass: TStyledButtonClass;
   const AAppearance: TStyledButtonAppearance);
 begin
-  Assert(Assigned(AOwner));
+  //Assert(Assigned(AOwner));
   inherited Create(AOwner);
 
   //new properties for StyledButtonGroup
@@ -430,42 +459,6 @@ begin
     Result := False;
 end;
 
-procedure TStyledButtonGroup.DrawText(
-  const ASurfaceRect: TRect;
-  const ACanvas: TCanvas;
-  const AText: string; const AAlignment: TAlignment;
-  const ASpacing: Integer;
-  var ARect: TRect; AFlags: Cardinal);
-var
-  R: TRect;
-  LText: string;
-begin
-  //Drawing Caption
-  R := ARect;
-  LText := AText;
-  Winapi.Windows.DrawText(ACanvas.Handle, PChar(AText), Length(AText),
-    R, AFlags or DT_CALCRECT);
-  case AAlignment of
-    taLeftJustify:
-    begin
-      OffsetRect(R, ASpacing, (ARect.Height - R.Height) div 2);
-    end;
-    taRightJustify:
-    begin
-      OffsetRect(R, ARect.Width - R.Width - ASpacing, (ARect.Height - R.Height) div 2);
-    end;
-    else
-    begin
-      OffsetRect(R, (ARect.Width - R.Width) div 2, (ARect.Height - R.Height) div 2);
-    end;
-  end;
-  if ASurfaceRect.Right < R.Right + ASpacing then
-    R.Right := ASurfaceRect.Right - ASpacing;
-  if ASurfaceRect.Left > R.Left - ASpacing then
-    R.Left := ASurfaceRect.Left + ASpacing;
-  ACanvas.TextRect(R, LText, [TTextFormats.tfEndEllipsis]);
-end;
-
 procedure TStyledButtonGroup.DrawCaptionAndImage(
   const ACanvas: TCanvas; const ASurfaceRect: TRect;
   const ACaption: TCaption; const AImageIndex: Integer);
@@ -509,8 +502,8 @@ begin
   end;
 
   if gboShowCaptions in ButtonOptions then
-    DrawText(ASurfaceRect, ACanvas, ACaption, FCaptionAlignment, FSpacing,
-      LTextRect, LTextFlags);
+    DrawButtonText(ACanvas, ACaption, FCaptionAlignment, FSpacing,
+      CalcMaxBorderWidth, LTextRect, LTextFlags);
 end;
 
 function TStyledButtonGroup.IndexOfButtonAt(const X, Y: Integer): Integer;

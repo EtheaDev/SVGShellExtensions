@@ -3,7 +3,7 @@
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
 {                                                                              }
-{       Copyright (c) 2021-2025 (Ethea S.r.l.)                                 }
+{       Copyright (c) 2021-2026 (Ethea S.r.l.)                                 }
 {       Author: Carlo Barazzetta                                               }
 {                                                                              }
 {       https://github.com/EtheaDev/SVGShellExtensions                         }
@@ -34,12 +34,38 @@ unit SettingsForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, ExtCtrls, ColorGrd, StdCtrls, CheckLst, SynEdit,
-  ActnList, SynEditHighlighter, SynUnicode, System.ImageList, Vcl.ImgList,
-  SVGIconImageListBase, SVGIconImageList, uSettings, Vcl.ButtonGroup,
-  Vcl.ToolWin, DResources, Vcl.VirtualImageList, uAbout, Vcl.WinXCtrls,
-  Vcl.ButtonStylesAttributes, Vcl.StyledButtonGroup, Vcl.StyledButton,
+  WinApi.Windows,
+  WinApi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  System.ImageList,
+  Vcl.ImgList,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.ComCtrls,
+  Vcl.ExtCtrls,
+  Vcl.ColorGrd,
+  Vcl.StdCtrls,
+  Vcl.CheckLst,
+  Vcl.ActnList,
+  SynEdit,
+  SynEditHighlighter,
+  SynUnicode,
+  SVGIconImageListBase,
+  SVGIconImageList,
+  uSettings,
+  Vcl.ButtonGroup,
+  Vcl.ToolWin,
+  DResources,
+  Vcl.VirtualImageList,
+  uAbout,
+  Vcl.WinXCtrls,
+  Vcl.ButtonStylesAttributes,
+  Vcl.StyledButtonGroup,
+  Vcl.StyledButton,
   Vcl.Samples.Spin;
 
 type

@@ -414,9 +414,13 @@ begin
   }
   // Use the address of the Self.Flags property to calculate the offset of the FRegisteredStyles
 {$IFDEF CPUX64}
+{$IF (CompilerVersion < 35)}
   p := Pointer(PByte(@Self.Flags) + 8);
+{$IFEND}
 {$ELSE}
+{$IF (CompilerVersion < 35)}
   p := Pointer(PByte(@Self.Flags) + 4);
+{$IFEND}
 {$ENDIF CPUX64}
 
 {$IF (CompilerVersion >= 35)}  //Alexandria.

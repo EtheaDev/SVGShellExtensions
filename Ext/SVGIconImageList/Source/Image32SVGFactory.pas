@@ -1,6 +1,6 @@
 {-----------------------------------------------------------------------------
  Unit Name: Image32SVGFactory
- Author:    Carlo Barazzxetta
+ Author:    Carlo Barazzetta
  Purpose:   High-level encapsuation of Svg functionality for Image32 Library
  History:
 -----------------------------------------------------------------------------}
@@ -347,5 +347,6 @@ initialization
   FontManager.LoadFontReaderFamily('Times New Roman');
   FontManager.LoadFontReaderFamily('Segoe UI');
   FontManager.LoadFontReaderFamily('Segoe UI Emoji');
+  FontManager.LoadFontReaderFamily('Webdings');
 
 end.
