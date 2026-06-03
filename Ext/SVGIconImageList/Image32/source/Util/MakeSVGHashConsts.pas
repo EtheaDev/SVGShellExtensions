@@ -43,7 +43,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function GetHashedName(const s: string): cardinal; overload;
+function GetHashedNameCaseInsensitive(const s: string): cardinal; overload;
 var
   ansi: ansiString;
   name: TAnsi;
@@ -62,11 +62,11 @@ begin
     endC := c + Length(ansi);
     name.len := ParseNameLength(c, endC);
   end;
-  Result := Img32.SVG.Core.GetHash(name.AsUTF8String);
+  Result := Img32.SVG.Core.GetHashCaseInsensitive(name.AsUTF8String);
 end;
 //------------------------------------------------------------------------------
 
-function GetHashedNameCaseSens(const s: string): cardinal; overload;
+function GetHashedNameCaseSensitive(const s: string): cardinal; overload;
 var
   ansi: ansiString;
   name: TAnsi;
@@ -555,23 +555,27 @@ begin
     //check for hash collisions
     sl.Duplicates := dupError;
     sl.Sorted := true;
+
+    // element names are *supposed* to be case-sensitive,
+    // but this is not enforced in this library.
+    // note however, that ID attributes are case sensitive, and enforced.
     for i := 0 to slNames.Count -1 do
       if Assigned(slNames.Objects[i]) then //ie flagged as case sensitive
-        sl.Add(Format('%8.8x;',[GetHashedNameCaseSens(slNames[i])]))
+        sl.Add(Format('%8.8x;',[GetHashedNameCaseSensitive(slNames[i])]))
       else
-        sl.Add(Format('%8.8x;',[GetHashedName(slNames[i])]));
+        sl.Add(Format('%8.8x;',[GetHashedNameCaseInsensitive(slNames[i])]));
     //Yay! No collisions :)
     sl.Clear;
 
     for i := 0 to slNames.Count -1 do
       if Assigned(slNames.Objects[i]) then
       begin
-        hash := GetHashedNameCaseSens(slNames[i]);
+        hash := GetHashedNameCaseSensitive(slNames[i]);
         sl.Add(Format('  %-28s= $%8.8x;    // %s',
           [TidyName(slNames[i]) + '_', hash, slNames[i]]));
       end else
       begin
-        hash := GetHashedName(slNames[i]);
+        hash := GetHashedNameCaseInsensitive(slNames[i]);
         sl.Add(Format('  %-28s= $%8.8x;    // %s',
           [TidyName(slNames[i]), hash, slNames[i]]));
 
@@ -592,5 +596,5 @@ end;
 
 initialization
   MakeHashesConsts(false);
-  //MakeHashesConsts(true);
+  MakeHashesConsts(true);
 end.

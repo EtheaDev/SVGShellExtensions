@@ -3,9 +3,9 @@ unit Img32.Vector;
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
 * Version   :  4.9                                                             *
-* Date      :  9 August 2025                                                   *
+* Date      :  7 April 2026                                                    *
 * Website   :  https://www.angusj.com                                          *
-* Copyright :  Angus Johnson 2019-2025                                         *
+* Copyright :  Angus Johnson 2019-2026                                         *
 *                                                                              *
 * Purpose   :  Vector drawing for TImage32                                     *
 *                                                                              *
@@ -2022,25 +2022,29 @@ end;
 
 procedure ConcatPaths(var dstPath: TPathD; const paths: TPathsD);
 var
-  i, len, pathLen, offset: integer;
+  i, i2, len, pathLen, offset: integer;
 begin
   // calculate the length of the final array
   len := 0;
+  i2 := -1;
   for i := 0 to high(paths) do
   begin
     pathLen := Length(paths[i]);
     if pathLen > 0 then
     begin
       // Skip the start-point if it matches the previous path's end-point
-      if (i > 0) and PointsEqual(paths[i][0], paths[i -1][high(paths[i -1])]) then
-        dec(pathLen);
+      if (i2 >= 0) and
+        PointsEqual(paths[i][0], paths[i2][high(paths[i2])]) then
+          dec(pathLen);
       inc(len, pathLen);
+      i2 := i;
     end;
   end;
   SetLengthUninit(dstPath, len);
 
   // fill the array
   len := 0;
+  i2 := -1;
   for i := 0 to high(paths) do
   begin
     pathLen := Length(paths[i]);
@@ -2048,11 +2052,14 @@ begin
     begin
       offset := 0;
       // Skip the start-point if it matches the previous path's end-point
-      if (i > 0) and PointsEqual(paths[i][0], paths[i -1][high(paths[i -1])]) then
+      if (i2 >= 0) and
+        PointsEqual(paths[i][0], paths[i2][high(paths[i2])]) then
       begin
         dec(pathLen);
         offset := 1;
       end;
+      i2 := i;
+
       // Skip if we have a path with only one point and that point also matches
       // the previous path's end-point.
       if pathLen > 0 then
@@ -2856,18 +2863,23 @@ var
 begin
   rec := GetBoundsD(line);
   skipHole := (rec.Width <= width) or (rec.Height <= width);
+  norms := GetNormals(line);
   if skipHole then
   begin
     SetLength(Result, 1);
-    norms := GetNormals(line);
-    Result[0] := Grow(line, norms, width / 2, joinStyle, miterLim, scale, false);
+    if IsClockwise(line) then
+      Result[0] := Grow(line, norms,
+        width / 2, joinStyle, miterLim, scale, false)
+    else
+      Result[0] := ReversePath(Grow(line, norms,
+        -width / 2, joinStyle, miterLim, scale, false));
   end else
   begin
     SetLength(Result, 2);
-    norms := GetNormals(line);
-    Result[0] := Grow(line, norms, width / 2, joinStyle, miterLim, scale, false);
-    Result[1] := ReversePath(
-      Grow(line, norms, -width / 2, joinStyle, miterLim, scale, false));
+    Result[0] := Grow(line, norms,
+      width / 2, joinStyle, miterLim, scale, false);
+    Result[1] := ReversePath(Grow(line, norms,
+      -width / 2, joinStyle, miterLim, scale, false));
   end;
 end;
 //------------------------------------------------------------------------------

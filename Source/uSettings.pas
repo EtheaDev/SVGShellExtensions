@@ -158,10 +158,12 @@ type
   private
     FLightActiveLineColor: TColor;
     FDarkActiveLineColor: TColor;
+    FRestoreLastSession: Boolean;
     procedure WriteSynEditorOptions(
       const ASynEditorOptions: TSynEditorOptionsContainer);
     procedure ReadSynEditorOptions(
       const ASynEditorOptions: TSynEditorOptionsContainer);
+    procedure SetRestoreLastSession(const Value: Boolean);
   public
     HistoryFileList: TStrings;
     OpenedFileList: TStrings;
@@ -178,6 +180,7 @@ type
     procedure UpdateOpenedFiles(AFileList: TStrings; const ACurrentFileName: string);
     property LightActiveLineColor: TColor read FLightActiveLineColor write FLightActiveLineColor;
     property DarkActiveLineColor: TColor read FDarkActiveLineColor write FDarkActiveLineColor;
+    property RestoreLastSession: Boolean read FRestoreLastSession write SetRestoreLastSession;
   end;
 
 implementation
@@ -565,6 +568,11 @@ begin
     FVersionCheckTime := Now(); //Update Next time for check
 end;
 
+procedure TEditorSettings.SetRestoreLastSession(const Value: Boolean);
+begin
+  FRestoreLastSession := Value;
+end;
+
 procedure TEditorSettings.ReadSettings(
   const ASynEditHighilighter: TSynCustomHighlighter;
   const ASynEditorOptions: TSynEditorOptionsContainer;
@@ -584,6 +592,8 @@ begin
     ASynEditorOptions.ActiveLineColor := DarkActiveLineColor
   else
     ASynEditorOptions.ActiveLineColor := LightActiveLineColor;
+
+  RestoreLastSession := Boolean(FIniFile.ReadInteger('Global', 'RestoreLastSession', 1));
 
   if ASynEditHighilighter = nil then
   begin
@@ -730,6 +740,8 @@ begin
     FIniFile.WriteInteger('Global', 'LightActiveLineColor', LightActiveLineColor)
   else
     FIniFile.DeleteKey('Global', 'LightActiveLineColor');
+
+  FIniFile.WriteInteger('Global', 'RestoreLastSession', Ord(FRestoreLastSession));
 
   FIniFile.EraseSection(LAST_OPENED_SECTION);
   for I := 0 to HistoryFileList.Count -1 do

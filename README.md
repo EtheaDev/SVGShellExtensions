@@ -1,6 +1,6 @@
 ﻿# SVG Editor and Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.4.0 - 27 Feb 2026**
+**Latest Version 3.4.1 - 03 Jun 2026**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):**
 
@@ -102,6 +102,10 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+03 Jun 2026: ver. 3.4.1
+- Added single-instance behavior: opening a SVG file now reuses the running editor instead of starting a new one.
+- Added Settings option to remember and reopen files from the last session.
+
 27 Feb 2026: ver. 3.4.0
 - Added command line Tool SVGToPNG
 

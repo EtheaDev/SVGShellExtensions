@@ -1223,7 +1223,7 @@ begin
     if AValue and not AnimatedTaskDialogFormRegistered then
       raise EStyledTaskDialogException.CreateFmt(
         ERR_DIALOG_FORM_NOT_REGISTERED,
-        ['Skia.Vcl.StyledTaskDialogAnimatedUnit.pas']);
+        ['Skia.Vcl.StyledTaskDialogAnimatedUnit']);
     FUseAnimations := AValue;
   end;
 end;

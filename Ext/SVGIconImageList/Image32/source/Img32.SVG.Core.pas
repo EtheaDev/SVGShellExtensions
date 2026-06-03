@@ -3,9 +3,9 @@ unit Img32.SVG.Core;
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
 * Version   :  4.9                                                             *
-* Date      :  15 December 2025                                                *
+* Date      :  8 April 2026                                                    *
 * Website   :  https://www.angusj.com                                          *
-* Copyright :  Angus Johnson 2019-2025                                         *
+* Copyright :  Angus Johnson 2019-2026                                         *
 *                                                                              *
 * Purpose   :  Essential structures and functions to read SVG files            *
 *                                                                              *
@@ -244,9 +244,14 @@ type
     skipComma: Boolean; out val: double): Boolean;
   function ParseNextNumEx(var c: PUTF8Char; endC: PUTF8Char; skipComma: Boolean;
     out val: double; out unitType: TUnitType): Boolean;
-  function GetHash(c: PUTF8Char; len: nativeint): cardinal; overload;
-  function GetHash(const name: UTF8String): cardinal; overload; {$IFDEF INLINE} inline; {$ENDIF}
-  function GetHashCaseSensitive(name: PUTF8Char; nameLen: integer): cardinal;
+
+  function GetHashCaseSensitive(c: PUTF8Char; len: nativeint): cardinal; overload;
+  function GetHashCaseInsensitive(c: PUTF8Char; len: nativeint): cardinal; overload;
+  function GetHashCaseSensitive(const name: UTF8String): cardinal; overload; {$IFDEF INLINE} inline; {$ENDIF}
+  function GetHashCaseInsensitive(const name: UTF8String): cardinal; overload; {$IFDEF INLINE} inline; {$ENDIF}
+
+//  function GetHashCaseSensitive(name: PUTF8Char; nameLen: integer): cardinal; overload;
+//  function GetHashCaseInsensitive(name: PUTF8Char; nameLen: integer): cardinal; overload;
   function ExtractRef(const href: UTF8String): UTF8String;
   function IsNumPending(var c: PUTF8Char;
     endC: PUTF8Char; ignoreComma: Boolean): Boolean;
@@ -295,6 +300,7 @@ type
   TSetOfUTF8Char = set of UTF8Char;
 
 function CharInSet(chr: UTF8Char; const chrs: TSetOfUTF8Char): Boolean;
+  {$IFDEF INLINE} inline; {$ENDIF}
 function DecodeUtf8ToUnicode(const utf8: UTF8String): UnicodeString;
 
 const
@@ -599,7 +605,8 @@ begin
   Result := false;
   for i := 1 to Length(compare) do
   begin
-    if LowerCaseTable[c[i - 1]] <> compare[i] then Exit;
+    //if LowerCaseTable[c[i - 1]] <> compare[i] then Exit;
+    if c[i - 1] <> compare[i] then Exit;
   end;
   Result := true;
 end;
@@ -616,7 +623,8 @@ begin
   c1 := @compare1[1]; c2 := @compare2[1];
   for i := 1 to len do
   begin
-    if LowerCaseTable[c1[i - 1]] <> LowerCaseTable[c2[i - 1]] then Exit;
+    //if LowerCaseTable[c1[i - 1]] <> LowerCaseTable[c2[i - 1]] then Exit;
+    if c1[i - 1] <> c2[i - 1] then Exit;
   end;
   Result := true;
 end;
@@ -888,7 +896,7 @@ begin
     end;
   end;
   c := cc;
-  hash := GetHash(c2, cc - c2);
+  hash := GetHashCaseSensitive(c2, cc - c2);
   Result := True;
 end;
 //------------------------------------------------------------------------------
@@ -912,7 +920,7 @@ begin
       else break;
     end;
   end;
-  Result := GetHash(c2, c - c2);
+  Result := GetHashCaseInsensitive(c2, c - c2);
 end;
 //------------------------------------------------------------------------------
 
@@ -935,7 +943,7 @@ begin
     inc(c);
     c2 := cc;
     while (cc < endC) and (cc^ <> quote) do inc(cc);
-    hash := GetHash(c2, cc - c2);
+    hash := GetHashCaseSensitive(c2, cc - c2);
     inc(cc);
   end else
   begin
@@ -952,7 +960,7 @@ begin
         'A'..'Z', 'a'..'z', '-', '_': inc(cc);
         else break;
       end;
-    hash := GetHash(c2, cc - c2);
+    hash := GetHashCaseSensitive(c2, cc - c2);
   end;
   c := cc;
   Result := True;
@@ -974,7 +982,28 @@ end;
 //------------------------------------------------------------------------------
 
 {$OVERFLOWCHECKS OFF}
-function GetHash(c: PUTF8Char; len: nativeint): cardinal;
+function GetHashCaseSensitive(c: PUTF8Char; len: nativeint): cardinal;
+var
+  i: integer;
+begin
+  //https://en.wikipedia.org/wiki/Jenkins_hash_function
+  Result := 0;
+  if c = nil then Exit;
+  for i := 1 to len do
+  begin
+    //Result := (Result + Ord(LowerCaseTable[c^]));
+    Result := Result + Ord(c^);
+    Result := Result + (Result shl 10);
+    Result := Result xor (Result shr 6);
+    inc(c);
+  end;
+  Result := Result + (Result shl 3);
+  Result := Result xor (Result shr 11);
+  Result := Result + (Result shl 15);
+end;
+//------------------------------------------------------------------------------
+
+function GetHashCaseInsensitive(c: PUTF8Char; len: nativeint): cardinal;
 var
   i: integer;
 begin
@@ -992,38 +1021,24 @@ begin
   Result := Result xor (Result shr 11);
   Result := Result + (Result shl 15);
 end;
+
 {$IFDEF OVERFLOWCHECKS_ENABLED}
   {$OVERFLOWCHECKS ON}
 {$ENDIF}
 //------------------------------------------------------------------------------
 
-function GetHash(const name: UTF8String): cardinal;
+function GetHashCaseSensitive(const name: UTF8String): cardinal;
 begin
   // skip function call by directly casting it to Pointer
-  Result := GetHash(PUTF8Char(Pointer(name)), Length(name));
+  Result := GetHashCaseSensitive(PUTF8Char(Pointer(name)), Length(name));
 end;
 //------------------------------------------------------------------------------
 
-{$OVERFLOWCHECKS OFF}
-function GetHashCaseSensitive(name: PUTF8Char; nameLen: integer): cardinal;
-var
-  i: integer;
+function GetHashCaseInsensitive(const name: UTF8String): cardinal;
 begin
-  Result := 0;
-  for i := 1 to nameLen do
-  begin
-    Result := (Result + Ord(name^));
-    Result := Result + (Result shl 10);
-    Result := Result xor (Result shr 6);
-    inc(name);
-  end;
-  Result := Result + (Result shl 3);
-  Result := Result xor (Result shr 11);
-  Result := Result + (Result shl 15);
+  // skip function call by directly casting it to Pointer
+  Result := GetHashCaseInsensitive(PUTF8Char(Pointer(name)), Length(name));
 end;
-{$IFDEF OVERFLOWCHECKS_ENABLED}
-  {$OVERFLOWCHECKS ON}
-{$ENDIF}
 //------------------------------------------------------------------------------
 
 function ParseNextWordHashed(var c: PUTF8Char; endC: PUTF8Char): cardinal;
@@ -1035,7 +1050,7 @@ begin
   c := ParseNameLength(c2, endC);
   len := c - c2;
   if len <= 0 then Result := 0
-  else Result := GetHash(c2, len);
+  else Result := GetHashCaseInsensitive(c2, len);
 end;
 //------------------------------------------------------------------------------
 
@@ -1555,7 +1570,7 @@ begin
   inc(c); //skip ampersand.
   c2 := c; c3 := c;
   c3 := ParseNameLength(c3, endC);
-  entity := owner.FindEntity(GetHash(c2, c3 - c2));
+  entity := owner.FindEntity(GetHashCaseInsensitive(c2, c3 - c2));
   Result := (c3^ = ';') and Assigned(entity);
   //nb: increments 'c' only if the entity is found.
   if Result then c := c3 +1 else dec(c);
@@ -2168,7 +2183,7 @@ begin
     Delete(attrib.name, 1, i);
   end;
 
-  attrib.hash := GetHash(attrib.Name);
+  attrib.hash := GetHashCaseInsensitive(attrib.Name);
 end;
 //------------------------------------------------------------------------------
 
@@ -2346,7 +2361,7 @@ begin
     attrib := NewSvgAttrib();
     attrib.name := styleName;
     attrib.value := styleVal;
-    attrib.hash := GetHash(attrib.name);
+    attrib.hash := GetHashCaseInsensitive(attrib.name);
     attribs.Add(attrib);
   end;
 end;
@@ -2484,7 +2499,7 @@ begin
       while (cc < endC) and (cc^ <> '<') do inc(cc);
       child := TSvgXmlEl.Create(owner);
       child.name := 'tspan';
-      child.hash := GetHash('tspan');
+      child.hash := GetHashCaseInsensitive('tspan');
       child.selfClosed := true; ////////////////////// :)))
       childs.Add(child);
       ToUTF8String(c, cc, child.text, sitPreserve);
@@ -2602,7 +2617,7 @@ end;
 function TSvgXmlEl.ParseHeader(var c: PUTF8Char; endC: PUTF8Char): Boolean;
 begin
   Result := inherited ParseHeader(c, endC);
-  if Result then hash := GetHash(name);
+  if Result then hash := GetHashCaseInsensitive(name);
 end;
 //------------------------------------------------------------------------------
 
@@ -3200,7 +3215,7 @@ end;
 function TClassStylesList.FindItemIndex(const Name: UTF8String): Integer;
 begin
   Result := -1;
-  FNameHash := GetHash(Name);
+  FNameHash := GetHashCaseInsensitive(Name);
   if FMod <> 0 then
   begin
     Result := FBuckets[(FNameHash and $7FFFFFFF) mod FMod];
@@ -3294,7 +3309,7 @@ begin
     Item := @FItems[I];
     Item.Data := Colors; // link the constant to the ColorConstMapItem
     Inc(Colors);
-    Item.Hash := GetHash(Item.Data.ColorName); // case-insensitive
+    Item.Hash := GetHashCaseInsensitive(Item.Data.ColorName);
     Bucket := @FBuckets[(Cardinal(Item.Hash) and $7FFFFFFF) mod FMod];
     Item.Next := Bucket^;
     Bucket^ := Item;
@@ -3307,7 +3322,7 @@ var
   Hash: Cardinal;
   Item: PColorConstMapItem;
 begin
-  Hash := GetHash(ColorName);
+  Hash := GetHashCaseInsensitive(ColorName);
   Item := FBuckets[(Cardinal(Hash) and $7FFFFFFF) mod FMod];
   while (Item <> nil) and
     not IsSameAsciiUTF8String(Item.Data.ColorName, ColorName) do

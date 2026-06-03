@@ -28,17 +28,21 @@
 // the following (somewhat temporary) define can be enabled.
 {.$DEFINE USE_OLD_SIMPLIFYPATHS}
 
-//USING_VCL_LCL - using either Delphi Visual Component Library or Lazarus Component Library
-//is required if using the TImage32Panel component
-//and adds a few extra library features (eg copying to and from TBitmap objects)
-{$IF DEFINED(FPC)}
-  {$DEFINE USING_LCL}
-  {$DEFINE USING_VCL_LCL}
-{$ELSEIF declared(FireMonkeyVersion) OR DEFINED(FRAMEWORK_FMX)}
-  {$DEFINE USING_FMX}
-{$ELSE}
-  {$DEFINE USING_VCL}
-  {$DEFINE USING_VCL_LCL}
+// USING_VCL_LCL - using either Delphi Visual Component Library or Lazarus Component Library
+// is required if using the TImage32Panel component
+// and adds a few extra library features (eg copying to and from TBitmap objects)
+// Note: Console applications will only support SVG and BMP image file formats
+// because only these 2 formats are supported natively by the Image32 library.
+{$IFNDEF CONSOLE}
+  {$IF DEFINED(FPC)}
+    {$DEFINE USING_LCL}
+    {$DEFINE USING_VCL_LCL}
+  {$ELSEIF declared(FireMonkeyVersion) OR DEFINED(FRAMEWORK_FMX)}
+    {$DEFINE USING_FMX}
+  {$ELSE}
+    {$DEFINE USING_VCL}
+    {$DEFINE USING_VCL_LCL}
+  {$IFEND}
 {$IFEND}
 
 {$IFDEF FPC}

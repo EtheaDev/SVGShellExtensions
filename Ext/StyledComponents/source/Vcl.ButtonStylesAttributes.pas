@@ -56,7 +56,7 @@ uses
 
 const
   /// <summary>Current version of the StyledComponents library</summary>
-  StyledComponentsVersion = '4.0.0';
+  StyledComponentsVersion = '4.2.1';
   /// <summary>Default corner radius for rounded buttons in pixels</summary>
   DEFAULT_RADIUS = 6;
   /// <summary>Resource name for the Windows shield admin icon</summary>
@@ -545,12 +545,12 @@ function StyleFamilyCheckAttributes(
   out AButtonFamily: TButtonFamily): Boolean;
 
 /// <summary>Updates button attributes for all states based on family/class/appearance</summary>
-procedure StyleFamilyUpdateAttributes(
+function StyleFamilyUpdateAttributes(
   const AFamily: TStyledButtonFamily;
   var AClass: TStyledButtonClass;
   var AAppearance: TStyledButtonAppearance;
   var ANormalStyle, APressedStyle,
-  ASelectedStyle, AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+  ASelectedStyle, AHotStyle, ADisabledStyle: TStyledButtonAttributes): Boolean;
 
 /// <summary>Gets appropriate style class and appearance for a modal result</summary>
 /// <remarks>
@@ -577,6 +577,9 @@ uses
 
 var
   _WindowsVersion: TWindowsVersion;
+
+function GetButtonFamily(const AFamily: TStyledButtonFamily;
+  out AButtonFamily: TButtonFamily): Boolean; forward;
 
 procedure CheckValue(const AName: string; const AValue, AMin, AMax: Integer);
 begin
@@ -700,31 +703,38 @@ begin
 end;
 
 function GetActiveStyleName(const AControl: TControl): string;
+{$IFDEF D10_4+}
+var
+  LServices: TCustomStyleServices;
+{$ENDIF}
 begin
-  {$IFDEF D10_4+}
-  Result := AControl.GetStyleName;
+  {$IFDEF D11+}
+  //Vcl.Themes.StyleServices(AControl) resolves the effective style for the specific control: it walks the parent chain to honor an inherited
+  LServices := StyleServices(AControl);
+  if Assigned(LServices) then
+    Result := LServices.Name
+  else
+    Result := '';
   if Result = '' then
   begin
-    {$IFDEF D11+}
     if (csDesigning in AControl.ComponentState) then
       Result := TStyleManager.ActiveDesigningStyle.Name
     else
       Result := TStyleManager.ActiveStyle.Name;
-    {$ELSE}
-      Result := TStyleManager.ActiveStyle.Name;
-    {$ENDIF}
   end;
   {$ELSE}
   Result := TStyleManager.ActiveStyle.Name;
   {$ENDIF}
-  if (csDesigning in AControl.ComponentState) then
-  begin
-    if (Result = 'Windows Designer Dark') or
-      (Result = 'Win10IDE_Dark') or
-      (Result = 'Win10IDE_Light') or
-      (Result = 'Mountain_Mist' ) then
-      Result := 'Windows';
-  end;
+  //Map IDE-only "Designer" styles
+  if (Result = '') or
+     (Result = 'Windows Designer') or
+     (Result = 'Windows Designer Dark') or
+     (Result = 'Windows Designer Modern') or
+     (Result = 'Windows Designer Dark Modern') or
+     (Result = 'Win10IDE_Dark') or
+     (Result = 'Win10IDE_Light') or
+     (Result = 'Mountain_Mist' ) then
+    Result := 'Windows';
 end;
 
 function GetWindowsVersion: TWindowsVersion;
@@ -940,16 +950,17 @@ begin
   end;
 end;
 
-procedure StyleFamilyUpdateAttributes(
+function StyleFamilyUpdateAttributes(
   const AFamily: TStyledButtonFamily;
   var AClass: TStyledButtonClass;
   var AAppearance: TStyledButtonAppearance;
   var ANormalStyle, APressedStyle,
-  ASelectedStyle, AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+  ASelectedStyle, AHotStyle, ADisabledStyle: TStyledButtonAttributes): Boolean;
 var
   LButtonFamily: TButtonFamily;
   LNormalStyle, LPressedStyle, LSelectedStyle, LHotStyle, LDisabledStyle: TStyledButtonAttributes;
 begin
+  Result := False;
   if GetButtonFamily(AFamily, LButtonFamily) then
   begin
     LNormalStyle := TStyledButtonAttributes.Create(nil);
@@ -963,11 +974,11 @@ begin
         LNormalStyle, LPressedStyle, LSelectedStyle,
         LHotStyle, LDisabledStyle);
 
-      ANormalStyle.AssignStyledAttributes(LNormalStyle);
-      APressedStyle.AssignStyledAttributes(LPressedStyle);
-      ASelectedStyle.AssignStyledAttributes(LSelectedStyle);
-      AHotStyle.AssignStyledAttributes(LHotStyle);
-      ADisabledStyle.AssignStyledAttributes(LDisabledStyle);
+      if ANormalStyle.AssignStyledAttributes(LNormalStyle) then Result := True;
+      if APressedStyle.AssignStyledAttributes(LPressedStyle) then Result := True;
+      if ASelectedStyle.AssignStyledAttributes(LSelectedStyle) then Result := True;
+      if AHotStyle.AssignStyledAttributes(LHotStyle) then Result := True;
+      if ADisabledStyle.AssignStyledAttributes(LDisabledStyle) then Result := True;
     finally
       LNormalStyle.Free;
       LPressedStyle.Free;
@@ -1284,17 +1295,30 @@ function TStyledButtonAttributes.AssignStyledAttributes(
   const ASource: TStyledButtonAttributes): Boolean;
 begin
   //Assign internal variable
-  FDrawType := ASource.FDrawType;
-  FBorderWidth := ASource.FBorderWidth;
-  FBorderDrawStyle := ASource.FBorderDrawStyle;
-  FButtonDrawStyle := ASource.FButtonDrawStyle;
-  FBorderColor := ASource.FBorderColor;
-  FFontColor := ASource.FFontColor;
-  FFontStyle := ASource.FFontStyle;
-  FButtonColor := ASource.FButtonColor;
-  FRadius := ASource.FRadius;
-  FRoundedCorners := ASource.FRoundedCorners;
-  Result := True;
+  Result :=
+    (FDrawType <> ASource.FDrawType) or
+    (FBorderWidth <> ASource.FBorderWidth) or
+    (FBorderDrawStyle <> ASource.FBorderDrawStyle) or
+    (FButtonDrawStyle <> ASource.FButtonDrawStyle) or
+    (FBorderColor <> ASource.FBorderColor) or
+    (FFontColor <> ASource.FFontColor) or
+    (FFontStyle <> ASource.FFontStyle) or
+    (FButtonColor <> ASource.FButtonColor) or
+    (FRadius <> ASource.FRadius) or
+    (FRoundedCorners <> ASource.FRoundedCorners);
+  if Result then
+  begin
+    FDrawType := ASource.FDrawType;
+    FBorderWidth := ASource.FBorderWidth;
+    FBorderDrawStyle := ASource.FBorderDrawStyle;
+    FButtonDrawStyle := ASource.FButtonDrawStyle;
+    FBorderColor := ASource.FBorderColor;
+    FFontColor := ASource.FFontColor;
+    FFontStyle := ASource.FFontStyle;
+    FButtonColor := ASource.FButtonColor;
+    FRadius := ASource.FRadius;
+    FRoundedCorners := ASource.FRoundedCorners;
+  end;
 end;
 
 function TStyledButtonAttributes.BrushStyle: TBrushStyle;

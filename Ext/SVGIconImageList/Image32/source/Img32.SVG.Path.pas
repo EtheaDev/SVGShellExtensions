@@ -3,9 +3,9 @@ unit Img32.SVG.Path;
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
 * Version   :  4.9                                                             *
-* Date      :  9 August 2025                                                   *
+* Date      :  8 April 2026                                                    *
 * Website   :  https://www.angusj.com                                          *
-* Copyright :  Angus Johnson 2019-2025                                         *
+* Copyright :  Angus Johnson 2019-2026                                         *
 *                                                                              *
 * Purpose   :  Essential structures and functions to read SVG Path elements    *
 *                                                                              *
@@ -1261,10 +1261,35 @@ function TSvgSubPath.AddZSeg(const endPt, firstPt: TPointD): TSvgZSegment;
 var
   i: integer;
 begin
+  // If the previous command is missing required coordinate data, then the
+  // initial point is used to fill in the missing data (but only for the last
+  // point or points).
+  // https://www.w3.org/TR/2015/WD-SVG2-20150915/paths.html#PathDataClosePathCommand
+
   i := fSegsCount;
   if i = Length(fSegs) then
     GrowSegs;
   inc(fSegsCount);
+
+  if (i > 0) then
+  begin
+    if (fSegs[i-1] is TSvgCSegment) then
+    begin
+      while (Length(TSvgCSegment(fSegs[i-1]).fCtrlPts) < 3) do
+        AppendPoint(TSvgCSegment(fSegs[i-1]).fCtrlPts, GetFirstPt);
+    end
+    else if (fSegs[i-1] is TSvgSSegment) then
+    begin
+      while (Length(TSvgCSegment(fSegs[i-1]).fCtrlPts) < 2) do
+        AppendPoint(TSvgCSegment(fSegs[i-1]).fCtrlPts, GetFirstPt);
+    end
+    else if (fSegs[i-1] is TSvgQSegment) then
+    begin
+      while (Length(TSvgCSegment(fSegs[i-1]).fCtrlPts) < 2) do
+        AppendPoint(TSvgCSegment(fSegs[i-1]).fCtrlPts, GetFirstPt);
+    end;
+  end;
+
 
   Result := TSvgZSegment.Create(self, i, endPt);
   fSegs[i] := Result;
@@ -1497,7 +1522,7 @@ var
   firstPt     : TPointD;
   lastPt      : TPointD;
   currPt      : TPointD;
-  pt2, pt3    : TPointD;
+  pt2         : TPointD;
   angle       : double;
   sweepCW     : integer;
   largeArc    : integer;
@@ -1524,25 +1549,31 @@ var
   begin
     // Count the numbers before the next segment type char
     ptCap := 0;
+    dec(endC); // trailing double-quote.
     while c < endC do
     begin
-      // skip whitespaces
+
+      // valid separators are whitespace and/or a comma
+      // https://www.w3.org/TR/SVG2/paths.html
+      while (c < endC) and (c^ <= space) do
+        inc(c);
+      if (c < endC) and (c^ = comma) then
+        inc(c);
       while (c < endC) and (c^ <= space) do
         inc(c);
 
-      if c >= endC then
-        break;
+      if (c >= endC) or
+        (not CharInSet(c^, ['0'..'9', '-', '.'])) then
+          break;
+      inc(c);
 
-      case c^ of
-        '0'..'9', '-', '.', 'E', 'e':
-          begin
-            while (c < endC) and (c^ > space) do
-              inc(c);
-            Inc(ptCap);
-          end;
-      else
-        Break;
-      end;
+      // nb: a minus char in the following loop
+      // must belong to the following value
+      while (c < endC) and
+        CharInSet(c^, ['0'..'9', '.', 'E', 'e']) do
+          inc(c);
+
+      Inc(ptCap);
     end;
     ptCap := ptCap div 2; // two numbers are one point
     SetLength(pts, ptCap);
@@ -1675,17 +1706,15 @@ begin
       stCBezier:
         begin
           AllocEstimatedPtsCount(c, endC);
+
           while IsNumPending(c, endC, true) and
-            Parse2Num(c, endC, pt2, lastPt) and
-            Parse2Num(c, endC, pt3, lastPt) and
             Parse2Num(c, endC, currPt, lastPt) do
           begin
-            AddPt(pt2);
-            AddPt(pt3);
             AddPt(currPt);
-            if isRelative then lastPt := currPt;
+            if isRelative and (ptCnt mod 3 = 0) then
+              lastPt := currPt;
           end;
-          if Length(pts) <> ptCnt then
+          if Length(pts) > ptCnt then
             SetLength(pts, ptCnt);
           currSubPath.AddSeg(stCBezier, firstPt, pts);
         end;

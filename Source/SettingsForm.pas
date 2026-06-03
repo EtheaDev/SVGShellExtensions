@@ -126,6 +126,8 @@ type
     GrayScaleCheckBox: TCheckBox;
     FixedColorCheckBox: TCheckBox;
     FixedColorColorBox: TColorBox;
+    EditingOptionsGroupBox: TGroupBox;
+    RestoreLastSessionCheckBox: TCheckBox;
     ActiveLineColorGroupBox: TGroupBox;
     DarkActiveLineColorColorBox: TColorBox;
     LightActiveLineColorColorBox: TColorBox;
@@ -607,6 +609,12 @@ begin
   DarkActiveLineColorColorBox.Selected := TEditorSettings(ASettings).DarkActiveLineColor;
   LightActiveLineColorColorBox.Selected := TEditorSettings(ASettings).LightActiveLineColor;
 
+  EditingOptionsGroupBox.Visible := ASettings is TEditorSettings;
+  if EditingOptionsGroupBox.Visible then
+    RestoreLastSessionCheckBox.Checked := TEditorSettings(ASettings).RestoreLastSession
+  else
+    RestoreLastSessionCheckBox.Checked := False;
+
   AutoUpdateCheckBox.Checked := ASettings.DaysForNextCheck <> -1;
   CheckNDaysSpinEdit.Value := ASettings.DaysForNextCheck;
 
@@ -660,6 +668,7 @@ begin
   begin
     TEditorSettings(ASettings).DarkActiveLineColor := DarkActiveLineColorColorBox.Selected;
     TEditorSettings(ASettings).LightActiveLineColor := LightActiveLineColorColorBox.Selected;
+    TEditorSettings(ASettings).RestoreLastSession := RestoreLastSessionCheckBox.Checked;
   end;
 
   if AutoUpdateCheckBox.Checked then

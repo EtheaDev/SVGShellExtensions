@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  StyledTaskDialogForm: a Task Dialog Form with StyleButtons                  }
 {                                                                              }
@@ -1170,8 +1170,6 @@ var
     begin
       AControl.Top := LTop+1;
       Inc(LTop, AControl.Height);
-//      if AControl.AlignWithMargins then
-//        Inc(LTop, AControl.Margins.Top + AControl.Margins.Bottom);
     end;
   end;
 
@@ -1434,9 +1432,12 @@ end;
 
 procedure TStyledTaskDialogForm.PlayMessageDlgSound;
 const
-  Sounds: array [TMsgDlgType] of integer = (
-    MB_ICONEXCLAMATION, MB_ICONHAND, MB_OK,
-    MB_ICONQUESTION, MB_ICONASTERISK);
+  Sounds: array[TMsgDlgType] of Integer = (
+    MB_ICONEXCLAMATION, // mtWarning
+    MB_ICONHAND,        // mtError
+    MB_ICONASTERISK,    // mtInformation
+    MB_ICONASTERISK,    // mtConfirmation: MB_ICONQUESTION because is muted on Vista+
+    MB_OK);             // mtCustom
 begin
   MessageBeep(Sounds[FDialogType]);
 end;
@@ -1680,16 +1681,16 @@ begin
     if not AnimatedTaskDialogFormRegistered then
       raise EStyledTaskDialogException.CreateFmt(
         ERR_DIALOG_FORM_NOT_REGISTERED,
-        ['Skia.Vcl.StyledTaskDialogAnimatedUnit.pas'])
+        ['Skia.Vcl.StyledTaskDialogAnimatedUnit'])
     else
     begin
-      LForm := _AnimatedTaskDialogFormClass.Create(LOwnerForm);
+      LForm := _AnimatedTaskDialogFormClass.Create(nil);
       TStyledTaskDialogForm(LForm).AnimationLoop := ATaskDialog.UseAnimationLoop;
       TStyledTaskDialogForm(LForm).AnimationInverse := ATaskDialog.UseAnimationInverse;
     end;
   end
   else
-    LForm := _TaskDialogFormClass.Create(LOwnerForm);
+    LForm := _TaskDialogFormClass.Create(nil);
   try
     LForm.PopupParent := LOwnerForm;
     //Call event handler OnDialogConstructed

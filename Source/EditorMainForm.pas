@@ -392,8 +392,10 @@ type
     procedure UpdateColorGUI;
     procedure CreatePageControl;
   protected
+    procedure CreateParams(var Params: TCreateParams); override;
     procedure CreateWindowHandle(const Params: TCreateParams); override;
     procedure DestroyWindowHandle; override;
+    procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
   public
     procedure ManageExceptions(Sender: TObject; E: Exception);
     property FixedColor: TColor read GetFixedColor write SetFixedColor;
@@ -424,6 +426,7 @@ uses
   , System.Math
   , Winapi.SHFolder
   , SettingsForm
+  , uSingleInstance
   , Vcl.StyledTaskDialog
   ;
 
@@ -1342,10 +1345,53 @@ begin
     FixedColor := clDefault;
 end;
 
+procedure TfrmMain.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+  // Custom window-class name so a second instance can locate us via
+  // FindWindow() and forward command-line files via WM_COPYDATA.
+  StrPLCopy(Params.WinClassName, cSVGTextEditorWindowClass,
+    Length(Params.WinClassName) - 1);
+end;
+
 procedure TfrmMain.CreateWindowHandle(const Params: TCreateParams);
 begin
   inherited;
   FDropTarget := TDropTarget.Create(WindowHandle, Self);
+end;
+
+procedure TfrmMain.WMCopyData(var Msg: TWMCopyData);
+var
+  LFileName: string;
+  LChars: Integer;
+begin
+  Msg.Result := 0;
+  if (Msg.CopyDataStruct = nil) or
+     (Msg.CopyDataStruct.dwData <> cSVGTextEditorCopyDataOpenFile) or
+     (Msg.CopyDataStruct.cbData = 0) or
+     (Msg.CopyDataStruct.lpData = nil) then
+    Exit;
+
+  // Payload is a null-terminated PChar (UnicodeString). cbData is in bytes.
+  LChars := (Msg.CopyDataStruct.cbData div SizeOf(Char));
+  if LChars > 0 then Dec(LChars); // drop the trailing #0
+  SetString(LFileName, PChar(Msg.CopyDataStruct.lpData), LChars);
+
+  if FileExists(LFileName) then
+  begin
+    OpenFile(LFileName, False);
+    AssignSVGToImage;
+  end;
+
+  // Bring our window to the foreground (the sender called
+  // AllowSetForegroundWindow so SetForegroundWindow is allowed).
+  if IsIconic(Handle) then
+    ShowWindow(Handle, SW_RESTORE)
+  else
+    ShowWindow(Handle, SW_SHOW);
+  SetForegroundWindow(Handle);
+
+  Msg.Result := 1;
 end;
 
 function TfrmMain.CurrentEditFile: TEditingFile;
@@ -1902,8 +1948,10 @@ begin
   begin
     FirstAction := True;
 
-    //Load previous opened-files
-    LoadOpenedFiles;
+    //Restore previously-opened files only if the user opted in (Settings:
+    //"Remember current session at next run").
+    if FEditorSettings.RestoreLastSession then
+      LoadOpenedFiles;
 
     //Initialize Open and Save Dialog with application path
     LFileName := ParamStr(1);

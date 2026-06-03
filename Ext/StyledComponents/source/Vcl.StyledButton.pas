@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  TStyledGraphicButton: a "styled" Button based on TGraphicControl            }
 {  TStyledButton: a "styled" Button Component similar to TButton               }
@@ -253,7 +253,7 @@ type
     procedure SetStyleFamily(const AValue: TStyledButtonFamily);
     procedure SetStyleClass(const AValue: TStyledButtonClass);
     procedure SetStyleAppearance(const AValue: TStyledButtonAppearance);
-    function ApplyButtonStyle: Boolean;
+    function ApplyButtonStyle(const ASkipInvalidate: Boolean = False): Boolean;
 
     procedure SetDisabledImages(const AValue: TCustomImageList);
     procedure SetImages(const AValue: TCustomImageList);
@@ -1840,6 +1840,19 @@ type
     property OnMouseUp;
     property OnStartDock;
     property OnStartDrag;
+    property ParentBiDiMode;
+    property ParentCustomHint;
+    property ParentDoubleBuffered;
+    property ParentFont;
+    property ParentShowHint;
+    property PopupMenu;
+    property PressedImageIndex;
+    property SelectedImageIndex;
+    {$IFDEF D10_4+}
+    property PressedImageName;
+    property SelectedImageName;
+    {$ENDIF}
+    property ShowHint;
 
     //StyledComponents Attributes
     property StyleRadius;
@@ -2302,11 +2315,12 @@ begin
   end;
 end;
 
-function TStyledButtonRender.ApplyButtonStyle: Boolean;
+function TStyledButtonRender.ApplyButtonStyle(const ASkipInvalidate: Boolean = False): Boolean;
 var
   LButtonFamily: TButtonFamily;
   LStyleClass: TStyledButtonClass;
   LStyleAppearance: TStyledButtonAppearance;
+  LInvaldate: Boolean;
 begin
   if AsVCLStyle then
   begin
@@ -2323,9 +2337,9 @@ begin
   end;
   Result := StyleFamilyCheckAttributes(FStyleFamily,
     LStyleClass, LStyleAppearance, LButtonFamily);
-  if Result (*or (csDesigning in ComponentState)*) then
+  if Result then
   begin
-    StyleFamilyUpdateAttributes(
+    LInvaldate := StyleFamilyUpdateAttributes(
       FStyleFamily,
       LStyleClass,
       LStyleAppearance,
@@ -2340,10 +2354,14 @@ begin
   end
   else
   begin
+    LInvaldate := (FStyleClass <> LStyleClass) or (FStyleAppearance <> LStyleAppearance);
     FStyleClass := LStyleClass;
     FStyleAppearance := LStyleAppearance;
   end;
-  if Result then
+  //ASkipInvalidate is True when this is called from inside the paint cycle
+  //(DrawBackgroundAndBorder), where Invalidate would trigger another WM_PAINT
+  //and cause an infinite paint loop.
+  if LInvaldate and not ASkipInvalidate then
     Invalidate;
 end;
 
@@ -2768,6 +2786,11 @@ var
   LCorners: TRoundedCorners;
   LDrawingAutoClick: Boolean;
 begin
+  //Call with ASkipInvalidate=True: we are already inside WM_PAINT, the
+  //attributes update will be reflected by the current paint pass itself,
+  //and an Invalidate here would queue another WM_PAINT → loop.
+  if AsVCLStyle then
+    ApplyButtonStyle(True);
   LStyleAttribute := GetDrawingStyle(ACanvas, ButtonState);
 
   //Erase Background
@@ -6323,7 +6346,7 @@ begin
     StyleFamily := DEFAULT_CLASSIC_FAMILY;
   inherited;
   if (AValue <> '') then
-    StyleClass := AValue;  
+    StyleClass := AValue;
 end;
 {$ENDIF}
 

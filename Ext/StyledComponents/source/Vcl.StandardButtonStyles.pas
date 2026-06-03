@@ -567,7 +567,7 @@ begin
     RegisterThemeAttributes('Material Oxford Blue SE',ttDark,clWhite,clWhite,
       htmlToColor('#5f6a72'),htmlToColor('#5f6a72'),htmlToColor('#0a7fbf'),
       htmlToColor('#5f6a72'),htmlToColor('#0a7fbf'),btRoundRect);
-    RegisterThemeAttributes('Material Patterns Blue',ttLight,clBlack,clBlack,
+    RegisterThemeAttributes('Material Pattens Blue',ttLight,clBlack,clBlack,
       htmlToColor('#e6ecf2'),htmlToColor('#e6ecf2'),htmlToColor('#e6ecf2'),
       htmlToColor('#c4d3df'),htmlToColor('#18a1e9'),btRoundRect);
     RegisterThemeAttributes('Metropolis UI Black',ttDark,clWhite,clWhite,
@@ -713,6 +713,29 @@ begin
       htmlToColor('#CAD4E6'),htmlToColor('#CAD4E6'),htmlToColor('#5172EF'),
       htmlToColor('#CAD4E6'),htmlToColor('#5172EF'),btRoundRect);
 
+    //new Delphi 13.1 Style
+    RegisterThemeAttributes('Windows Modern',ttLight,clBlack,clWhite,
+      htmlToColor('#cccccc'),htmlToColor('#cccccc'),htmlToColor('#1681da'),
+      htmlToColor('#cccccc'),htmlToColor('#1681da'),btRoundRect);
+    RegisterThemeAttributes('Windows Modern Dark',ttDark,clWhite,clWhite,
+      htmlToColor('#373737'),htmlToColor('#373737'),htmlToColor('#405560'),
+      htmlToColor('#434343'),htmlToColor('#4ab2e9'),btRoundRect);
+    RegisterThemeAttributes('Windows Modern Blue',ttDark,clWhite,clWhite,
+      htmlToColor('#084f8a'),htmlToColor('#084f8a'),htmlToColor('#6aadec'),
+      htmlToColor('#084f8a'),htmlToColor('#6aadec'),btRoundRect);
+    RegisterThemeAttributes('Windows Modern Green',ttDark,clWhite,clWhite,
+      htmlToColor('#055249'),htmlToColor('#055249'),htmlToColor('#7cb2ab'),
+      htmlToColor('#055249'),htmlToColor('#7cb2ab'),btRoundRect);
+    RegisterThemeAttributes('Windows Modern Purple',ttDark,clWhite,clWhite,
+      htmlToColor('#672d63'),htmlToColor('#672d63'),htmlToColor('#b382af'),
+      htmlToColor('#672d63'),htmlToColor('#b382af'),btRoundRect);
+    RegisterThemeAttributes('Windows Modern SlateGray',ttDark,clWhite,clWhite,
+      htmlToColor('#2a353b'),htmlToColor('#2a353b'),htmlToColor('#7daca8'),
+      htmlToColor('#2a353b'),htmlToColor('#7daca8'),btRoundRect);
+    RegisterThemeAttributes('Windows Modern MountainMist',ttLight,clBlack,clBlack,
+      htmlToColor('#dadada'),htmlToColor('#dadada'),htmlToColor('#e1edf6'),
+      htmlToColor('#b4b4b4'),htmlToColor('#3a93dd'),btRoundRect);
+
     //New Third Parties Styles (provided by Lance Rasmussen)
     RegisterThemeAttributes('CDE Frost: Blue',ttDark,clWhite,clWhite,
       htmlToColor('#084f8a'),htmlToColor('#084f8a'),htmlToColor('#084f8a'),
@@ -789,7 +812,19 @@ begin
   RegisterThemeAttributes('Win10IDE_Dark',ttDark,clWhite,clWhite,
     htmlToColor('#373737'),htmlToColor('#373737'),htmlToColor('#405560'),
     htmlToColor('#434343'),htmlToColor('#4ab2e9'),btRoundRect, True);
+  RegisterThemeAttributes('Windows Designer Dark',ttDark,clWhite,clWhite,
+    htmlToColor('#373737'),htmlToColor('#373737'),htmlToColor('#405560'),
+    htmlToColor('#434343'),htmlToColor('#4ab2e9'),btRoundRect, True);
+  RegisterThemeAttributes('Windows Designer Dark Modern',ttDark,clWhite,clWhite,
+    htmlToColor('#373737'),htmlToColor('#373737'),htmlToColor('#405560'),
+    htmlToColor('#434343'),htmlToColor('#4ab2e9'),btRoundRect, True);
   RegisterThemeAttributes('Win10IDE_Light',ttLight,clBlack,clBlack,
+    htmlToColor('#fdfdfd'),htmlToColor('#fdfdfd'),htmlToColor('#eef4f9'),
+    htmlToColor('#bbbbbb'),htmlToColor('#0067c0'),btRoundRect, True);
+  RegisterThemeAttributes('Windows Designer Light',ttLight,clBlack,clBlack,
+    htmlToColor('#fdfdfd'),htmlToColor('#fdfdfd'),htmlToColor('#eef4f9'),
+    htmlToColor('#bbbbbb'),htmlToColor('#0067c0'),btRoundRect, True);
+  RegisterThemeAttributes('Windows Designer Light Modern',ttLight,clBlack,clBlack,
     htmlToColor('#fdfdfd'),htmlToColor('#fdfdfd'),htmlToColor('#eef4f9'),
     htmlToColor('#bbbbbb'),htmlToColor('#0067c0'),btRoundRect, True);
   RegisterThemeAttributes('Mountain_Mist',ttLight,clBlack,clBlack,
@@ -803,22 +838,22 @@ begin
   RegisterPanelThemeAttributes('Windows',ttDark,clWindowText,clBtnFace,clActiveBorder);
 
   //Register Panel Theme Attributes for all VCL Styles
-  RegisterPanelThemeAttributes('Amakrits',ttDark,htmlToColor('#ffffff'),htmlToColor('#212121'),htmlToColor('#212121'));
-  RegisterPanelThemeAttributes('Amethyst Kamri',ttLight,htmlToColor('#000000'),htmlToColor('#e7e7ef'),htmlToColor('#e7e7ef'));
-  RegisterPanelThemeAttributes('Aqua Graphite',ttDark,htmlToColor('#ffffff'),htmlToColor('#212121'),htmlToColor('#212121'));
+  RegisterPanelThemeAttributes('Amakrits',ttDark,htmlToColor('#c0c0c0'),htmlToColor('#212121'),htmlToColor('#212121'));
+  RegisterPanelThemeAttributes('Amethyst Kamri',ttLight,htmlToColor('#4e5476'),htmlToColor('#e7e7ef'),htmlToColor('#e7e7ef'));
+  RegisterPanelThemeAttributes('Aqua Graphite',ttDark,htmlToColor('#eaeaea'),htmlToColor('#212121'),htmlToColor('#212121'));
   RegisterPanelThemeAttributes('Aqua Light Slate',ttLight,htmlToColor('#000000'),htmlToColor('#d6d6d6'),htmlToColor('#d6d6d6'));
-  RegisterPanelThemeAttributes('Auric',ttDark,htmlToColor('#ffffff'),htmlToColor('#5a5a5a'),htmlToColor('#000000'));
+  RegisterPanelThemeAttributes('Auric',ttDark,htmlToColor('#c0c0c0'),htmlToColor('#5a5a5a'),htmlToColor('#5a5a5a'));
   RegisterPanelThemeAttributes('Calypso',ttDark,htmlToColor('#ffffff'),htmlToColor('#294a6b'),htmlToColor('#18314a'));
   RegisterPanelThemeAttributes('Calypso LE',ttDark,htmlToColor('#ffffff'),htmlToColor('#294a6b'),htmlToColor('#18314a'));
   RegisterPanelThemeAttributes('Calypso SE',ttDark,htmlToColor('#ffffff'),htmlToColor('#294a6b'),htmlToColor('#18314a'));
   RegisterPanelThemeAttributes('Calypso SLE',ttDark,htmlToColor('#ffffff'),htmlToColor('#294a6b'),htmlToColor('#f7f7f7'));
-  RegisterPanelThemeAttributes('Carbon',ttDark,htmlToColor('#ffffff'),htmlToColor('#313135'),htmlToColor('#313135'));
-  RegisterPanelThemeAttributes('Charcoal Dark Slate',ttDark,htmlToColor('#ffffff'),htmlToColor('#393939'),htmlToColor('#dedede'));
-  RegisterPanelThemeAttributes('Cobalt XEMedia',ttDark,htmlToColor('#ffffff'),htmlToColor('#000000'),htmlToColor('#e7e7ef'));
+  RegisterPanelThemeAttributes('Carbon',ttDark,htmlToColor('#c0c0c0'),htmlToColor('#313135'),htmlToColor('#313135'));
+  RegisterPanelThemeAttributes('Charcoal Dark Slate',ttDark,htmlToColor('#c0c0c0'),htmlToColor('#393939'),htmlToColor('#dedede'));
+  RegisterPanelThemeAttributes('Cobalt XEMedia',ttDark,htmlToColor('#c0c0c0'),htmlToColor('#000000'),htmlToColor('#e7e7ef'));
   RegisterPanelThemeAttributes('Copper',ttLight,htmlToColor('#000000'),htmlToColor('#f7f7f7'),htmlToColor('#e7e7ef'));
   RegisterPanelThemeAttributes('CopperDark',ttDark,htmlToColor('#ffffff'),htmlToColor('#393939'),htmlToColor('#e7efe7'));
   RegisterPanelThemeAttributes('Coral',ttLight,htmlToColor('#000000'),htmlToColor('#dedede'),htmlToColor('#dedede'));
-  RegisterPanelThemeAttributes('Cyan Dusk',ttLight,htmlToColor('#000000'),htmlToColor('#e7e7ef'),htmlToColor('#d6d6d6'));
+  RegisterPanelThemeAttributes('Cyan Dusk',ttLight,htmlToColor('#000000'),htmlToColor('#e3e7ea'),htmlToColor('#d6d6d6'));
   RegisterPanelThemeAttributes('Cyan Night',ttLight,htmlToColor('#000000'),htmlToColor('#e3e5ea'),htmlToColor('#e3e5ea'));
   RegisterPanelThemeAttributes('Diamond',ttLight,htmlToColor('#000000'),htmlToColor('#eaeaea'),htmlToColor('#eaeaea'));
   RegisterPanelThemeAttributes('Emerald',ttLight,htmlToColor('#000000'),htmlToColor('#dfded9'),htmlToColor('#dfded9'));
@@ -827,7 +862,7 @@ begin
   RegisterPanelThemeAttributes('Glossy',ttDark,htmlToColor('#ffffff'),htmlToColor('#212121'),htmlToColor('#212121'));
   RegisterPanelThemeAttributes('Glow',ttDark,htmlToColor('#ffffff'),htmlToColor('#242930'),htmlToColor('#242930'));
   RegisterPanelThemeAttributes('Golden Graphite',ttDark,htmlToColor('#ffffff'),htmlToColor('#252525'),htmlToColor('#252525'));
-  RegisterPanelThemeAttributes('Iceberg Classico',ttLight,htmlToColor('#000000'),htmlToColor('#d9e4ed'),htmlToColor('#d9e4ed'));
+  RegisterPanelThemeAttributes('Iceberg Classico',ttLight,htmlToColor('#41667e'),htmlToColor('#d9e4ed'),htmlToColor('#92b2cb'));
   RegisterPanelThemeAttributes('Jet',ttDark,htmlToColor('#ffffff'),htmlToColor('#262626'),htmlToColor('#262626'));
   RegisterPanelThemeAttributes('Lavender Classico',ttLight,htmlToColor('#000000'),htmlToColor('#d3d3dd'),htmlToColor('#d3d3dd'));
   RegisterPanelThemeAttributes('Light',ttLight,htmlToColor('#000000'),htmlToColor('#ffffff'),htmlToColor('#ffffff'));
@@ -835,48 +870,56 @@ begin
   RegisterPanelThemeAttributes('Luna',ttLight,htmlToColor('#000000'),htmlToColor('#e3eefd'),htmlToColor('#e3eefd'));
   RegisterPanelThemeAttributes('Material Oxford Blue',ttDark,htmlToColor('#ffffff'),htmlToColor('#313135'),htmlToColor('#181818'));
   RegisterPanelThemeAttributes('Material Oxford Blue SE',ttDark,htmlToColor('#ffffff'),htmlToColor('#2e3541'),htmlToColor('#2e3541'));
-  RegisterPanelThemeAttributes('Material Pattens Blue',ttLight,htmlToColor('#000000'),htmlToColor('#f7f7f7'),htmlToColor('#f7f7f7'));
-  RegisterPanelThemeAttributes('Obsidian',ttDark,htmlToColor('#ffffff'),htmlToColor('#535353'),htmlToColor('#d6d6d6'));
+  RegisterPanelThemeAttributes('Material Pattens Blue',ttLight,htmlToColor('#000000'),htmlToColor('#eef3f7'),htmlToColor('#c6d6e3'));
+  RegisterPanelThemeAttributes('Obsidian',ttDark,htmlToColor('#c0c0c0'),htmlToColor('#535353'),htmlToColor('#d6d6d6'));
   RegisterPanelThemeAttributes('Onyx Blue',ttDark,htmlToColor('#ffffff'),htmlToColor('#313439'),htmlToColor('#313439'));
   RegisterPanelThemeAttributes('Puerto Rico',ttLight,htmlToColor('#000000'),htmlToColor('#ffffff'),htmlToColor('#ffffff'));
-  RegisterPanelThemeAttributes('Radiant',ttLight,htmlToColor('#000000'),htmlToColor('#efefef'),htmlToColor('#4e85cc'));
+  RegisterPanelThemeAttributes('Radiant',ttLight,htmlToColor('#000000'),htmlToColor('#efefef'),htmlToColor('#efefef'));
   RegisterPanelThemeAttributes('Ruby Graphite',ttDark,htmlToColor('#ffffff'),htmlToColor('#252525'),htmlToColor('#252525'));
-  RegisterPanelThemeAttributes('Sapphire Kamri',ttLight,htmlToColor('#000000'),htmlToColor('#efefe7'),htmlToColor('#292931'));
-  RegisterPanelThemeAttributes('Silver',ttLight,htmlToColor('#000000'),htmlToColor('#e3e7ea'),htmlToColor('#e3e7ea'));
+  RegisterPanelThemeAttributes('Sapphire Kamri',ttLight,htmlToColor('#396287'),htmlToColor('#e2eaf1'),htmlToColor('#e2eaf1'));
+  RegisterPanelThemeAttributes('Silver',ttLight,htmlToColor('#636d79'),htmlToColor('#e3e7ea'),htmlToColor('#e3e7ea'));
   RegisterPanelThemeAttributes('Sky',ttLight,htmlToColor('#000000'),htmlToColor('#efefef'),htmlToColor('#efefef'));
   RegisterPanelThemeAttributes('Slate Classico',ttLight,htmlToColor('#000000'),htmlToColor('#d8d8d8'),htmlToColor('#d8d8d8'));
-  RegisterPanelThemeAttributes('Smokey Quartz Kamri',ttLight,htmlToColor('#000000'),htmlToColor('#e7efe7'),htmlToColor('#e7efe7'));
+  RegisterPanelThemeAttributes('Smokey Quartz Kamri',ttLight,htmlToColor('#000000'),htmlToColor('#efebe7'),htmlToColor('#e7efe7'));
   RegisterPanelThemeAttributes('Stellar',ttDark,htmlToColor('#ffffff'),htmlToColor('#4f80c3'),htmlToColor('#4f80c3'));
   RegisterPanelThemeAttributes('Stellar Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#4f80c3'),htmlToColor('#4f80c3'));
-  RegisterPanelThemeAttributes('Sterling',ttLight,htmlToColor('#000000'),htmlToColor('#f6f6f6'),htmlToColor('#f6f6f6'));
+  RegisterPanelThemeAttributes('Sterling',ttLight,htmlToColor('#454f58'),htmlToColor('#f6f6f6'),htmlToColor('#f6f6f6'));
   RegisterPanelThemeAttributes('Tablet Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#2b2937'),htmlToColor('#2b2937'));
   RegisterPanelThemeAttributes('Tablet Light',ttLight,htmlToColor('#000000'),htmlToColor('#ffffff'),htmlToColor('#ffffff'));
   RegisterPanelThemeAttributes('Turquoise Gray',ttLight,htmlToColor('#000000'),htmlToColor('#efefef'),htmlToColor('#efefef'));
   RegisterPanelThemeAttributes('Vapor',ttDark,htmlToColor('#ffffff'),htmlToColor('#18181a'),htmlToColor('#18181a'));
   RegisterPanelThemeAttributes('Wedgewood Light',ttLight,htmlToColor('#000000'),htmlToColor('#eaeaea'),htmlToColor('#eaeaea'));
-  RegisterPanelThemeAttributes('Windows10',ttLight,htmlToColor('#000000'),htmlToColor('#eff7f7'),htmlToColor('#d4e6ed'));
+  RegisterPanelThemeAttributes('Windows10',ttLight,htmlToColor('#000000'),htmlToColor('#f3f3f3'),htmlToColor('#f3f3f3'));
   RegisterPanelThemeAttributes('Windows10 BlackPearl',ttDark,htmlToColor('#ffffff'),htmlToColor('#212b35'),htmlToColor('#212b35'));
   RegisterPanelThemeAttributes('Windows10 Blue',ttDark,htmlToColor('#ffffff'),htmlToColor('#0d70c8'),htmlToColor('#0d70c8'));
   RegisterPanelThemeAttributes('Windows10 Blue Whale',ttDark,htmlToColor('#ffffff'),htmlToColor('#22334c'),htmlToColor('#22334c'));
   RegisterPanelThemeAttributes('Windows10 Blue Whale LE',ttDark,htmlToColor('#ffffff'),htmlToColor('#22334c'),htmlToColor('#22334c'));
-  RegisterPanelThemeAttributes('Windows10 Clear Day',ttLight,htmlToColor('#000000'),htmlToColor('#eff7ff'),htmlToColor('#eff7ff'));
+  RegisterPanelThemeAttributes('Windows10 Clear Day',ttLight,htmlToColor('#000000'),htmlToColor('#ecf5fa'),htmlToColor('#b5d4eb'));
   RegisterPanelThemeAttributes('Windows10 Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#000000'),htmlToColor('#000000'));
   RegisterPanelThemeAttributes('Windows10 Green',ttDark,htmlToColor('#ffffff'),htmlToColor('#067568'),htmlToColor('#067568'));
   RegisterPanelThemeAttributes('Windows10 Malibu',ttLight,htmlToColor('#000000'),htmlToColor('#f3f9fb'),htmlToColor('#f3f9fb'));
   RegisterPanelThemeAttributes('Windows10 Purple',ttDark,htmlToColor('#ffffff'),htmlToColor('#80397b'),htmlToColor('#80397b'));
   RegisterPanelThemeAttributes('Windows10 SlateGray',ttDark,htmlToColor('#ffffff'),htmlToColor('#36474e'),htmlToColor('#36474e'));
   RegisterPanelThemeAttributes('Windows11 Impressive Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#15253d'),htmlToColor('#15253d'));
-  RegisterPanelThemeAttributes('Windows11 Impressive Dark SE',ttDark,htmlToColor('#293152'),htmlToColor('#182939'),htmlToColor('#182939'));
-  RegisterPanelThemeAttributes('Windows11 Impressive Light',ttLight,htmlToColor('#000000'),htmlToColor('#eff7ff'),htmlToColor('#d4e6ed'));
-  RegisterPanelThemeAttributes('Windows11 Impressive Light SE',ttLight,htmlToColor('#d4e6ed'),htmlToColor('#eff7ff'),htmlToColor('#eff7ff'));
-  RegisterPanelThemeAttributes('Windows11 MineShaft',ttDark,htmlToColor('#525252'),htmlToColor('#212121'),htmlToColor('#212121'));
-  RegisterPanelThemeAttributes('Windows11 Modern Dark',ttDark,htmlToColor('#525252'),htmlToColor('#292931'),htmlToColor('#292931'));
-  RegisterPanelThemeAttributes('Windows11 Modern Light',ttLight,htmlToColor('#d2cad2'),htmlToColor('#efefef'),htmlToColor('#d2cad2'));
-  RegisterPanelThemeAttributes('Windows11 Polar Dark',ttDark,htmlToColor('#4a5263'),htmlToColor('#31354a'),htmlToColor('#31354a'));
-  RegisterPanelThemeAttributes('Windows11 Polar Light',ttLight,htmlToColor('#cec6d6'),htmlToColor('#eff7f7'),htmlToColor('#eff7f7'));
-  RegisterPanelThemeAttributes('Windows11 White Smoke',ttLight,htmlToColor('#dedede'),htmlToColor('#f7f7f7'),htmlToColor('#f7f7f7'));
-  RegisterPanelThemeAttributes('Zircon',ttLight,htmlToColor('#dedede'),htmlToColor('#f7f7f7'),htmlToColor('#cecec6'));
-  RegisterPanelThemeAttributes('Zircon SE',ttLight,htmlToColor('#dedede'),htmlToColor('#f7f7f7'),htmlToColor('#f7f7f7'));
+  RegisterPanelThemeAttributes('Windows11 Impressive Dark SE',ttDark,htmlToColor('#ffffff'),htmlToColor('#182939'),htmlToColor('#182939'));
+  RegisterPanelThemeAttributes('Windows11 Impressive Light',ttLight,htmlToColor('#000000'),htmlToColor('#eff7ff'),htmlToColor('#cdddee'));
+  RegisterPanelThemeAttributes('Windows11 Impressive Light SE',ttLight,htmlToColor('#000000'),htmlToColor('#eff7ff'),htmlToColor('#cdddee'));
+  RegisterPanelThemeAttributes('Windows11 MineShaft',ttDark,htmlToColor('#ffffff'),htmlToColor('#212121'),htmlToColor('#212121'));
+  RegisterPanelThemeAttributes('Windows11 Modern Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#2b2b2b'),htmlToColor('#515151'));
+  RegisterPanelThemeAttributes('Windows11 Modern Light',ttLight,htmlToColor('#000000'),htmlToColor('#f3f3f3'),htmlToColor('#d0d0d0'));
+  RegisterPanelThemeAttributes('Windows11 Polar Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#343648'),htmlToColor('#4e546b'));
+  RegisterPanelThemeAttributes('Windows11 Polar Light',ttLight,htmlToColor('#000000'),htmlToColor('#f0f5fb'),htmlToColor('#c7d3de'));
+  RegisterPanelThemeAttributes('Windows11 White Smoke',ttLight,htmlToColor('#000000'),htmlToColor('#f7f7f7'),htmlToColor('#dedede'));
+  RegisterPanelThemeAttributes('Zircon',ttLight,htmlToColor('#000000'),htmlToColor('#f7f7f7'),htmlToColor('#c9c9c9'));
+  RegisterPanelThemeAttributes('Zircon SE',ttLight,htmlToColor('#000000'),htmlToColor('#f7f7f7'),htmlToColor('#c9c9c9'));
+  //New Delphi 13.1 Styles
+  RegisterPanelThemeAttributes('Windows Modern',ttLight,htmlToColor('#000000'),htmlToColor('#f3f3f3'),htmlToColor('#c0c0c0'));
+  RegisterPanelThemeAttributes('Windows Modern Dark',ttDark,htmlToColor('#ffffff'),htmlToColor('#373737'),htmlToColor('#434343'));
+  RegisterPanelThemeAttributes('Windows Modern Blue',ttDark,htmlToColor('#ffffff'),htmlToColor('#0d70c8'),htmlToColor('#0d70c8'));
+  RegisterPanelThemeAttributes('Windows Modern Green',ttDark,htmlToColor('#ffffff'),htmlToColor('#077568'),htmlToColor('#077568'));
+  RegisterPanelThemeAttributes('Windows Modern Purple',ttDark,htmlToColor('#ffffff'),htmlToColor('#80397b'),htmlToColor('#80397b'));
+  RegisterPanelThemeAttributes('Windows Modern SlateGray',ttDark,htmlToColor('#ffffff'),htmlToColor('#36474e'),htmlToColor('#36474e'));
+  RegisterPanelThemeAttributes('Windows Modern MountainMist',ttDark,htmlToColor('#000000'),htmlToColor('#f3f3f3'),htmlToColor('#f3f3f3'));
 end;
 
 procedure FreeThemesAttributes;

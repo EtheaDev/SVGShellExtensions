@@ -548,6 +548,23 @@ object UserSettingsForm: TUserSettingsForm
         Caption = 'Apply GrayScale'
         TabOrder = 4
       end
+      object EditingOptionsGroupBox: TGroupBox
+        AlignWithMargins = True
+        Left = 311
+        Top = 37
+        Width = 284
+        Height = 60
+        Caption = 'Editing Options'
+        TabOrder = 5
+        object RestoreLastSessionCheckBox: TCheckBox
+          Left = 15
+          Top = 24
+          Width = 260
+          Height = 17
+          Caption = 'Remember current session at next run'
+          TabOrder = 0
+        end
+      end
     end
     object tsUpdates: TTabSheet
       Caption = 'Updates'
