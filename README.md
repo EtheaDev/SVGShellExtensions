@@ -1,6 +1,6 @@
 ﻿# SVG Editor and Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Latest Version 3.4.1 - 03 Jun 2026**
+**Latest Version 3.4.2 - 03 Sep 2026**
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):**
 
@@ -102,6 +102,21 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+03 Sep 2026: ver. 3.4.2
+- Fixed a GDI handle and memory leak in the Thumbnail provider: the bitmap handed over to Explorer was released incorrectly, so every generated thumbnail leaked resources inside the Explorer process.
+- The shared resources data module is now a single instance created on demand, instead of one created and destroyed by every preview.
+- Fixed the preview of ANSI-encoded SVG files, which produced an empty pane.
+- SVG Text Editor: files whose extension is uppercase (.SVG) can now be opened. The check was a case-sensitive substring search, which also wrongly accepted names ending in ".xm" or ".s".
+- SVG Text Editor: the SVG is no longer re-parsed at every keystroke.
+- SVG Text Editor: fixed memory-management defects on the file-opening error path.
+- SVG Text Editor: closing with unsaved changes can now be cancelled;
+- SVG Text Editor: removed the Help button from the error dialog, which did nothing; the WM_COPYDATA payload is now bounded in size.
+- The new-version check runs in background at startup instead of blocking the interface, tolerates release tags without the leading "v", and no longer crashes when the download starts right after the automatic check.
+- Web help now points to https://ethea.it/componenti/svgshellextensions/, while the Issues button and the new-version check point to GitHub.
+- Fixed the Debug configuration of the SVG Text Editor and SVGToPNG projects, which could not be built at all.
+- Version aligned to 3.4.2 on every project, on the setup and on this document: SVG Text Editor still declared 3.4.0, and therefore offered an update to a version older than the installed one.
+- Reduced the size of the thumbnail log and removed unused code.
+
 03 Jun 2026: ver. 3.4.1
 - Added single-instance behavior: opening a SVG file now reuses the running editor instead of starting a new one.
 - Added Settings option to remember and reopen files from the last session.

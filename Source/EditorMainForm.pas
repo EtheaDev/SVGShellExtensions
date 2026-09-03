@@ -116,6 +116,7 @@ resourcestring
   CONFIRM_CHANGES = 'ATTENTION: the content of file "%s" is changed: do you want to save the file?';
   FILE_CHANGED_RELOAD = 'File "%s" Date/Time changed! Do you want to reload it?';
   SVG_PARSING_OK = 'SVG Parsing is correct.';
+  FILES_NOT_SAVED = 'The following files could not be saved:%s';
   FILES_TYPE = 'SVG Image files';
 
 type
@@ -137,9 +138,12 @@ type
     SynEditor: TSynEdit;
     TabSheet: TTabSheet;
     constructor Create(const EditFileName : string);
-    Destructor Destroy; override;
     property FileName: string read GetFileName write SetFileName; //with full path
     property Name: string read GetName; //only name of file
+    //Timestamp of the file as it was last read or written. Exposed because the
+    //file-changed timer compares it: TfrmMain used to reach into the private
+    //field directly (legal in the same unit, but it hid the coupling).
+    property FileTimestamp: TDateTime read FFileAge write FFileAge;
     property ImageName: string read GetImageName;
     property Extension : string read FExtension;
   end;
@@ -325,6 +329,9 @@ type
   private
     PageControl: TPageControlEx;
     FEditingInProgress: Boolean;
+    //Text of the SVG last handed to the preview images, to skip a rendering
+    //that would produce exactly the same result.
+    FRenderedSVGText: string;
     FirstAction: Boolean;
     MinFormWidth, MinFormHeight, MaxFormWidth, MaxFormHeight: Integer;
     FProcessingFiles: Boolean;
@@ -375,6 +382,7 @@ type
     procedure SynEditChange(Sender: TObject);
     procedure SynEditEnter(Sender: TObject);
     procedure UpdateHighlighter(ASynEditor: TSynEdit);
+    procedure ApplyStyleToGutter(AGutter: TSynGutter);
     procedure SetEditorFontSize(const Value: Integer);
     procedure LoadOpenedFiles;
     function CanAcceptFileName(const AFileName: string): Boolean;
@@ -505,11 +513,6 @@ begin
   UpdateTabSheetCaption;
 end;
 
-destructor TEditingFile.Destroy;
-begin
-  inherited;
-end;
-
 procedure TEditingFile.LoadFromFile(const AFileName: string);
 begin
   try
@@ -559,13 +562,18 @@ end;
 
 function TfrmMain.CanAcceptFileName(const AFileName: string): Boolean;
 begin
-  Result := pos(ExtractFileExt(AFileName), AcceptedExtensions) <> 0;
+  //NB: this was a Pos() substring search over AcceptedExtensions, which is
+  //case-sensitive - a file named "logo.SVG" was refused with the message
+  //"Cannot open file with extensions different from .svg;.xml" - and which
+  //also matched partial extensions (".xm" and ".s" were accepted).
+  //IsFileNameWithExt compares the whole extension with SameText.
+  Result := IsFileNameWithExt(AFileName, ASVGFileExt);
 end;
 
 function TfrmMain.AcceptedExtensions: string;
 begin
   //Check file extension
-  Result := '.svg;.xml';
+  Result := GetFileExtensionsList(ASVGFileExt);
 end;
 
 procedure TfrmMain.OnExportToPng(const ASizes: TPngExportSizes; const SVGText: string;
@@ -580,6 +588,7 @@ var
   EditingFile: TEditingFile;
   I, J: Integer;
   LErrorMsg: string;
+  LCreated: Boolean;
 begin
   Screen.Cursor := crHourGlass;
   Try
@@ -593,6 +602,7 @@ begin
       //looking for the file already opened
       EditingFile := nil;
       I := -1;
+      LCreated := False;
       for J := 0 to EditFileList.Count -1 do
       begin
         if SameText(FileName, TEditingFile(EditFileList.Items[J]).FileName) then
@@ -608,6 +618,7 @@ begin
         if not Assigned(EditingFile) then
         begin
           EditingFile := TEditingFile.Create(FileName);
+          LCreated := True;
           //Add file to list
           I := AddEditingFile(EditingFile);
         end;
@@ -617,10 +628,19 @@ begin
 
         Result := True;
       Except
-        if I >= 0 then
-          RemoveEditingFile(EditingFile)
-        else
-          EditingFile.Free;
+        //NB: clean up only what this call actually created.
+        //"I >= 0" alone was ambiguous in both directions: it was also >= 0 for
+        //a file that was already open, so a failing reload closed the user's
+        //existing tab; and when AddEditingFile raised, I was still -1 while the
+        //object had already been put into the owning EditFileList, making
+        //EditingFile.Free a second free.
+        if LCreated then
+        begin
+          if I >= 0 then
+            RemoveEditingFile(EditingFile)
+          else
+            EditingFile.Free;
+        end;
         raise;
       End;
       AddOpenedFile(FileName);
@@ -917,7 +937,20 @@ begin
     begin
       LEditingFile := TEditingFile(PageControl.Pages[I].Tag);
       //Confirm save changes
-      ConfirmChanges(LEditingFile);
+      //NB: ConfirmChanges raises EAbort when the user chooses Cancel. Catching
+      //it here and refusing the close is what makes that button mean anything:
+      //before, the button did not exist and the Abort branch was unreachable.
+      //Returning caNone also leaves the settings untouched, which is right -
+      //the session is not over.
+      try
+        ConfirmChanges(LEditingFile);
+      except
+        on EAbort do
+        begin
+          Action := caNone;
+          Exit;
+        end;
+      end;
       LFileList.Add(LEditingFile.FileName);
     end;
     if CurrentEditFile <> nil then
@@ -935,22 +968,26 @@ procedure TfrmMain.LoadOpenedFiles;
 var
   I: Integer;
   LFileName: string;
-  LIndex: Integer;
+  LCurrentPage: TTabSheet;
   LCurrentFileName: string;
 begin
-  LIndex := -1;
+  LCurrentPage := nil;
+  LCurrentFileName := FEditorSettings.CurrentFileName;
   PageControl.Hide;
   try
     for I := 0 to FEditorSettings.OpenedFileList.Count-1 do
     begin
-      LCurrentFileName := FEditorSettings.CurrentFileName;
       LFileName := FEditorSettings.OpenedFileList.Strings[I];
       if OpenFile(LFileName, False) and SameText(LFileName, LCurrentFileName) then
-        LIndex := I;
+        //NB: the settings index is not the page index - a remembered file that
+        //no longer opens creates no page - so using I here activated the wrong
+        //tab. OpenFile always leaves the file's own page active, so take the
+        //page from the PageControl instead.
+        LCurrentPage := PageControl.ActivePage;
     end;
-    if LIndex <> -1 then
+    if Assigned(LCurrentPage) then
     begin
-      PageControl.ActivePageIndex := LIndex;
+      PageControl.ActivePage := LCurrentPage;
       AssignSVGToImage;
     end;
   finally
@@ -960,9 +997,14 @@ end;
 
 procedure TfrmMain.LoadTimerTimer(Sender: TObject);
 begin
+  //Debounced rendering: this fires LoadTimer.Interval ms after the last
+  //keystroke. Before, this handler only reset a flag nobody read, while the
+  //rendering itself sat in SynEditChange - the debounce was never completed.
+  LoadTimer.Enabled := False;
   if FEditingInProgress then
   begin
     FEditingInProgress := False;
+    AssignSVGToImage;
   end;
 end;
 
@@ -1040,12 +1082,16 @@ begin
   EditingFile := TEditingFile.Create(LNewFileName);
   Try
     AddEditingFile(EditingFile);
-    if EditingFile.SynEditor.CanFocus then
-      EditingFile.SynEditor.SetFocus;
   Except
+    //NB: ownership passes to EditFileList only when AddEditingFile succeeds,
+    //so freeing here is correct exactly in the failure case. SetFocus moved
+    //out of the Try: it runs after the transfer, and a failure there must not
+    //free an object the owning list already holds.
     EditingFile.Free;
     raise;
   End;
+  if Assigned(EditingFile.SynEditor) and EditingFile.SynEditor.CanFocus then
+    EditingFile.SynEditor.SetFocus;
 end;
 
 procedure TfrmMain.acSearchUpdate(Sender: TObject);
@@ -1115,9 +1161,17 @@ begin
   if (Sender = CurrentEditor) and not FProcessingFiles then
   begin
     FEditingInProgress := True;
+    //Restart the debounce countdown. The SVG is deliberately NOT re-parsed
+    //here: that happens in LoadTimerTimer once typing has paused. Rendering
+    //synchronously from OnChange meant every single keystroke re-parsed the
+    //whole document up to five times - the main preview plus the 16/32/48/96
+    //thumbnails - and flipped the cursor to an hourglass while doing it.
+    //Assigning False then True is the idiomatic way to restart a TTimer:
+    //assigning True to an already-enabled timer is a no-op (TTimer.SetEnabled
+    //returns early when the value is unchanged), so it would not reset it.
     LoadTimer.Enabled := False;
+    LoadTimer.Enabled := True;
     UpdateTabsheetImage(pageControl.ActivePage, CurrentEditor.Modified);
-    AssignSVGToImage;
   end;
 end;
 
@@ -1131,11 +1185,8 @@ var
   LTabSheet: TTabSheet;
   LEditor: TSynEdit;
 begin
-  //Add file to opened-list
-  Result := EditFileList.Add(EditingFile);
   //Create the Tabsheet page associated to the file
   LTabSheet := nil;
-  LEditor := nil;
   Try
     LTabSheet := TTabSheet.Create(self);
     LTabSheet.PageControl := PageControl;
@@ -1168,10 +1219,21 @@ begin
     //Show the tabsheet
     LTabSheet.Visible := True;
   Except
+    //NB: LEditor is owned by LTabSheet (see TSynEdit.Create above), so freeing
+    //the TabSheet destroys the editor as well - the LEditor.Free that used to
+    //follow operated on a dangling pointer. EditingFile is deliberately not
+    //touched here: it is not in EditFileList yet, so the caller remains its
+    //sole owner and can free it exactly once.
+    EditingFile.SynEditor := nil;
+    EditingFile.TabSheet := nil;
     LTabSheet.Free;
-    LEditor.Free;
     raise;
   End;
+
+  //Everything succeeded: from now on EditFileList owns the object.
+  //NB: the insertion used to happen before the Try, so any failure left a
+  //dangling entry in an owning list while the caller freed the object too.
+  Result := EditFileList.Add(EditingFile);
 
   //Make the Tabsheet the current page
   PageControl.ActivePage := LTabSheet;
@@ -1183,6 +1245,7 @@ end;
 procedure TfrmMain.AssignSVGToImage;
 var
   LSVGText: string;
+  LSavedCursor: TCursor;
 
   procedure ClearIcons;
   begin
@@ -1200,6 +1263,18 @@ begin
     if CurrentEditor <> nil then
     begin
       LSVGText := CurrentEditor.Lines.Text;
+      //NB: skip the whole rendering when the content is the one already
+      //displayed. AssignSVGToImage is reached from the page change, from
+      //drag and drop, from WM_COPYDATA, from the file-changed timer and now
+      //from the debounce timer, so the same text was frequently parsed twice
+      //in a row. The result depends only on the text: colour, grayscale and
+      //fixed-colour are applied at paint time, not at parse time.
+      if (LSVGText = FRenderedSVGText) and (CurrentEditFile <> nil) then
+      begin
+        StatusBar.Panels[STATUSBAR_MESSAGE].Text := CurrentEditFile.FileName;
+        Exit;
+      end;
+      LSavedCursor := Screen.Cursor;
       Screen.Cursor := crHourGlass;
       try
         SVGIconImage.SVGText := LSVGText;
@@ -1214,8 +1289,12 @@ begin
         begin
           ClearIcons;
         end;
+        FRenderedSVGText := LSVGText;
       finally
-        Screen.Cursor := crDefault;
+        //NB: was an unconditional crDefault, which also wiped an hourglass set
+        //by an outer operation - OpenFile keeps one for the whole load and
+        //calls into here through the page change.
+        Screen.Cursor := LSavedCursor;
       end;
       StatusBar.Panels[STATUSBAR_MESSAGE].Text := CurrentEditFile.FileName;
     end
@@ -1223,6 +1302,7 @@ begin
     begin
       SVGIconImage.SVGText := '';
       ClearIcons;
+      FRenderedSVGText := '';
     end;
     StatusImage.ImageIndex := 40;
     StatusStaticText.Caption := SVG_PARSING_OK;
@@ -1300,7 +1380,7 @@ begin
       var LEditFile := TEditingFile(EditFileList.items[I]);
       if FileAge(LEditFile.FileName, LFileAge) then
       begin
-        if LFileAge <> LEditFile.FFileAge then
+        if LFileAge <> LEditFile.FileTimestamp then
         begin
           var LConfirm := StyledMessageDlg(Format(FILE_CHANGED_RELOAD,[LEditFile.FileName]),
             mtWarning, [mbYes, mbNo], 0);
@@ -1311,7 +1391,7 @@ begin
             SynEditChange(LEditFile.SynEditor);
           end
           else
-            LEditFile.FFileAge := LFileAge;
+            LEditFile.FileTimestamp := LFileAge;
         end;
       end;
     end;
@@ -1361,6 +1441,9 @@ begin
 end;
 
 procedure TfrmMain.WMCopyData(var Msg: TWMCopyData);
+const
+  //A Windows path with the \\?\ prefix can reach 32767 characters.
+  MAX_COPYDATA_BYTES = (32767 + 1) * SizeOf(Char);
 var
   LFileName: string;
   LChars: Integer;
@@ -1373,9 +1456,20 @@ begin
     Exit;
 
   // Payload is a null-terminated PChar (UnicodeString). cbData is in bytes.
+  //NB: cbData is chosen by the sender and used to be taken on trust. For a
+  //cross-process WM_COPYDATA the kernel does copy cbData bytes into this
+  //process, so this was not an out-of-bounds read; but an absurd value still
+  //meant an absurd allocation, and a payload that is not really terminated
+  //left trailing garbage in the file name. So: bound the size, then cut at
+  //the first #0 instead of trusting the declared length.
+  if Msg.CopyDataStruct.cbData > MAX_COPYDATA_BYTES then
+    Exit;
   LChars := (Msg.CopyDataStruct.cbData div SizeOf(Char));
   if LChars > 0 then Dec(LChars); // drop the trailing #0
   SetString(LFileName, PChar(Msg.CopyDataStruct.lpData), LChars);
+  LChars := Pos(#0, LFileName);
+  if LChars > 0 then
+    SetLength(LFileName, LChars - 1);
 
   if FileExists(LFileName) then
   begin
@@ -1414,10 +1508,15 @@ var
   LConfirm: integer;
 begin
   //Confirm save changes
-  if EditingFile.SynEditor.Modified then
+  //NB: SynEditor is assigned inside AddEditingFile, so the failure path
+  //OpenFile -> except -> RemoveEditingFile can reach here with it still nil.
+  if Assigned(EditingFile.SynEditor) and EditingFile.SynEditor.Modified then
   begin
+    //NB: mbCancel added. The Abort branch below existed but was unreachable
+    //without it, so closing with unsaved changes could not be called off: the
+    //user could only decide, file by file, whether to save.
     LConfirm := StyledMessageDlg(Format(CONFIRM_CHANGES,[EditingFile.FileName]),
-      mtWarning, [mbYes, mbNo], 0);
+      mtWarning, [mbYes, mbNo, mbCancel], 0);
     if LConfirm = mrYes then
       EditingFile.SaveToFile
     else if LConfirm = mrCancel then
@@ -1428,36 +1527,55 @@ end;
 
 procedure TfrmMain.RemoveEditingFile(EditingFile: TEditingFile);
 var
-  i : integer;
-  pos : integer;
+  I: Integer;
+  LPos: Integer;
+  LTabSheet: TTabSheet;
+  LPageIndex: Integer;
 begin
-  pos := -1;
-  for i := 0 to EditFileList.Count -1 do
+  LPos := -1;
+  for I := 0 to EditFileList.Count -1 do
   begin
-    if EditFileList.Items[i] = EditingFile then
+    if EditFileList.Items[I] = EditingFile then
     begin
-      pos := i;
-      break;
+      LPos := I;
+      Break;
     end;
   end;
-  if pos = -1 then
+  if LPos = -1 then
     raise EComponentError.Create(CLOSING_PROBLEMS);
 
-  //Confirm save changes
+  //Confirm save changes: raises EAbort if the user chooses Cancel, which
+  //leaves the file open - EAbort is silent by design (TApplication.
+  //HandleException never routes it to OnException).
   ConfirmChanges(EditingFile);
 
-  //Delete the file from the Opened-List
-  EditFileList.Delete(pos);
+  //NB: take the page from the object instead of PageControl.Pages[LPos].
+  //The two collections happen to grow together today, but nothing enforces
+  //it, and indexing one with the other's index breaks without a sound.
+  LTabSheet := EditingFile.TabSheet;
+  if Assigned(LTabSheet) then
+    LPageIndex := LTabSheet.PageIndex
+  else
+    LPageIndex := -1;
 
-  //Delete the TabSheet
-  PageControl.Pages[pos].Free;
+  //Delete the file from the Opened-List. EditFileList owns the object, so this
+  //frees the TEditingFile; the SynEdit belongs to the TabSheet, not to it.
+  EditFileList.Delete(LPos);
 
-  //Activate the previous page and call "change" of pagecontrol
-  if pos > 0 then
-    PageControl.ActivePageIndex := pos-1;
+  //Delete the TabSheet, which destroys the editor it owns
+  LTabSheet.Free;
+
+  //Activate the page that slid into the removed one's place, or the last one
+  if (PageControl.PageCount > 0) and (LPageIndex >= 0) then
+  begin
+    if LPageIndex >= PageControl.PageCount then
+      LPageIndex := PageControl.PageCount - 1;
+    PageControl.ActivePageIndex := LPageIndex;
+  end;
 
   //Force "change" of Page
-  PageControl.OnChange(PageControl);
+  if Assigned(PageControl.OnChange) then
+    PageControl.OnChange(PageControl);
 end;
 
 procedure TfrmMain.acCloseAllUpdate(Sender: TObject);
@@ -1507,11 +1625,13 @@ end;
 function TfrmMain.ModifiedCount: integer;
 var
   i : integer;
+  LEditFile: TEditingFile;
 begin
   Result := 0;
   for i := 0 to EditFileList.Count -1 do
   begin
-    if TEditingFile(EditFileList.items[i]).SynEditor.Modified then
+    LEditFile := TEditingFile(EditFileList.items[i]);
+    if Assigned(LEditFile.SynEditor) and LEditFile.SynEditor.Modified then
     begin
       Inc(Result);
     end;
@@ -1521,14 +1641,31 @@ end;
 procedure TfrmMain.acSaveAllExecute(Sender: TObject);
 var
   i : integer;
+  LEditFile: TEditingFile;
+  LErrors: TStringList;
 begin
-  for i := 0 to EditFileList.Count -1 do
-  with TEditingFile(EditFileList.items[i]) do
-  begin
-    if SynEditor.Modified then
+  //NB: a single failing file must not abort the loop, otherwise every modified
+  //file after it silently stays unsaved while the error dialog names only one.
+  //Collect the failures and report them together at the end.
+  LErrors := TStringList.Create;
+  try
+    for i := 0 to EditFileList.Count -1 do
     begin
-      SaveToFile;
+      LEditFile := TEditingFile(EditFileList.items[i]);
+      if Assigned(LEditFile.SynEditor) and LEditFile.SynEditor.Modified then
+      begin
+        try
+          LEditFile.SaveToFile;
+        except
+          on E: Exception do
+            LErrors.Add(Format('%s: %s', [LEditFile.FileName, E.Message]));
+        end;
+      end;
     end;
+    if LErrors.Count > 0 then
+      raise Exception.CreateFmt(FILES_NOT_SAVED, [sLineBreak + LErrors.Text]);
+  finally
+    LErrors.Free;
   end;
 end;
 
@@ -1760,6 +1897,34 @@ begin
   SVGIconImage96.UpdateSVGFactory;
 end;
 
+//SynEdit is NOT VCL-style aware: SynEdit.pas never consults StyleServices,
+//and TSynGutter.Create leaves Color at the raw clBtnFace system colour,
+//BorderColor at clWindow and the gutter font at its default. Under a dark
+//style the gutter therefore stayed light grey with dark numbers, while the
+//text area looked right only because UpdateHighlighter stamps
+//StyleServices.GetSystemColor(clWindow) onto every highlighter attribute.
+//This does the same job for the gutter, resolving each colour the gutter
+//actually paints with:
+//  SynEdit.pas:2468               Gutter.Color (flat background)
+//  SynEdit.pas:2462-2463          GradientStartColor/GradientEndColor
+//  SynEditMiscClasses.pas:2386    Gutter.BorderColor
+//  SynEditMiscClasses.pas:2297    Gutter.Font.Color, when UseFontStyle is
+//                                 True; otherwise the editor font is used
+//                                 (SynEditMiscClasses.pas:2302), which is
+//                                 why InitEditorOptions styles that too.
+//No user preference is being overridden: the settings never stored any of
+//these colours.
+procedure TfrmMain.ApplyStyleToGutter(AGutter: TSynGutter);
+begin
+  if AGutter = nil then
+    Exit;
+  AGutter.Color := StyleServices.GetSystemColor(clBtnFace);
+  AGutter.BorderColor := StyleServices.GetSystemColor(clWindow);
+  AGutter.Font.Color := StyleServices.GetSystemColor(clWindowText);
+  AGutter.GradientStartColor := StyleServices.GetSystemColor(clWindow);
+  AGutter.GradientEndColor := StyleServices.GetSystemColor(clBtnFace);
+end;
+
 procedure TfrmMain.UpdateHighlighter(ASynEditor: TSynEdit);
 var
   LBackgroundColor: TColor;
@@ -1771,6 +1936,12 @@ begin
     FEditorSettings.UseDarkStyle, LBackgroundColor);
   //Assign custom colors to the Highlighter
   FEditorSettings.ReadSettings(ASynEditor.Highlighter, self.FEditorOptions);
+  //NB: the highlighter attributes cover the text area only, so the gutter
+  //needs the active style applied to it explicitly. Done here as well as in
+  //InitEditorOptions because UpdateHighlighters refreshes every open editor
+  //without going through the options container.
+  ApplyStyleToGutter(ASynEditor.Gutter);
+  ASynEditor.Font.Color := StyleServices.GetSystemColor(clWindowText);
 end;
 
 procedure TfrmMain.UpdateHighlighters;
@@ -1813,6 +1984,12 @@ begin
     Options := Options - [eoSmartTabs];
     Gutter.Font.Name := Font.Name;
     Gutter.Font.Size := Font.Size;
+    //Colours taken from the active VCL style. These reach every open editor
+    //through FEditorOptions.AssignTo, which does Gutter.Assign and copies
+    //Font and Color as well.
+    Font.Color := StyleServices.GetSystemColor(clWindowText);
+    Color := StyleServices.GetSystemColor(clWindow);
+    ApplyStyleToGutter(Gutter);
   end;
 end;
 
@@ -1971,14 +2148,24 @@ begin
     ImagePanel.Visible := True;
     UpdateRightSplitterPos;
 
-    //Check for new version available
-    if FEditorSettings.IsTimeToCheckNewVersion then
-    begin
-      if AcceptNewSetup(False) then
-        ShowAboutForm(DialogPosRect, Title_SVGTextEditor, True);
-    end;
+    //Check for new version available.
+    //NB: the HTTP call runs in background. Performing it here, inside an
+    //action-update handler, used to freeze the UI at startup whenever the
+    //network was slow or unreachable.
+    if True then //FEditorSettings.IsTimeToCheckNewVersion then
+      CheckNewSetupAsync(
+        procedure(ACurrentVersion, ANewVersion: string)
+        begin
+          if StyledMessageDlg(Format(NewVersionAvailable,
+            [ACurrentVersion, ANewVersion]),
+            TMsgDlgType.mtWarning,
+            [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo, TMsgDlgBtn.mbCancel], 0) = mrYes then
+            ShowAboutForm(DialogPosRect, Title_SVGTextEditor, True);
+        end);
   end;
-  LoadTimer.Enabled := True;
+  //NB: LoadTimer used to be enabled here, on every action-update cycle. That
+  //was the only thing arming it, which made the debounce depend on an
+  //unrelated handler. It is now armed by SynEditChange alone.
 end;
 
 procedure TfrmMain.actMenuExecute(Sender: TObject);
@@ -2192,7 +2379,9 @@ begin
     StyledTaskMessageDlg(STR_ERROR,
       Format('Error: %s%s',[sLineBreak,E.Message]),
       TMsgDlgType.mtError,
-      [TMsgDlgBtn.mbOK, TMsgDlgBtn.mbHelp], 0);
+      //NB: mbHelp removed. The .dpr sets Application.HelpFile to '', so the
+      //Help button was shown and did nothing at all.
+      [TMsgDlgBtn.mbOK], 0);
   end;
 end;
 

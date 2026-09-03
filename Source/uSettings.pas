@@ -563,6 +563,11 @@ end;
 
 function TEditorSettings.IsTimeToCheckNewVersion: Boolean;
 begin
+  //NB: a negative number of days means "never check". Without this guard the
+  //comparison was always true and the setting produced the opposite of what it
+  //promised: a check at every startup.
+  if FDaysForNextCheck < 0 then
+    Exit(False);
   Result := Now() > FVersionCheckTime + FDaysForNextCheck;
   if Result then
     FVersionCheckTime := Now(); //Update Next time for check

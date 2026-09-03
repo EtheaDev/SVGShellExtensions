@@ -43,6 +43,7 @@ uses
   Vcl.Graphics,
 {$IFDEF D10_3+}
   Vcl.VirtualImageList,
+  Vcl.BaseImageCollection,
 {$ENDIF}
   SVGInterfaces,
   SVGIconImageListBase,
@@ -96,7 +97,9 @@ type
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
     function StoreSize: Boolean;
-    procedure UpdateImageCollection;
+    function GetSVGImageCollection: TSVGIconImageCollection;
+    function GetImageCollection: TCustomImageCollection;
+    procedure SetImageCollection(const Value: TCustomImageCollection);
     {$ELSE}
     FImageCollection: TSVGIconImageCollection;
     {$ENDIF}
@@ -110,6 +113,7 @@ type
     function GetCount: Integer; override;
     {$ELSE}
     procedure DoChange; override;
+    procedure Loaded; override;
     {$ENDIF}
 
   public
@@ -211,7 +215,7 @@ type
     /// <summary>
     ///   The TSVGIconImageCollection providing the icons.
     /// </summary>
-    property ImageCollection;
+    property ImageCollection: TCustomImageCollection read GetImageCollection write SetImageCollection;
     {$ELSE}
     property Opacity;
     property Size;
@@ -339,7 +343,8 @@ begin
       if DisabledGrayScale then
         LSVG.Grayscale := True
       else
-        LOpacity := DisabledOpacity;
+        LSVG.Grayscale := False;
+      LOpacity := DisabledOpacity;
     end;
     LSVG.Opacity := LOpacity / 255;
     LSVG.PaintTo(ACanvas.Handle, TRectF.Create(TPointF.Create(X, Y), AWidth, AHeight));
@@ -417,7 +422,8 @@ begin
   if FFixedColor <> Value then
   begin
     FFixedColor := Value;
-    UpdateImageCollection;
+    if not (csLoading in ComponentState) then
+      Change;
   end;
 end;
 
@@ -427,7 +433,8 @@ begin
   if FApplyFixedColorToRootOnly <> Value then
   begin
     FApplyFixedColorToRootOnly := Value;
-    UpdateImageCollection;
+    if not (csLoading in ComponentState) then
+      Change;
   end;
 end;
 
@@ -436,7 +443,8 @@ begin
   if FGrayScale <> Value then
   begin
     FGrayScale := Value;
-    UpdateImageCollection;
+    if not (csLoading in ComponentState) then
+      Change;
   end;
 end;
 
@@ -445,7 +453,8 @@ begin
   if FOpacity <> Value then
   begin
     FOpacity := Value;
-    UpdateImageCollection;
+    if not (csLoading in ComponentState) then
+      Change;
   end;
 end;
 
@@ -454,27 +463,76 @@ begin
   if FAntiAliasColor <> Value then
   begin
     FAntiAliasColor := Value;
-    UpdateImageCollection;
+    if not (csLoading in ComponentState) then
+      Change;
   end;
 end;
 
-procedure TSVGIconVirtualImageList.UpdateImageCollection;
+function TSVGIconVirtualImageList.GetSVGImageCollection: TSVGIconImageCollection;
 begin
-  if ImageCollection is TSVGIconImageCollection then
-  begin
-    TSVGIconImageCollection(ImageCollection).UpdateAttributes(
-      FFixedColor,
-      FApplyFixedColorToRootOnly,
-      FGrayScale,
-      FAntiAliasColor,
-      FOpacity);
-  end;
+  if inherited ImageCollection is TSVGIconImageCollection then
+    Result := TSVGIconImageCollection(inherited ImageCollection)
+  else
+    Result := nil;
+end;
+
+function TSVGIconVirtualImageList.GetImageCollection: TCustomImageCollection;
+begin
+  Result := inherited ImageCollection;
+end;
+
+procedure TSVGIconVirtualImageList.SetImageCollection(
+  const Value: TCustomImageCollection);
+begin
+  inherited ImageCollection := Value;
+  //Re-render with this VirtualImageList own attributes: the base class
+  //setter already rebuilt the list using the collection defaults only.
+  if not (csLoading in ComponentState) then
+    Change;
 end;
 
 procedure TSVGIconVirtualImageList.DoChange;
+var
+  LCollection: TSVGIconImageCollection;
 begin
-  UpdateImageCollection;
-  inherited;
+  //Each VirtualImageList bakes its own native image list using its own
+  //attributes, without mutating the shared collection. This allows multiple
+  //VirtualImageLists bound to the same collection to use different FixedColor,
+  //GrayScale, Opacity, ApplyFixedColorToRootOnly and AntiAliasColor.
+  LCollection := GetSVGImageCollection;
+  if LCollection <> nil then
+  begin
+    LCollection.BeginRenderOverride(FFixedColor, FApplyFixedColorToRootOnly,
+      FGrayScale, FAntiAliasColor, FOpacity);
+    try
+      inherited;
+    finally
+      LCollection.EndRenderOverride;
+    end;
+  end
+  else
+    inherited;
+end;
+
+procedure TSVGIconVirtualImageList.Loaded;
+var
+  LCollection: TSVGIconImageCollection;
+begin
+  //TVirtualImageList.Loaded rebuilds the image list directly (bypassing
+  //DoChange), so the render override must be applied here too.
+  LCollection := GetSVGImageCollection;
+  if LCollection <> nil then
+  begin
+    LCollection.BeginRenderOverride(FFixedColor, FApplyFixedColorToRootOnly,
+      FGrayScale, FAntiAliasColor, FOpacity);
+    try
+      inherited;
+    finally
+      LCollection.EndRenderOverride;
+    end;
+  end
+  else
+    inherited;
 end;
 
 function TSVGIconVirtualImageList.GetSize: Integer;

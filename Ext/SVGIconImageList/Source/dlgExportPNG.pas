@@ -39,6 +39,8 @@ type
   TExportToPNGDialog = class(TForm)
     FSearchOptions: TGroupBox;
     Export16x16: TCheckBox;
+    Export18x18: TCheckBox;
+    Export24x24: TCheckBox;
     Export32x32: TCheckBox;
     Export48x48: TCheckBox;
     Export64x64: TCheckBox;
@@ -115,6 +117,8 @@ var
 begin
   LExportToPNGDialog := nil;
   if (ACustomSize <> 16) and
+    (ACustomSize <> 18) and
+    (ACustomSize <> 24) and
     (ACustomSize <> 32) and
     (ACustomSize <> 48) and
     (ACustomSize <> 64) and
@@ -141,6 +145,8 @@ begin
   if ASizes <> [] then
   begin
     LExportToPNGDialog.Export16x16.Checked := es16 in ASizes;
+    LExportToPNGDialog.Export18x18.Checked := es18 in ASizes;
+    LExportToPNGDialog.Export24x24.Checked := es24 in ASizes;
     LExportToPNGDialog.Export32x32.Checked := es32 in ASizes;
     LExportToPNGDialog.Export48x48.Checked := es48 in ASizes;
     LExportToPNGDialog.Export64x64.Checked := es64 in ASizes;
@@ -190,6 +196,8 @@ procedure TExportToPNGDialog.CheckBoxClick(Sender: TObject);
 begin
   btnOK.Enabled :=
     Export16x16.Checked or
+    Export18x18.Checked or
+    Export24x24.Checked or
     Export32x32.Checked or
     Export48x48.Checked or
     Export64x64.Checked or
@@ -198,7 +206,8 @@ begin
     Export192x192.Checked or
     Export256x256.Checked or
     (ExportCustom.Checked and (CustomSizeValue > 0 ));
-  BtnCopyToClipboard.Enabled := (ExportCustom.Checked and (CustomSizeValue > 0 ));
+  BtnCopyToClipboard.Enabled :=
+    (ExportCustom.Checked and (CustomSizeValue > 0 ));
 end;
 
 procedure TExportToPNGDialog.ExportToPNG;
@@ -225,6 +234,10 @@ begin
     LIconName := ChangeFileExt(ExtractFileName(FileName),'');
     if Export16x16.Checked then
       LFileExported.Add(ExportToPNG(16, es16));
+    if Export18x18.Checked then
+      LFileExported.Add(ExportToPNG(18, es18));
+    if Export24x24.Checked then
+      LFileExported.Add(ExportToPNG(24, es24));
     if Export32x32.Checked then
       LFileExported.Add(ExportToPNG(32, es32));
     if Export48x48.Checked then

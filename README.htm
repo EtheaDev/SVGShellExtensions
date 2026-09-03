@@ -1,4 +1,11 @@
 <style type="text/css">
+body{
+  font-family: Arial, Helvetica, sans-serif;
+}
+img{
+  max-width: 100%;
+  height: auto;
+}
 code{
   font-family: "Consolas", monospace;
 }
@@ -30,7 +37,7 @@ td{
 }
 </style>
 <h1>SVG Editor and Shell Extensions <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg" alt="License"/></a></h1>
-<p><strong>Latest Version 3.4.1 - 03 Jun 2026</strong></p>
+<p><strong>Latest Version 3.4.2 - 03 Sep 2026</strong></p>
 <p><strong>A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):</strong></p>
 <ul>
 <li><p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers">Preview handler</a>  which allows you to see the SVG image and text without open it, in the &ldquo;Preview Panel&rdquo;.</p>
@@ -71,7 +78,7 @@ td{
 <li>Optional fixed color, grayscale and opacity settings</li>
 </ul>
 <p><strong>Usage:</strong></p>
-<pre><code class="">SVGToPNG convert -in:&lt;InputPattern&gt; -size:&lt;Sizes&gt; &lt;options&gt;
+<pre style="background-color:#191D22;color:#FFFFFF;"><code>SVGToPNG convert -in:&lt;InputPattern&gt; -size:&lt;Sizes&gt; &lt;options&gt;
 Options:
  -color|-c:&lt;color&gt;            Fixed color to apply (e.g. clBlack, #FF0000) ((Optional))
  -grayscale|-g:&lt;grayscale&gt;    Convert to grayscale ((Optional))
@@ -82,8 +89,7 @@ Options:
 Examples:
   SVGToPNG convert -in:"C:\icons\*.svg" -size:32
   SVGToPNG convert -in:"C:\icons\home.svg" -size:16,32,48,64 -out:"C:\output"
-  SVGToPNG convert -in:"*.svg" -size:256 -grayscale
-</code></pre>
+  SVGToPNG convert -in:"*.svg" -size:256 -grayscale</code></pre>
 <h3>Support for XYplorer</h3>
 <p>As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support">configuration guide&hellip;</a></p>
 <p><img src="./Images/XYplorer_Preview.png" alt="XYplorer"/></p>
@@ -113,6 +119,22 @@ Examples:
 </li>
 </ol>
 <h2>Release Notes</h2>
+<p>03 Sep 2026: ver. 3.4.2</p>
+<ul>
+<li>Fixed a GDI handle and memory leak in the Thumbnail provider: the bitmap handed over to Explorer was released incorrectly, so every generated thumbnail leaked resources inside the Explorer process.</li>
+<li>The shared resources data module is now a single instance created on demand, instead of one created and destroyed by every preview.</li>
+<li>Fixed the preview of ANSI-encoded SVG files, which produced an empty pane.</li>
+<li>SVG Text Editor: files whose extension is uppercase (.SVG) can now be opened. The check was a case-sensitive substring search, which also wrongly accepted names ending in &ldquo;.xm&rdquo; or &ldquo;.s&rdquo;.</li>
+<li>SVG Text Editor: the SVG is no longer re-parsed at every keystroke.</li>
+<li>SVG Text Editor: fixed memory-management defects on the file-opening error path.</li>
+<li>SVG Text Editor: closing with unsaved changes can now be cancelled;</li>
+<li>SVG Text Editor: removed the Help button from the error dialog, which did nothing; the WM_COPYDATA payload is now bounded in size.</li>
+<li>The new-version check runs in background at startup instead of blocking the interface, tolerates release tags without the leading &ldquo;v&rdquo;, and no longer crashes when the download starts right after the automatic check.</li>
+<li>Web help now points to https://ethea.it/componenti/svgshellextensions/, while the Issues button and the new-version check point to GitHub.</li>
+<li>Fixed the Debug configuration of the SVG Text Editor and SVGToPNG projects, which could not be built at all.</li>
+<li>Version aligned to 3.4.2 on every project, on the setup and on this document: SVG Text Editor still declared 3.4.0, and therefore offered an update to a version older than the installed one.</li>
+<li>Reduced the size of the thumbnail log and removed unused code.</li>
+</ul>
 <p>03 Jun 2026: ver. 3.4.1</p>
 <ul>
 <li>Added single-instance behavior: opening a SVG file now reuses the running editor instead of starting a new one.</li>

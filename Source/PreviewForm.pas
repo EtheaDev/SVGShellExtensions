@@ -189,13 +189,15 @@ constructor TFrmPreview.Create(AOwner: TComponent);
 begin
   inherited;
   FPreviewSettings := TPreviewSettings.CreateSettings(SynEdit.Highlighter);
-  dmResources := TdmResources.Create(nil);
+  //NB: the data module is no longer created here. It is a shared instance
+  //owned by DResources, created on first use: creating and destroying it per
+  //preview form meant that, with two handlers alive in the same Explorer
+  //process, one could free the module the other was still using.
 end;
 
 destructor TFrmPreview.Destroy;
 begin
   FreeAndNil(FPreviewSettings);
-  FreeAndNil(dmResources);
   inherited;
 end;
 
@@ -348,18 +350,19 @@ begin
 end;
 
 procedure TFrmPreview.LoadFromFile(const AFileName: string);
-var
-  LOutStream: TStringStream;
 begin
   TLogPreview.Add('TFrmPreview.LoadFromFile Init');
   FFileName := AFileName;
-  LOutStream := TStringStream.Create('', TEncoding.UTF8);
+  //NB: the ANSI fallback was missing. TStrings raises EEncodingError on a file
+  //that is not valid UTF-8, so an SVG saved in ANSI made the preview fail and
+  //show an empty pane. The TStringStream created here was never used.
   try
     SynEdit.Lines.LoadFromFile(AFileName, TEncoding.UTF8);
-    SVGIconImage.SVGText := SynEdit.Lines.Text;
-  finally
-    LOutStream.Free;
+  except
+    on E: EEncodingError do
+      SynEdit.Lines.LoadFromFile(AFileName, TEncoding.ANSI);
   end;
+  SVGIconImage.SVGText := SynEdit.Lines.Text;
   TLogPreview.Add('TFrmEditor.LoadFromFile Done');
 end;
 

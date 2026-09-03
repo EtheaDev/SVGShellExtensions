@@ -68,9 +68,23 @@ type
 
 function GETSVGLogoText: string;
 
-var
-  dmResources: TdmResources;
+//Shared instance of the data module, created on first use and freed when this
+//unit is finalized.
+//NB: it used to be a plain global variable that each consumer created and
+//destroyed on its own - the preview form in its constructor/destructor, the
+//editor through Application.CreateForm. With two preview handlers alive in the
+//same Explorer process that meant, depending on the destruction order, either
+//leaking a data module or freeing the one the other instance was still using.
+//Exposing it as a function keeps every existing "dmResources.Something" call
+//site working unchanged.
+function dmResources: TdmResources;
 
+//True when the shared instance already exists. Needed because dmResources
+//creates it on demand: a destructor that only wants to detach itself must not
+//resurrect the data module while the process is shutting down.
+function dmResourcesCreated: Boolean;
+
+var
   AFileTypes : Array of TEditFileType;
 
 implementation
@@ -78,7 +92,23 @@ implementation
 {$R *.dfm}
 
 uses
-  System.StrUtils;
+  System.StrUtils,
+  uLogExcept;
+
+var
+  _dmResources: TdmResources;
+
+function dmResources: TdmResources;
+begin
+  if _dmResources = nil then
+    _dmResources := TdmResources.Create(nil);
+  Result := _dmResources;
+end;
+
+function dmResourcesCreated: Boolean;
+begin
+  Result := Assigned(_dmResources);
+end;
 
 
 function GETSVGLogoText: string;
@@ -214,5 +244,25 @@ begin
     SynXMLSyn.SymbolAttri.Background := ABackgroundColor;
   end;
 end;
+
+
+initialization
+  _dmResources := nil;
+
+finalization
+  //Owned by the unit: nobody else frees it any more.
+  //NB: this runs when the host process unloads the library - for the shell
+  //extension that is Explorer's preview surrogate, where a failure would
+  //otherwise be completely invisible. The two log lines make it verifiable:
+  //if only the first one appears, the destruction of the data module is where
+  //it breaks. Both are no-ops unless ENABLELOG (i.e. DEBUG) is set.
+  if Assigned(_dmResources) then
+  begin
+    TLogPreview.Add('DResources finalization: freeing shared data module');
+    FreeAndNil(_dmResources);
+    TLogPreview.Add('DResources finalization: shared data module freed');
+  end
+  else
+    TLogPreview.Add('DResources finalization: no shared data module to free');
 
 end.

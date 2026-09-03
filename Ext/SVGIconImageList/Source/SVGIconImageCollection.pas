@@ -97,6 +97,18 @@ type
     FGrayScale: Boolean;
     FAntiAliasColor: TColor;
     FOpacity: Byte;
+    {$IFDEF D10_3+}
+    //Transient render override: while active, GetBitmap renders using the
+    //attributes of the requesting TSVGIconVirtualImageList instead of
+    //permanently mutating the shared collection (allows different attributes
+    //per VirtualImageList sharing the same collection).
+    FRenderOverrideCount: Integer;
+    FRenderFixedColor: TColor;
+    FRenderApplyFixedColorToRootOnly: Boolean;
+    FRenderGrayScale: Boolean;
+    FRenderAntiAliasColor: TColor;
+    FRenderOpacity: Byte;
+    {$ENDIF}
     procedure SetSVGIconItems(const Value: TSVGIconItems);
     procedure SetFixedColor(const Value: TColor);
     procedure SetGrayScale(const Value: Boolean);
@@ -225,6 +237,28 @@ type
       AGrayScale: Boolean;
       AAntiAliasColor: TColor;
       AOpacity: Byte);
+
+    /// <summary>
+    ///   Starts a transient render override so that GetBitmap renders the
+    ///   icons using the attributes passed by the requesting VirtualImageList,
+    ///   without mutating the shared collection attributes.
+    /// </summary>
+    /// <remarks>
+    ///   Collection-level attributes still take precedence when they are set
+    ///   to a non-default value (FixedColor &lt;&gt; SVG_INHERIT_COLOR,
+    ///   AntiAliasColor &lt;&gt; clBtnFace, GrayScale = True, Opacity &lt;&gt; 255),
+    ///   matching the behaviour of the pre-10.3 implementation.
+    ///   Calls can be nested; every BeginRenderOverride must be paired with an
+    ///   EndRenderOverride.
+    /// </remarks>
+    procedure BeginRenderOverride(const AFixedColor: TColor;
+      const AApplyFixedColorToRootOnly: Boolean; const AGrayScale: Boolean;
+      const AAntiAliasColor: TColor; const AOpacity: Byte);
+
+    /// <summary>
+    ///   Ends the transient render override started by BeginRenderOverride.
+    /// </summary>
+    procedure EndRenderOverride;
     {$ELSE}
     /// <summary>
     ///   Triggers a change notification for pre-10.3 compatibility.
@@ -809,12 +843,71 @@ begin
 end;
 
 function TSVGIconImageCollection.GetBitmap(AIndex: Integer; AWidth, AHeight: Integer): TBitmap;
+var
+  LFixedColor, LAntiAliasColor: TColor;
+  LApplyFixedColorToRootOnly, LGrayScale: Boolean;
+  LOpacity: Byte;
 begin
   if (AIndex >= 0) and (AIndex < FSVGItems.Count ) then
-    Result := FSVGItems[AIndex].GetBitmap(AWidth, AHeight, FFixedColor,
-      FApplyFixedColorToRootOnly, FOpacity, FGrayScale, FAntiAliasColor)
+  begin
+    if FRenderOverrideCount > 0 then
+    begin
+      //Render using the requesting VirtualImageList attributes, but let the
+      //collection-level attributes take precedence when set (same precedence
+      //rule used by the pre-10.3 RecreateBitmaps implementation).
+      if FFixedColor <> SVG_INHERIT_COLOR then
+      begin
+        LFixedColor := FFixedColor;
+        LApplyFixedColorToRootOnly := FApplyFixedColorToRootOnly;
+      end
+      else
+      begin
+        LFixedColor := FRenderFixedColor;
+        LApplyFixedColorToRootOnly := FRenderApplyFixedColorToRootOnly;
+      end;
+      if FAntiAliasColor <> clBtnFace then
+        LAntiAliasColor := FAntiAliasColor
+      else
+        LAntiAliasColor := FRenderAntiAliasColor;
+      LGrayScale := FGrayScale or FRenderGrayScale;
+      if FOpacity <> 255 then
+        LOpacity := FOpacity
+      else
+        LOpacity := FRenderOpacity;
+    end
+    else
+    begin
+      LFixedColor := FFixedColor;
+      LApplyFixedColorToRootOnly := FApplyFixedColorToRootOnly;
+      LAntiAliasColor := FAntiAliasColor;
+      LGrayScale := FGrayScale;
+      LOpacity := FOpacity;
+    end;
+    Result := FSVGItems[AIndex].GetBitmap(AWidth, AHeight, LFixedColor,
+      LApplyFixedColorToRootOnly, LOpacity, LGrayScale, LAntiAliasColor);
+  end
   else
     Result := nil;
+end;
+
+procedure TSVGIconImageCollection.BeginRenderOverride(const AFixedColor: TColor;
+  const AApplyFixedColorToRootOnly: Boolean; const AGrayScale: Boolean;
+  const AAntiAliasColor: TColor; const AOpacity: Byte);
+begin
+  //Last call wins for nested calls, but in practice a single VirtualImageList
+  //wraps a full rebuild before the next one starts.
+  FRenderFixedColor := AFixedColor;
+  FRenderApplyFixedColorToRootOnly := AApplyFixedColorToRootOnly;
+  FRenderGrayScale := AGrayScale;
+  FRenderAntiAliasColor := AAntiAliasColor;
+  FRenderOpacity := AOpacity;
+  Inc(FRenderOverrideCount);
+end;
+
+procedure TSVGIconImageCollection.EndRenderOverride;
+begin
+  if FRenderOverrideCount > 0 then
+    Dec(FRenderOverrideCount);
 end;
 
 procedure TSVGIconImageCollection.UpdateAttributes(
@@ -829,15 +922,17 @@ begin
     (AGrayScale <> FGrayScale) or
     (AAntiAliasColor <> FAntiAliasColor) or
     (AOpacity <> FOpacity) then
-  FSVGItems.BeginUpdate;
-  try
-    FFixedColor := AFixedColor;
-    FApplyFixedColorToRootOnly := AApplyFixedColorToRootOnly;
-    FGrayScale := AGrayScale;
-    FAntiAliasColor := AAntiAliasColor;
-    FOpacity := AOpacity;
-  finally
-    FSVGItems.EndUpdate;
+  begin
+    FSVGItems.BeginUpdate;
+    try
+      FFixedColor := AFixedColor;
+      FApplyFixedColorToRootOnly := AApplyFixedColorToRootOnly;
+      FGrayScale := AGrayScale;
+      FAntiAliasColor := AAntiAliasColor;
+      FOpacity := AOpacity;
+    finally
+      FSVGItems.EndUpdate;
+    end;
   end;
 end;
 {$ELSE}

@@ -33,6 +33,10 @@ unit uMisc;
 
 interface
 
+const
+  //Single source of truth for the file types the editor can open.
+  ASVGFileExt: array [0..1] of string = ('.svg', '.xml');
+
   function GetDllPath: String;
   function GetTempDirectory: string;
   function GetSpecialFolder(const CSIDL: integer): string;
@@ -41,6 +45,13 @@ interface
   procedure Finalize_GDI; stdcall;
   procedure Initialize; stdcall;
   procedure Finalize; stdcall;
+  //True when AFileName's extension is one of AFileExt. The comparison is
+  //case-insensitive and matches the *whole* extension.
+  function IsFileNameWithExt(const AFileName: string;
+    const AFileExt: array of string): Boolean;
+  //Joins the extensions into a display string, e.g. '.svg;.xml'.
+  function GetFileExtensionsList(const AFileExt: array of string;
+    const ASeparator: Char = ';'): string;
 
 resourcestring
   STextNotFound = 'Text not found';
@@ -59,6 +70,36 @@ uses
   Vcl.GraphUtil,
   uRegistry,
   uLogExcept;
+
+function IsFileNameWithExt(const AFileName: string;
+  const AFileExt: array of string): Boolean;
+var
+  I: Integer;
+  LFileExt: string;
+begin
+  Result := False;
+  LFileExt := ExtractFileExt(AFileName);
+  for I := Low(AFileExt) to High(AFileExt) do
+  begin
+    Result := SameText(LFileExt, AFileExt[I]);
+    if Result then
+      Break;
+  end;
+end;
+
+function GetFileExtensionsList(const AFileExt: array of string;
+  const ASeparator: Char = ';'): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := Low(AFileExt) to High(AFileExt) do
+  begin
+    if Result <> '' then
+      Result := Result + ASeparator;
+    Result := Result + AFileExt[I];
+  end;
+end;
 
 procedure Initialize_GDI; stdcall;
 begin

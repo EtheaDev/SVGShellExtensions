@@ -36,9 +36,14 @@ resourcestring
   ERR_VERSION_FORMAT_NOT_VALID = 'Format of version "%s" is not valid: expected a string "vN.N.N"';
   ERR_GET_REQUEST_FAILED = 'GET requested from "%s" failed, web server could not be reached!';
   ERR_GET_REQUEST_FROM_FAILED = 'GET requested from "%s" failed: "%s"';
+  ERR_SETUP_FILENAME_MISSING = 'Setup file name not set: cannot download the new version';
+  ERR_PROJECT_URL_MISSING = 'GitHub project URL not set: cannot reach the project';
 
 type
-  ECheckNewVersionException = Exception;
+  //NB: must be a real class, not an alias of Exception: as an alias any
+  //"on E: ECheckNewVersionException" would swallow every exception, Access
+  //Violations included.
+  ECheckNewVersionException = class(Exception);
 
   TGitHubHttpClient = Class(TComponent)
   private
@@ -51,6 +56,9 @@ type
     function InvokeGETAsString(const APath: string): string;
     procedure DecodeVersion(const AVersionTag: string; out AMajor, AMinor,
       ARelease: Integer);
+    //Creates the HTTP client on first use (and again after DestroyClient),
+    //applying the timeouts. Every method needing FHTTPClient must call it.
+    procedure EnsureClient;
     procedure DestroyClient;
   public
     constructor Create(AOwner: TComponent); override;
@@ -80,6 +88,13 @@ uses
   System.NetConsts
   ;
 
+const
+  //Timeouts (ms) of the version check: it must never hang the caller
+  CHECK_CONNECTION_TIMEOUT = 5000;
+  CHECK_RESPONSE_TIMEOUT = 15000;
+  //The setup download can legitimately take long on a slow line
+  DOWNLOAD_RESPONSE_TIMEOUT = 600000;
+
 { TGitHubHttpClient }
 
 function TGitHubHttpClient.CombineUrl(const ABaseUrl, APath: string): string;
@@ -103,7 +118,9 @@ begin
   AMajor := 0;
   AMinor := 0;
   ARelease := 0;
-  Regex := TRegEx.Create('^v(\d+)\.(\d+)\.(\d+)$', [roIgnoreCase]);
+  // Optional 'v'/'V' prefix and an ignored trailing suffix (e.g. a pre-release
+  // tag like 'beta' in 'V4.0.18beta'): only the leading N.N.N is significant.
+  Regex := TRegEx.Create('^v?(\d+)\.(\d+)\.(\d+)', [roIgnoreCase]);
   Match := Regex.Match(AVersionTag);
   if Match.Success then
   begin
@@ -149,21 +166,36 @@ end;
 constructor TGitHubHttpClient.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  //Created here and not on first use: CustomHeaders is a published property,
+  //so it can be written (also by the streaming system) before any request.
+  FCustomHeaders := TStringList.Create;
 end;
 
 destructor TGitHubHttpClient.Destroy;
 begin
   DestroyClient;
+  FreeAndNil(FCustomHeaders);
   inherited;
+end;
+
+procedure TGitHubHttpClient.EnsureClient;
+begin
+  if not Assigned(FHTTPClient) then
+  begin
+    FHTTPClient := THTTPClient.Create;
+    //Without an explicit timeout a check on an unreachable host can hang the
+    //caller for a very long time.
+    FHTTPClient.ConnectionTimeout := CHECK_CONNECTION_TIMEOUT;
+    FHTTPClient.ResponseTimeout := CHECK_RESPONSE_TIMEOUT;
+  end;
 end;
 
 procedure TGitHubHttpClient.DestroyClient;
 begin
-  if Assigned(FHTTPClient) then
-  begin
-    FreeAndNil(FHTTPClient);
-    FreeAndNil(FCustomHeaders);
-  end;
+  //NB: only the HTTP client is released. The custom headers belong to the
+  //component lifetime: destroying them here would silently discard the
+  //caller's configuration on the first failed request.
+  FreeAndNil(FHTTPClient);
 end;
 
 function TGitHubHttpClient.DownloadLatestSetup(
@@ -174,7 +206,13 @@ function TGitHubHttpClient.DownloadLatestSetup(
 begin
   if ASetupFileName <> '' then
     FSetupFileName := ASetupFileName;
-  Assert(FSetupFileName <> '');
+  //NB: real checks and not Assert. Assertions can be compiled out, and an
+  //empty project URL did not fail here at all: it silently produced the
+  //malformed URL '/releases/latest/download/<setup>'.
+  if FSetupFileName = '' then
+    raise ECheckNewVersionException.Create(ERR_SETUP_FILENAME_MISSING);
+  if FGitHubProjectURL = '' then
+    raise ECheckNewVersionException.Create(ERR_PROJECT_URL_MISSING);
   var LFileName := ExtractFileName(FSetupFileName);
   //Build URL Project + 'releases/latest/download/' + FSetupFileName
   var LURL := CombineUrl(FGitHubProjectURL, 'releases/latest/download/');
@@ -182,10 +220,13 @@ begin
   ADownloadedFileName := TPath.Combine(TPath.GetDownloadsPath, LFileName);
   if FileExists(ADownloadedFileName) then
     DeleteFile(ADownloadedFileName);
+  EnsureClient;
   var LFileStream := TFileStream.Create(ADownloadedFileName, fmCreate);
   try
     FHTTPClient.Accept := '';
     FHTTPClient.ContentType := 'application/octet-stream';
+    //A whole setup takes much longer than a version check
+    FHTTPClient.ResponseTimeout := DOWNLOAD_RESPONSE_TIMEOUT;
     FHTTPClient.OnReceiveData := AReceiveDataEvent;
     var LResponse := FHTTPClient.Get(LURL, LFileStream);
     if LResponse.StatusCode <> 200 then
@@ -204,19 +245,27 @@ function TGitHubHttpClient.GetLatestVersionTag(
   const AGitHubProjectURL: string = ''): string;
 var
   LJSONValue: TJSONValue;
+  LTagValue: TJSONValue;
 begin
-  LJSONValue :=TJSONObject.ParseJSONValue(
+  //'v0.0.0' means "no release found": it compares as older than any version,
+  //so the caller simply reports that no update is available.
+  Result := 'v0.0.0';
+  LJSONValue := TJSONObject.ParseJSONValue(
     GetLatestVersionAsJSonString(AGitHubProjectURL));
-  if LJSONValue is TJSONObject then
-  begin
-    try
-      Result := TJSONObject(LJSONValue).GetValue('tag_name').Value;
-    finally
-      LJSONValue.Free;
+  if LJSONValue = nil then
+    Exit;
+  try
+    if LJSONValue is TJSONObject then
+    begin
+      //The field can be missing on a malformed/unexpected answer
+      LTagValue := TJSONObject(LJSONValue).GetValue('tag_name');
+      if Assigned(LTagValue) then
+        Result := LTagValue.Value;
     end;
-  end
-  else
-    Result := 'v0.0.0';
+  finally
+    //Freed on every path: previously a non-object answer leaked it
+    LJSONValue.Free;
+  end;
 end;
 
 function TGitHubHttpClient.GetLatestVersionAsJSonString(
@@ -224,7 +273,8 @@ function TGitHubHttpClient.GetLatestVersionAsJSonString(
 begin
   if AGitHubProjectURL <> '' then
     FGitHubProjectURL := AGitHubProjectURL;
-  Assert(FGitHubProjectURL <> '');
+  if FGitHubProjectURL = '' then
+    raise ECheckNewVersionException.Create(ERR_PROJECT_URL_MISSING);
   Result := InvokeGETAsString('releases/latest');
 end;
 
@@ -233,11 +283,7 @@ Var
   LHeaders: TArray<TNameValuePair>;
 Begin
   Assert((FGitHubProjectURL <> '') and (APath <> ''));
-  if not Assigned(FHTTPClient) then
-  begin
-    FHTTPClient := THTTPClient.Create;
-    FCustomHeaders := TStringList.Create;
-  end;
+  EnsureClient;
   try
     //Add a custom header to Request
     if FCustomHeaders.Count > 0 then
@@ -280,8 +326,20 @@ Begin
       LOutStream.Free;
     end;
   except
-    DestroyClient;
-    raise;
+    on E: ECheckNewVersionException do
+    begin
+      DestroyClient;
+      raise;
+    end;
+    on E: Exception do
+    begin
+      //Transport failures (no network, proxy, timeout, TLS...) are reported to
+      //the caller as a version-check error, so that it can offer a retry
+      //instead of letting a raw socket exception reach the user.
+      DestroyClient;
+      raise ECheckNewVersionException.CreateFmt(ERR_GET_REQUEST_FROM_FAILED,
+        [CombineUrl(FGitHubProjectURL, APath), E.Message]);
+    end;
   end;
 end;
 

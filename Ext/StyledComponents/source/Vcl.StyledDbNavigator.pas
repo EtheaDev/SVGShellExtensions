@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  StyledDbNavigator: a DbNavigator with TStyledNavButtons inside              }
 {  Based on TStyledToolbar                                                     }
@@ -753,6 +753,12 @@ begin
   FreeAndNil(FDefaultCaptions);
   FreeAndNil(FHints);
   FreeAndNil(FCaptions);
+  //Unregister the change links from their image lists before freeing them,
+  //otherwise the lists keep a reference to freed TChangeLink objects.
+  if Assigned(FDisabledImages) then
+    FDisabledImages.UnRegisterChanges(FDisabledImageChangeLink);
+  if Assigned(FImages) then
+    FImages.UnRegisterChanges(FImageChangeLink);
   FreeAndNil(FDisabledImageChangeLink);
   FreeAndNil(FImageChangeLink);
   {$IFDEF D10_4+}
@@ -776,6 +782,8 @@ end;
 
 procedure TCustomStyledDBNavigator.CMStyleChanged(var Message: TMessage);
 begin
+  //Propagate the style change to the base (and child buttons) first
+  inherited;
   UpdateButtonsIcons;
   Invalidate;
 end;
@@ -1104,7 +1112,20 @@ procedure TCustomStyledDBNavigator.SetImages(const AValue: TCustomImageList);
 begin
   if FImages <> AValue then
   begin
+    //Register for change notifications (so the navigator re-runs UpdateButtonsIcons
+    //when the list's images change) and for free-notification (so FImages is nilled
+    //when the list, often on another data module, is destroyed).
+    if Assigned(FImages) then
+    begin
+      FImages.RemoveFreeNotification(Self);
+      FImages.UnRegisterChanges(FImageChangeLink);
+    end;
     FImages := AValue;
+    if Assigned(FImages) then
+    begin
+      FImages.RegisterChanges(FImageChangeLink);
+      FImages.FreeNotification(Self);
+    end;
     ImageListChange(Self);
   end;
 end;
@@ -1432,6 +1453,15 @@ begin
   LValue := AValue;
   if LValue = '' then
     LValue := DEFAULT_CLASSIC_FAMILY;
+  //Reject an unregistered family: raise at design time / direct assignment, but
+  //fall back to Classic while a deployed form is streaming.
+  if not StyleFamilyExists(LValue) then
+  begin
+    if StyleFamilyLoadingFallback(Self) then
+      LValue := DEFAULT_CLASSIC_FAMILY
+    else
+      raise EStyledAttributesException.CreateFmt(ERROR_FAMILY_NOT_FOUND, [LValue]);
+  end;
   if (LValue <> Self.FStyleFamily) or not FStyleApplied then
   begin
     ProcessButtons(
@@ -1609,11 +1639,15 @@ end;
 
 procedure TCustomStyledDBNavigator.WMSetFocus(var Message: TWMSetFocus);
 begin
+  //Let the base process focus first, so OnEnter fires
+  inherited;
   FButtons[FocusedButton].Invalidate;
 end;
 
 procedure TCustomStyledDBNavigator.WMKillFocus(var Message: TWMKillFocus);
 begin
+  //Let the base process focus loss first, so OnExit fires
+  inherited;
   FButtons[FocusedButton].Invalidate;
 end;
 
@@ -1684,7 +1718,17 @@ procedure TCustomStyledDBNavigator.SetDisabledImages(const AValue: TCustomImageL
 begin
   if FDisabledImages <> AValue then
   begin
+    if Assigned(FDisabledImages) then
+    begin
+      FDisabledImages.RemoveFreeNotification(Self);
+      FDisabledImages.UnRegisterChanges(FDisabledImageChangeLink);
+    end;
     FDisabledImages := AValue;
+    if Assigned(FDisabledImages) then
+    begin
+      FDisabledImages.RegisterChanges(FDisabledImageChangeLink);
+      FDisabledImages.FreeNotification(Self);
+    end;
     DisabledImageListChange(Self);
   end;
 end;

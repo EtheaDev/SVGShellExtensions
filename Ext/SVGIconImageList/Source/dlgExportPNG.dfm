@@ -3,7 +3,7 @@ object ExportToPNGDialog: TExportToPNGDialog
   Top = 168
   BorderStyle = bsDialog
   Caption = 'Export SVG to PNG files'
-  ClientHeight = 279
+  ClientHeight = 297
   ClientWidth = 454
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
@@ -17,21 +17,21 @@ object ExportToPNGDialog: TExportToPNGDialog
   TextHeight = 13
   object OutputFileNameLabel: TLabel
     Left = 247
-    Top = 187
+    Top = 199
     Width = 125
     Height = 13
     Caption = 'Output filename format:'
   end
   object ExampleLabel: TLabel
     Left = 24
-    Top = 214
+    Top = 227
     Width = 133
     Height = 13
     Caption = 'Output filename Example:'
   end
   object ExampleFileName: TLabel
     Left = 24
-    Top = 229
+    Top = 242
     Width = 46
     Height = 13
     Caption = 'Filename'
@@ -44,10 +44,10 @@ object ExportToPNGDialog: TExportToPNGDialog
     AutoSize = False
   end
   object FSearchOptions: TGroupBox
-    Left = 247
-    Top = 8
+    Left = 244
+    Top = 7
     Width = 202
-    Height = 145
+    Height = 157
     Caption = 'Image Size'
     TabOrder = 0
     object Export16x16: TCheckBox
@@ -61,107 +61,129 @@ object ExportToPNGDialog: TExportToPNGDialog
       TabOrder = 0
       OnClick = CheckBoxClick
     end
-    object Export32x32: TCheckBox
+    object Export18x18: TCheckBox
       Left = 107
       Top = 17
       Width = 86
       Height = 17
-      Caption = '32x32'
+      Caption = '18x18'
       Checked = True
       State = cbChecked
       TabOrder = 1
       OnClick = CheckBoxClick
     end
-    object Export48x48: TCheckBox
+    object Export24x24: TCheckBox
       Left = 16
-      Top = 40
+      Top = 37
       Width = 86
       Height = 17
-      Caption = '48x48'
+      Caption = '24x24'
       Checked = True
       State = cbChecked
       TabOrder = 2
       OnClick = CheckBoxClick
     end
-    object Export64x64: TCheckBox
+    object Export32x32: TCheckBox
       Left = 107
-      Top = 40
+      Top = 37
       Width = 86
       Height = 17
-      Caption = '64x64'
+      Caption = '32x32'
       Checked = True
       State = cbChecked
       TabOrder = 3
       OnClick = CheckBoxClick
     end
-    object Export96x96: TCheckBox
+    object Export48x48: TCheckBox
       Left = 16
-      Top = 63
+      Top = 58
       Width = 86
       Height = 17
-      Caption = '96x96'
+      Caption = '48x48'
       Checked = True
       State = cbChecked
       TabOrder = 4
       OnClick = CheckBoxClick
     end
-    object Export128x128: TCheckBox
+    object Export64x64: TCheckBox
       Left = 107
-      Top = 63
+      Top = 58
       Width = 86
       Height = 17
-      Caption = '128x128'
+      Caption = '64x64'
       Checked = True
       State = cbChecked
       TabOrder = 5
       OnClick = CheckBoxClick
     end
-    object Export192x192: TCheckBox
+    object Export96x96: TCheckBox
       Left = 16
-      Top = 86
+      Top = 81
       Width = 86
       Height = 17
-      Caption = '192x192'
+      Caption = '96x96'
       Checked = True
       State = cbChecked
       TabOrder = 6
       OnClick = CheckBoxClick
     end
-    object Export256x256: TCheckBox
+    object Export128x128: TCheckBox
       Left = 107
-      Top = 86
+      Top = 81
       Width = 86
       Height = 17
-      Caption = '256x256'
+      Caption = '128x128'
       Checked = True
       State = cbChecked
       TabOrder = 7
       OnClick = CheckBoxClick
     end
-    object ExportCustom: TCheckBox
+    object Export192x192: TCheckBox
       Left = 16
-      Top = 112
+      Top = 104
       Width = 86
       Height = 17
-      Caption = 'Custom size:'
+      Caption = '192x192'
       Checked = True
       State = cbChecked
       TabOrder = 8
       OnClick = CheckBoxClick
     end
+    object Export256x256: TCheckBox
+      Left = 107
+      Top = 104
+      Width = 86
+      Height = 17
+      Caption = '256x256'
+      Checked = True
+      State = cbChecked
+      TabOrder = 9
+      OnClick = CheckBoxClick
+    end
+    object ExportCustom: TCheckBox
+      Left = 16
+      Top = 131
+      Width = 86
+      Height = 17
+      Caption = 'Custom size:'
+      Checked = True
+      State = cbChecked
+      TabOrder = 10
+      OnClick = CheckBoxClick
+    end
     object CustomSizeEdit: TEdit
       Left = 107
-      Top = 109
+      Top = 128
       Width = 57
       Height = 21
       NumbersOnly = True
-      TabOrder = 9
+      TabOrder = 11
       Text = '512'
     end
   end
   object btnOK: TButton
     Left = 295
-    Top = 248
+    Top = 269
     Width = 75
     Height = 23
     Caption = 'OK'
@@ -172,7 +194,7 @@ object ExportToPNGDialog: TExportToPNGDialog
   end
   object btnCancel: TButton
     Left = 373
-    Top = 248
+    Top = 269
     Width = 75
     Height = 23
     Cancel = True
@@ -183,7 +205,7 @@ object ExportToPNGDialog: TExportToPNGDialog
   end
   object FormatEdit: TEdit
     Left = 247
-    Top = 204
+    Top = 218
     Width = 201
     Height = 21
     TabOrder = 2
@@ -192,7 +214,7 @@ object ExportToPNGDialog: TExportToPNGDialog
   end
   object OutputButton: TButton
     Left = 24
-    Top = 248
+    Top = 269
     Width = 169
     Height = 23
     Caption = 'Change output filename...'
@@ -200,8 +222,8 @@ object ExportToPNGDialog: TExportToPNGDialog
     OnClick = OutputButtonClick
   end
   object BtnCopyToClipboard: TButton
-    Left = 317
-    Top = 159
+    Left = 315
+    Top = 168
     Width = 131
     Height = 25
     Caption = 'Copy to clipboard...'

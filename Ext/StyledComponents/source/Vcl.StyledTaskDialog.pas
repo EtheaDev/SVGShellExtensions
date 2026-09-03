@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  StyledTaskDialog: a Task Dialog Component with StyleButtons                 }
 {                                                                              }
@@ -68,7 +68,12 @@ const
   DEFAULT_MAIN_ICON_SIZE = 64;
   {$ENDIF}
 
-  /// <summary>Extended TTaskDialogIcon value for question mark icon</summary>
+  /// <summary>Extended TTaskDialogIcon value for the question-mark icon, which
+  /// the stock task dialog does not provide. TTaskDialogIcon is an Integer
+  /// subrange (Low(Integer)..High(Integer)), not an enum, so 5 is a valid value
+  /// and assigning it raises no range error. The styled path draws its own
+  /// question icon; the native fallback maps this back to tdiNone, because the
+  /// RTL icon table (CTaskDlgIcons) only covers tdiNone..tdiShield (0..4).</summary>
   tdiQuestion = 5;
 
 type
@@ -915,6 +920,10 @@ procedure RegisterCustomExecute(const AShowStyledTaskDialog: ITaskDialogLauncher
   const AButtonFamily: TStyledButtonFamily = '');
 begin
   _TaskDialogExecute := AShowStyledTaskDialog;
+  //Honour the button family (was discarded): it feeds the same fallback used
+  //when a dialog has no explicit family.
+  if AButtonFamily <> '' then
+    _DialogButtonsFamily := AButtonFamily;
 end;
 
 procedure UnRegisterCustomExecute;
@@ -979,14 +988,12 @@ end;
 function StyledTaskMessageDlgPos(const Title, Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint; DefaultButton: TMsgDlgBtn;
   X: Integer; Y: Integer): Integer;
-var
-  MsgWithTitle: string;
 begin
-  if Title <> '' then
-    MsgWithTitle := UpperCase(Title)+sLineBreak+Msg
-  else
-    MsgWithTitle := Msg;
-    Result := StyledMessageDlgPos(MsgWithTitle, DlgType, Buttons, HelpCtx, DefaultButton, -1, -1);
+  //Show a real task dialog: pass Title as the Instruction and honour X/Y, like
+  //the sibling overload without DefaultButton. (It previously folded the
+  //uppercased title into the message body and discarded X/Y.)
+  Result := DoStyledTaskMessageDlgPosHelp(Title, Msg, DlgType, Buttons, HelpCtx,
+    DefaultButton, X, Y, _AutoClickDelay, _UseCommandLinks, '');
 end;
 
 function StyledTaskMessageDlgPosHelp(const Title, Msg: string; DlgType: TMsgDlgType;
@@ -1035,14 +1042,30 @@ end;
 function TStyledTaskDialog.DoExecute(ParentWnd: HWND): Boolean;
 var
   LTaskDlgType: TMsgDlgType;
+  LBtnFamily: TStyledButtonFamily;
 begin
   LTaskDlgType := GetTaskDlgType(MainIcon);
+  //Resolve the dialog button family: a family set explicitly on this dialog
+  //wins; otherwise fall back to the one configured via InitializeStyledTaskDialogs
+  //(that parameter was previously fetched but never applied).
+  if FDialogButtonsFamily <> _DefaultButtonsFamily then
+    LBtnFamily := FDialogButtonsFamily
+  else
+    LBtnFamily := GetDialogBtnFamily;
   //Use a custom interface for StyledTaskDialog, if registered
   if Assigned(_TaskDialogExecute) then
     Result := _TaskDialogExecute.DoExecute(ParentWnd,
-      LTaskDlgType, Self, Self.FDialogButtonsFamily)
+      LTaskDlgType, Self, LBtnFamily)
   else
+  begin
+    //Native fallback: tdiQuestion (5) is outside the RTL CTaskDlgIcons array, so
+    //the native task dialog would load icon resource #5 from this module. Windows
+    //has no question icon, so use none. The styled path above keeps 5 and draws
+    //its own question icon.
+    if MainIcon = tdiQuestion then
+      MainIcon := tdiNone;
     Result := inherited DoExecute(ParentWnd);
+  end;
 end;
 
 procedure TStyledTaskDialog.DoOnExpandButtonClicked(Expanded: Boolean);
@@ -1277,8 +1300,9 @@ initialization
   RegisterTaskDialogFormClass(TStyledTaskDialogStd);
 
 finalization
-  if Assigned(_DialogFont) then
-    _DialogFont.Free;
+  //Nil the global after freeing: otherwise GetDialogFont returns a dangling
+  //pointer and Font.Assign(<freed TFont>) AVs for dialogs shown during shutdown.
+  FreeAndNil(_DialogFont);
   UnRegisterTaskDialogFormClass(TStyledTaskDialogStd);
 
 end.

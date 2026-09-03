@@ -202,6 +202,9 @@ type
   protected
     procedure WndProc(var Message: TMessage); override;
     procedure TimerEvent(Sender: TObject);
+    /// <summary>Window the dialog is positioned relative to (popup parent,
+    /// else active form, else the application window)</summary>
+    function GetReferenceWnd: HWND; virtual;
   	function GetScaleFactor: Single; virtual;
     class function CanUseAnimations: Boolean; virtual; abstract;
     function GetButtonsHeight: Integer; virtual;
@@ -354,12 +357,16 @@ end;
 procedure UnRegisterTaskDialogFormClass(
   AFormClass: TStyledTaskDialogFormClass);
 begin
-  //Unregister handle
-  _DialogLauncher := nil;
   if AFormClass = _AnimatedTaskDialogFormClass then
     _AnimatedTaskDialogFormClass := nil;
   if AFormClass = _TaskDialogFormClass then
     _TaskDialogFormClass := nil;
+  //Drop the shared launcher only when no form class remains registered:
+  //unregistering one form (e.g. the animated one to fall back to the standard
+  //form) must not destroy the launcher the other form still needs.
+  if not Assigned(_AnimatedTaskDialogFormClass) and
+     not Assigned(_TaskDialogFormClass) then
+    _DialogLauncher := nil;
 end;
 
 procedure RegisterTaskDialogFormClass(
@@ -479,9 +486,11 @@ end;
 
 procedure TStyledTaskDialogForm.SetButtonsWidth(const AValue: Integer);
 begin
-  if FButtonsHeight <> AValue then
+  //Write the width field: this setter must update FButtonsWidth (FButtonsHeight
+  //has its own setter).
+  if FButtonsWidth <> AValue then
   begin
-    FButtonsHeight := AValue;
+    FButtonsWidth := AValue;
     UpdateButtonsSize;
   end;
 end;
@@ -499,7 +508,9 @@ procedure TStyledTaskDialogForm.SetCustomFooterIcon(const AValue: TIcon);
 begin
   if FCustomFooterIcon <> AValue then
   begin
-    FCustomMainIcon := AValue;
+    //Write the footer icon field (not FCustomMainIcon) so the footer icon loads
+    //from the new value.
+    FCustomFooterIcon := AValue;
     LoadCustomFooterIcon(FCustomFooterIcon, FfooterIcon);
   end;
 end;
@@ -1303,7 +1314,11 @@ var
 begin
   Inc(FTickCount, FTimer.Interval);
   LReset := False;
-  FOnTimer(Sender, FTickCount, LReset);
+  //OnTimer and tfCallbackTimer are independent: FOnTimer may be nil, so guard it
+  //(otherwise [tfShowProgressBar, tfCallbackTimer] without a handler AVs ~200ms
+  //after the dialog opens).
+  if Assigned(FOnTimer) then
+    FOnTimer(Sender, FTickCount, LReset);
   if LReset then
     FTickCount := 0;
 end;
@@ -1616,6 +1631,18 @@ begin
   UpdateButtonStyle(CloseButton);
 end;
 
+function TStyledTaskDialogForm.GetReferenceWnd: HWND;
+begin
+  //Prefer the popup parent (the form that launched the dialog), then the active
+  //form, then the application window, so positioning has a real reference window.
+  if Assigned(PopupParent) and PopupParent.HandleAllocated then
+    Result := PopupParent.Handle
+  else if Assigned(Screen.ActiveForm) and Screen.ActiveForm.HandleAllocated then
+    Result := Screen.ActiveForm.Handle
+  else
+    Result := Application.Handle;
+end;
+
 procedure TStyledTaskDialogForm.SetPosition(const X, Y: Integer);
 var
   Rect: TRect;
@@ -1625,8 +1652,10 @@ var
 begin
   LX := X;
   LY := Y;
-  Assert(Owner is TForm);
-  LHandle := MonitorFromWindow(TForm(Owner).Handle, MONITOR_DEFAULTTONEAREST);
+  //Resolve the monitor from the reference window (the caller's form), not from
+  //the dialog's own window: the latter defaults to the primary monitor, which
+  //would place explicit coordinates on the wrong monitor on a multi-monitor desktop.
+  LHandle := MonitorFromWindow(GetReferenceWnd, MONITOR_DEFAULTTONEAREST);
   LMonitorInfo.cbSize := SizeOf(LMonitorInfo);
   if GetMonitorInfo(LHandle, {$IFNDEF CLR}@{$ENDIF}LMonitorInfo) then
     with LMonitorInfo do
@@ -1653,7 +1682,6 @@ var
   LParentControl: TControl;
   LOwnerForm: TForm;
   LFont: TFont;
-  LDlgBtnFamily: TStyledButtonFamily;
 begin
   //At least OK Button
   if (ATaskDialog.Buttons.Count = 0) and (ATaskDialog.CommonButtons = []) then
@@ -1675,6 +1703,13 @@ begin
       LParentControl := LParentControl.Parent;
     end;
   end;
+  //Fall back to the active form, then the main form, so poOwnerFormCenter
+  //(tfPositionRelativeToWindow) and multi-monitor centering resolve to the form
+  //the dialog was launched from rather than defaulting to the primary monitor.
+  if not Assigned(LOwnerForm) then
+    LOwnerForm := Screen.ActiveForm;
+  if not Assigned(LOwnerForm) then
+    LOwnerForm := Application.MainForm;
 
   if ATaskDialog.UseAnimations then
   begin
@@ -1684,13 +1719,13 @@ begin
         ['Skia.Vcl.StyledTaskDialogAnimatedUnit'])
     else
     begin
-      LForm := _AnimatedTaskDialogFormClass.Create(nil);
+      LForm := _AnimatedTaskDialogFormClass.Create(LOwnerForm);
       TStyledTaskDialogForm(LForm).AnimationLoop := ATaskDialog.UseAnimationLoop;
       TStyledTaskDialogForm(LForm).AnimationInverse := ATaskDialog.UseAnimationInverse;
     end;
   end
   else
-    LForm := _TaskDialogFormClass.Create(nil);
+    LForm := _TaskDialogFormClass.Create(LOwnerForm);
   try
     LForm.PopupParent := LOwnerForm;
     //Call event handler OnDialogConstructed
@@ -1720,7 +1755,9 @@ begin
     LFont := GetDialogFont;
     LForm.AlphaBlendValue := ATaskDialog.AlphaBlendValue;
     LForm.AlphaBlend := LForm.AlphaBlendValue <> DEFAULT_STYLEDDIALOG_ALPHABLEND;
-    LDlgBtnFamily := GetDialogBtnFamily;
+    //The dialog button family is now resolved in TStyledTaskDialog.DoExecute and
+    //passed as ADialogBtnFamily (assigned to LForm.FDialogBtnFamily above), so the
+    //old dead `LDlgBtnFamily := GetDialogBtnFamily` has been removed.
     if Assigned(LFont) then
       LForm.SetDialogFont(LFont)
     else
@@ -1735,6 +1772,11 @@ begin
     Result := True;
   finally
     LForm.Free;
+    //Clear the HWND poked into TCommonDialog.FHandle during show: otherwise the
+    //RTL property setters keep SendMessage-ing to the destroyed (or recycled)
+    //window on any post-close property assignment.
+    if ATaskDialog is TStyledTaskDialog then
+      TStyledTaskDialog(ATaskDialog).Handle := 0;
     if Assigned(ATaskDialog.OnDialogDestroyed) then
       ATaskDialog.OnDialogDestroyed(ATaskDialog);
   end;

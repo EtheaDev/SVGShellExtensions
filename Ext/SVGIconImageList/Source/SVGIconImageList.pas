@@ -437,7 +437,8 @@ begin
       if DisabledGrayScale then
         LSVG.Grayscale := True
       else
-        LOpacity := DisabledOpacity;
+        LSVG.Grayscale := False;
+      LOpacity := DisabledOpacity;
     end;
     LSVG.Opacity := LOpacity / 255;
     LSVG.PaintTo(ACanvas.Handle, TRectF.Create(TPointF.Create(X, Y), AWidth, AHeight));

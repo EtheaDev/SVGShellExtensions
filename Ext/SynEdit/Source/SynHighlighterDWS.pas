@@ -334,7 +334,10 @@ begin
       Result := Result * 692 + C * 171;
       Inc(Str);
    end;
-   fStringLen := Str - fToIdent;
+   if Str <> '' then
+     fStringLen := Str - fToIdent
+   else
+     fStringLen := 0;
    Result := Result mod Cardinal(Length(fIdentFuncTable));
 end;
 {$IFDEF OVERFLOWCHECK_ON}

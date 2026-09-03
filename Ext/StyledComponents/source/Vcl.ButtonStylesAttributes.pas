@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  TStyledButtonAttributes: a collection of Rendering attributes               }
 {  for Styled Components                                                       }
@@ -56,7 +56,7 @@ uses
 
 const
   /// <summary>Current version of the StyledComponents library</summary>
-  StyledComponentsVersion = '4.2.1';
+  StyledComponentsVersion = '4.2.2';
   /// <summary>Default corner radius for rounded buttons in pixels</summary>
   DEFAULT_RADIUS = 6;
   /// <summary>Resource name for the Windows shield admin icon</summary>
@@ -536,6 +536,15 @@ function GetButtonFamilyClasses(const AFamily: TStyledButtonFamily): TButtonClas
 /// <summary>Gets available appearances for a family by name</summary>
 function GetButtonFamilyAppearances(const AFamily: TStyledButtonFamily): TButtonAppearances;
 
+/// <summary>Returns True if a button family with the given name is registered</summary>
+function StyleFamilyExists(const AFamily: TStyledButtonFamily): Boolean;
+
+/// <summary>True when an unregistered family should silently fall back to the
+/// Classic family (a deployed form streaming from a DFM) rather than raising.
+/// False at design time or on a direct assignment, where raising surfaces the
+/// missing style unit immediately.</summary>
+function StyleFamilyLoadingFallback(const AComponent: TComponent): Boolean;
+
 /// <summary>Validates and retrieves a button family, setting defaults if needed</summary>
 /// <returns>True if the family was found and validated</returns>
 function StyleFamilyCheckAttributes(
@@ -739,41 +748,27 @@ end;
 
 function GetWindowsVersion: TWindowsVersion;
 var
-  Reg: TRegistry;
-  VersionInfo: TOSVersionInfo;
   LBuildNumber: Integer;
 begin
   if _WindowsVersion = wvUndefined then
   begin
-    VersionInfo.dwOSVersionInfoSize := sizeOf(TOSVersionInfo);
-    Reg := TRegistry.Create;
-    Try
-      Reg.RootKey := HKEY_LOCAL_MACHINE;
-      case VersionInfo.dwPlatformID of
-        VER_PLATFORM_WIN32_WINDOWS:
-          Reg.OpenKeyReadOnly('\Software\Microsoft\Windows\CurrentVersion');
-      else
-        Reg.OpenKeyReadOnly('\Software\Microsoft\Windows NT\CurrentVersion');
-      end;
-      LBuildNumber := StrToIntDef(Reg.ReadString('CurrentBuild'), 0);
-      if LBuildNumber >= 22000 then
-        _WindowsVersion := wvWindows11
-      else if LBuildNumber >= 10240 then
-        _WindowsVersion := wvWindows10
-      else if LBuildNumber >= 9600 then
-        _WindowsVersion := wvWindows8_1
-      else if LBuildNumber >= 9200 then
-        _WindowsVersion := wvWindows8
-      else if LBuildNumber >= 7600 then
-        _WindowsVersion := wvWindows7
-      else if LBuildNumber >= 6000 then
-        _WindowsVersion := wvWindowsVista
-      else if LBuildNumber >= 2600 then
-        _WindowsVersion := wvWindowsXP;
-      Reg.CloseKey;
-    Finally
-      Reg.Free;
-    End;
+    //Use TOSVersion (System.SysUtils) for the OS build number: avoids the
+    //uninitialized version record and the registry access that could raise.
+    LBuildNumber := TOSVersion.Build;
+    if LBuildNumber >= 22000 then
+      _WindowsVersion := wvWindows11
+    else if LBuildNumber >= 10240 then
+      _WindowsVersion := wvWindows10
+    else if LBuildNumber >= 9600 then
+      _WindowsVersion := wvWindows8_1
+    else if LBuildNumber >= 9200 then
+      _WindowsVersion := wvWindows8
+    else if LBuildNumber >= 7600 then
+      _WindowsVersion := wvWindows7
+    else if LBuildNumber >= 6000 then
+      _WindowsVersion := wvWindowsVista
+    else if LBuildNumber >= 2600 then
+      _WindowsVersion := wvWindowsXP;
   end;
   Result := _WindowsVersion;
 end;
@@ -810,10 +805,11 @@ begin
   //input: '<A HREF="c:\windows\system32\Notepad.exe'>Editor</A>'
   //output: 'Editor (c:\windows\system32\Notepad.exe)';
 
-  if ExtractHrefValues(HRef, DisplayLabel, LinkStr) then
+  //LinkStr receives the URL, DisplayLabel the visible text
+  if ExtractHrefValues(HRef, LinkStr, DisplayLabel) then
   begin
     if not SameText(DisplayLabel, LinkStr) then
-      Result := Format('%s (%s)',[LinkStr,DisplayLabel])
+      Result := Format('%s (%s)',[DisplayLabel,LinkStr])
     else
       Result := LinkStr;
   end
@@ -827,11 +823,10 @@ var
   LinkStr: string;
 begin
   //input: '<A HREF="c:\windows\system32\Notepad.exe'>Editor</A>'
-  //output: 'Editor';
-  if ExtractHrefValues(HRef, DisplayLabel, LinkStr) then
-  begin
-    Result := LinkStr;
-  end
+  //output: 'c:\windows\system32\Notepad.exe';
+  //Return the link itself: LinkStr receives the URL, DisplayLabel the visible text
+  if ExtractHrefValues(HRef, LinkStr, DisplayLabel) then
+    Result := LinkStr
   else
     Result := HRef;
 end;
@@ -947,7 +942,10 @@ begin
       AAppearance := LDefaultAppearance;
       Result := False;
     end;
-  end;
+  end
+  else
+    //Family not registered: report failure instead of a false success
+    Result := False;
 end;
 
 function StyleFamilyUpdateAttributes(
@@ -1027,6 +1025,20 @@ function GetButtonFamilyClass(const AFamilyName: TStyledButtonFamily): TButtonFa
 begin
   if not GetButtonFamily(AFamilyName, Result) then
     raise EStyledAttributesException.CreateFmt(ERROR_FAMILY_NOT_FOUND,[AFamilyName]);
+end;
+
+function StyleFamilyExists(const AFamily: TStyledButtonFamily): Boolean;
+var
+  LButtonFamily: TButtonFamily;
+begin
+  Result := GetButtonFamily(AFamily, LButtonFamily);
+end;
+
+function StyleFamilyLoadingFallback(const AComponent: TComponent): Boolean;
+begin
+  Result := Assigned(AComponent)
+    and (csLoading in AComponent.ComponentState)
+    and not (csDesigning in AComponent.ComponentState);
 end;
 
 function GetButtonClasses(const AFamily: TButtonFamily): TButtonClasses;

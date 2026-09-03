@@ -68,7 +68,9 @@ begin
     Reg := TRegistry.Create;
     try
       Reg.RootKey := RootKey;
-      Result := Reg.OpenKey(RegPath, True);
+      //Read-only: OpenKey(..., True) would create the key as a side effect
+      //(and fail without administrative rights when RootKey is HKLM).
+      Result := Reg.OpenKeyReadOnly(RegPath);
       if Result then
         Str := Reg.ReadString(RegValue);
     finally
@@ -106,7 +108,9 @@ begin
     Reg := TRegistry.Create;
     try
       Reg.RootKey := RootKey;
-      Result := Reg.OpenKey(RegPath, True);
+      //Read-only: OpenKey(..., True) would create the key as a side effect
+      //(and fail without administrative rights when RootKey is HKLM).
+      Result := Reg.OpenKeyReadOnly(RegPath);
       if Result then
         IntValue := Reg.ReadInteger(RegValue);
     finally
@@ -135,22 +139,27 @@ begin
 end;
 
 function IsWindows11: Boolean;
+const
+  //First build of Windows 11
+  WINDOWS11_FIRST_BUILD = 22000;
 var
   Reg: TRegistry;
-  VersionInfo: TOSVersionInfo;
 begin
-  VersionInfo.dwOSVersionInfoSize := sizeOf(TOSVersionInfo);
+  //NB: the build number is read from the registry and not from TOSVersion,
+  //because the value reported by the API depends on the application manifest.
+  //The previous version switched on a TOSVersionInfo record that was never
+  //filled by GetVersionEx: it read uninitialized memory and worked only
+  //because the "else" branch happens to be the right one.
+  Result := False;
   Reg := TRegistry.Create;
   Try
     Reg.RootKey := HKEY_LOCAL_MACHINE;
-    case VersionInfo.dwPlatformID of
-      VER_PLATFORM_WIN32_WINDOWS:
-        Reg.OpenKeyReadOnly('\Software\Microsoft\Windows\CurrentVersion');
-    else
-      Reg.OpenKeyReadOnly('\Software\Microsoft\Windows NT\CurrentVersion');
-    end;
-    Result :=  StrToIntDef(Reg.ReadString('CurrentBuild'), 0) >= 22000;
-    Reg.CloseKey;
+    if Reg.OpenKeyReadOnly('\Software\Microsoft\Windows NT\CurrentVersion') then
+    Try
+      Result := StrToIntDef(Reg.ReadString('CurrentBuild'), 0) >= WINDOWS11_FIRST_BUILD;
+    Finally
+      Reg.CloseKey;
+    End;
   Finally
     Reg.Free;
   End;

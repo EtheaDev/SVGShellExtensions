@@ -220,8 +220,8 @@ object frmMain: TfrmMain
         AlignWithMargins = True
         Left = 36
         Top = 4
-        Width = 419
-        Height = 26
+        Width = 4
+        Height = 4
         Align = alClient
         Alignment = taCenter
         TabOrder = 0
@@ -428,11 +428,10 @@ object frmMain: TfrmMain
       Left = 40
       Top = 3
       Width = 79
-      Height = 32
+      Height = 15
       Align = alLeft
       Caption = 'SVG Text Editor'
       Layout = tlCenter
-      ExplicitHeight = 15
     end
     object SettingsToolBar: TStyledToolbar
       AlignWithMargins = True
@@ -1132,6 +1131,7 @@ object frmMain: TfrmMain
   end
   object LoadTimer: TTimer
     Enabled = False
+    Interval = 400
     OnTimer = LoadTimerTimer
     Left = 272
     Top = 352

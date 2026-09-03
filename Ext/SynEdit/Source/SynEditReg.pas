@@ -115,6 +115,7 @@ uses
   SynHighlighterST,
   SynHighlighterLDraw,
   SynHighlighterOmni,
+  SynHighlighterMarkdown,
   SynSpellCheck,
   SynURIOpener,
   SynEditActionsResource;
@@ -178,7 +179,8 @@ begin
     // other
     TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn,
     TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, TSynYAMLSyn,
-    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn
+    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn,
+    TSynMarkdownSyn
   ]);
 
   // SynEdit Actions

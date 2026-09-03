@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {       SVG Text Editor: Advanced Editor for SVG files                         }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
@@ -79,7 +79,10 @@ begin
     Show;
     Update;
     Application.HelpFile := '';
-    Application.CreateForm(TdmResources, dmResources);
+    //NB: dmResources is not created here any more. It is a shared instance
+    //owned by DResources, created on first use and freed when that unit is
+    //finalized, so that the editor and the shell extension follow the same
+    //lifetime rule.
     Application.CreateForm(TfrmMain, frmMain);
     Application.CreateForm(TTestPrintPreviewDlg, TestPrintPreviewDlg);
     Application.CreateForm(TPageSetupDlg, PageSetupDlg);

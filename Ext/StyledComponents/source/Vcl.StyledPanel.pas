@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  TStyledPanel: a "styled" Panel based on TCustomPanel                        }
 {                                                                              }
@@ -362,7 +362,9 @@ procedure TStyledPanel.Assign(Source: TPersistent);
 var
   LSourcePanel: TStyledPanel;
 begin
-  inherited;
+  //Ancestor classes do not declare Assign, so a bare 'inherited' falls through to
+  //TPersistent.AssignTo -> AssignError (EConvertError) before the styled state is
+  //copied. Only call 'inherited' when Source is NOT a TStyledPanel.
   if Source is TStyledPanel then
   begin
     LSourcePanel := TStyledPanel(Source);
@@ -374,7 +376,9 @@ begin
     FCaptionAlignment := LSourcePanel.FCaptionAlignment;
     FStyleApplied := LSourcePanel.FStyleApplied;
     StyleClass := LSourcePanel.FStyleClass;
-  end;
+  end
+  else
+    inherited;
 end;
 
 function TStyledPanel.ApplyPanelStyle: Boolean;
@@ -664,6 +668,15 @@ begin
   LValue := AValue;
   if LValue = '' then
     LValue := DEFAULT_CLASSIC_FAMILY;
+  //Reject an unregistered family: raise at design time / direct assignment, but
+  //fall back to Classic while a deployed form is streaming.
+  if not StyleFamilyExists(LValue) then
+  begin
+    if StyleFamilyLoadingFallback(Self) then
+      LValue := DEFAULT_CLASSIC_FAMILY
+    else
+      raise EStyledAttributesException.CreateFmt(ERROR_FAMILY_NOT_FOUND, [LValue]);
+  end;
   if (LValue <> Self.FStyleFamily) or not FStyleApplied then
   begin
     FStyleFamily := LValue;
@@ -723,18 +736,23 @@ end;
 procedure TStyledPanel.SetPanelStyleNormal(
   const AValue: TStyledButtonAttributes);
 begin
-  if not SameStyledButtonStyle(FPanelStyleNormal, AValue) then
+  //Copy into the owned sub-object instead of swapping the pointer: a swap would
+  //alias (and later double-free) another panel's attributes. Guard nil so
+  //PanelStyleNormal := nil is a safe no-op instead of an AV in the comparison.
+  if Assigned(AValue) and not SameStyledButtonStyle(FPanelStyleNormal, AValue) then
   begin
-    FPanelStyleNormal := AValue;
+    FPanelStyleNormal.Assign(AValue);
+    Invalidate;
   end;
 end;
 
 procedure TStyledPanel.SetPanelStyleDisabled(
   const AValue: TStyledButtonAttributes);
 begin
-  if not SameStyledButtonStyle(FPanelStyleDisabled, AValue) then
+  if Assigned(AValue) and not SameStyledButtonStyle(FPanelStyleDisabled, AValue) then
   begin
-    FPanelStyleDisabled := AValue;
+    FPanelStyleDisabled.Assign(AValue);
+    Invalidate;
   end;
 end;
 
