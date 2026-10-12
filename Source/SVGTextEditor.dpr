@@ -33,6 +33,8 @@ uses
   dlgSearchText in 'dlgSearchText.pas' {TextSearchDialog},
   dlgReplaceText in 'dlgReplaceText.pas' {TextReplaceDialog},
   PageControlHook in 'PageControlHook.pas',
+  uSVGColorScanner in 'uSVGColorScanner.pas',
+  uSVGPaletteBar in 'uSVGPaletteBar.pas',
   EditorMainForm in 'EditorMainForm.pas' {frmMain},
   DResources in 'DResources.pas' {dmResources: TDataModule},
   DPageSetup in 'DPageSetup.pas' {PageSetupDlg},

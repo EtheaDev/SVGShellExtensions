@@ -98,6 +98,7 @@ type
     function IsStoredCursor: Boolean;
     function IsStoredFlat: Boolean;
     function IsCustomRadius: Boolean;
+    function IsCustomShadowSize: Boolean;
     function IsCustomRoundedCorners: Boolean;
     function IsCustomDrawType: Boolean;
     function IsStoredStyleFamily: Boolean;
@@ -218,6 +219,7 @@ type
     property Tag;
     //StyledComponents Attributes
     property StyleRadius stored IsCustomRadius;
+    property StyleShadowSize stored IsCustomShadowSize;
     property StyleRoundedCorners stored IsCustomRoundedCorners;
     property StyleDrawType: TStyledButtonDrawType read GetStyleDrawType write SetStyleDrawType stored IsCustomDrawType;
     property StyleFamily stored IsStoredStyleFamily;
@@ -282,6 +284,7 @@ type
     FImageChangeLink: TChangeLink;
     FDisabledImageChangeLink: TChangeLink;
     FUpdateCount: Integer;
+    FResizePending: Boolean;
     FOnCustomizeNewButton: TSTBNewButtonEvent;
     FOnCustomizeAdded: TSTBButtonEvent;
     FCaptureChangeCancels: Boolean;
@@ -299,6 +302,7 @@ type
 
     //Styled Attributes
     FStyleRadius: Integer;
+    FStyleShadowSize: Integer;
     FStyleDrawType: TStyledButtonDrawType;
     FStyleFamily: TStyledButtonFamily;
     FStyleClass: TStyledButtonClass;
@@ -346,6 +350,7 @@ type
     procedure ProcessControls(AControlProc: TControlProc);
     function IsCustomDrawType: Boolean;
     function IsCustomRadius: Boolean;
+    function IsCustomShadowSize: Boolean;
     function IsStoredStyleAppearance: Boolean;
     function IsStoredStyleClass: Boolean;
     function IsStoredStyleFamily: Boolean;
@@ -354,6 +359,7 @@ type
     procedure SetStyleDrawType(const AValue: TStyledButtonDrawType);
     procedure SetStyleFamily(const AValue: TStyledButtonFamily);
     procedure SetStyleRadius(const AValue: Integer);
+    procedure SetStyleShadowSize(const AValue: Integer);
     function ApplyToolbarStyle: Boolean;
     procedure SetStyleApplied(const AValue: Boolean);
     procedure UpdateButtons;
@@ -401,6 +407,10 @@ type
     function GetStyledToolButtonClass: TStyledToolButtonClass; virtual;
     procedure Loaded; override;
   public
+    {$IFDEF D10_1+}
+    //Public as in TControl: a protected override raises hint H2269
+    procedure ScaleForPPI(NewPPI: Integer); override;
+    {$ENDIF}
     /// <summary>Copies properties from another toolbar</summary>
     procedure Assign(Source: TPersistent); override;
     /// <summary>Registers default rendering style for all new toolbar instances</summary>
@@ -545,6 +555,7 @@ type
 
     //StyledComponents Attributes
     property StyleRadius: Integer read FStyleRadius write SetStyleRadius stored IsCustomRadius;
+    property StyleShadowSize: Integer read FStyleShadowSize write SetStyleShadowSize stored IsCustomShadowSize;
     property StyleDrawType: TStyledButtonDrawType read FStyleDrawType write SetStyleDrawType stored IsCustomDrawType;
     property StyleFamily: TStyledButtonFamily read FStyleFamily write SetStyleFamily stored IsStoredStyleFamily;
     property StyleClass: TStyledButtonClass read FStyleClass write SetStyleClass stored IsStoredStyleClass;
@@ -773,7 +784,13 @@ begin
   LWidth := Width;
   if IsDropDown and Assigned(FToolBar) then //FToolBar may be nil (not yet parented)
     LWidth := FToolBar.ButtonWidth + GetSplitButtonWidth;
+  //Only mirror a button's size back into the toolbar's ButtonWidth/ButtonHeight
+  //(and re-lay-out all buttons) at design time, where resizing one button is a
+  //deliberate edit. At runtime the FlowPanel/AutoSize layout drives SetBounds
+  //with computed sizes, so writing them back would corrupt FButtonWidth/
+  //FButtonHeight and cascade through ResizeButtons.
   LUpdateToolBar := Assigned(FToolBar) and not FToolBar.FRescaling
+    and (csDesigning in ComponentState)
     and ((AWidth <> Width) or (AHeight <> Height))
     and not IsSeparator
     and not (csLoading in ComponentState);
@@ -853,6 +870,7 @@ begin
       inherited DisabledImages := nil;
       inherited Images := nil;
       inherited StyleRadius := 1;
+      inherited StyleShadowSize := 0;
     end
     else
     begin
@@ -975,6 +993,18 @@ begin
     Visible := AValue.Visible;
   end;
   FMenuItem := AValue;
+end;
+
+function TStyledToolButton.IsCustomShadowSize: boolean;
+begin
+  Result := not IsSeparator;
+  if Result then
+  begin
+    if Assigned(FToolBar) then
+      Result := StyleShadowSize <> FToolBar.StyleShadowSize
+    else
+      Result := StyleShadowSize <> DEFAULT_SHADOW_SIZE;
+  end;
 end;
 
 function TStyledToolButton.IsCustomRadius: boolean;
@@ -1151,6 +1181,21 @@ begin
     FRescaling := False; //reset the rescaling flag once inherited scaling is done
   end;
 end;
+
+procedure TStyledToolbar.ScaleForPPI(NewPPI: Integer);
+begin
+  //Per-Monitor DPI change: the VCL scales the child buttons first
+  //(ScaleControlsForDpi) and only then calls our ChangeScale. The guard must
+  //already be up while the children scale, otherwise TStyledToolButton.SetBounds
+  //writes their scaled size back into FButtonWidth/FButtonHeight and ChangeScale
+  //then scales it a second time. Keep FRescaling up around the whole pass.
+  FRescaling := True;
+  try
+    inherited;
+  finally
+    FRescaling := False;
+  end;
+end;
 {$ENDIF}
 
 
@@ -1221,6 +1266,7 @@ begin
   FGradientStartColor := clWindow;
   FStyleDrawType := _DefaultStyleDrawType;
   FStyleRadius := _DefaultStyleRadius;
+  FStyleShadowSize := DEFAULT_SHADOW_SIZE;
   FStyleFamily := AFamily;
   FStyleClass := AClass;
   FStyleAppearance := AAppearance;
@@ -1262,6 +1308,12 @@ end;
 procedure TStyledToolbar.EndUpdate;
 begin
   Dec(FUpdateCount);
+  //Run the ResizeButtons that was requested while the update block was open
+  if (FUpdateCount = 0) and FResizePending then
+  begin
+    FResizePending := False;
+    ResizeButtons;
+  end;
 end;
 
 procedure TStyledToolbar.ImageListChange(Sender: TObject);
@@ -1427,6 +1479,7 @@ begin
       LButton.FToolBar := Self;
       LButton.Images := Self.Images;
       LButton.StyleRadius := FStyleRadius;
+      LButton.StyleShadowSize := FStyleShadowSize;
       LButton.StyleDrawType := FStyleDrawType;
       LButton.StyleFamily := FStyleFamily;
       LButton.StyleClass := FStyleClass;
@@ -1459,6 +1512,11 @@ end;
 function TStyledToolbar.IsCustomRadius: Boolean;
 begin
   Result := StyleRadius <> DEFAULT_RADIUS;
+end;
+
+function TStyledToolbar.IsCustomShadowSize: Boolean;
+begin
+  Result := StyleShadowSize <> DEFAULT_SHADOW_SIZE;
 end;
 
 function TStyledToolbar.IsGradientEndColorStored: Boolean;
@@ -1732,6 +1790,7 @@ begin
     FStyleClass := LToolbar.FStyleClass;
     FStyleAppearance := LToolbar.FStyleAppearance;
     FStyleRadius := LToolbar.FStyleRadius;
+    FStyleShadowSize := LToolbar.FStyleShadowSize;
     FStyleDrawType := LToolbar.FStyleDrawType;
     Invalidate;
   end;
@@ -2027,6 +2086,23 @@ begin
     StyleElements := [seFont, seClient, seBorder];
 end;
 
+procedure TStyledToolbar.SetStyleShadowSize(const AValue: Integer);
+begin
+  if FStyleShadowSize <> AValue then
+  begin
+    if AValue < DEFAULT_SHADOW_SIZE then
+      raise EReadError.create(SInvalidProperty);
+    ProcessButtons(
+      procedure (ABtn: TStyledToolButton)
+      begin
+        if ABtn.StyleShadowSize = FStyleShadowSize then
+          ABtn.StyleShadowSize := AValue;
+      end);
+    FStyleShadowSize := AValue;
+    StyleApplied := ApplyToolbarStyle;
+  end;
+end;
+
 procedure TStyledToolbar.SetStyleRadius(const AValue: Integer);
 begin
   if FStyleRadius <> AValue then
@@ -2163,11 +2239,17 @@ procedure TStyledToolbar.ResizeButtons;
 begin
   if (csLoading in ComponentState) then
     Exit;
+  //Inside a BeginUpdate/EndUpdate block defer the work: EndUpdate runs it once
+  if FUpdateCount > 0 then
+  begin
+    FResizePending := True;
+    Exit;
+  end;
+  FResizePending := False;
 
   DisableButtonAlign := True;
   try
-    if (FButtonHeight <> 0) and (FButtonWidth <> 0) and
-      (FUpdateCount = 0) then
+    if (FButtonHeight <> 0) and (FButtonWidth <> 0) then
     begin
       BeginUpdate;
       try
@@ -2297,16 +2379,20 @@ function TStyledToolbar.ControlsHeight: Integer;
 var
   LSize: Integer;
 begin
-  if AlignWithMargins then
-    LSize := Margins.Top + Margins.Bottom + 1
-  else
-    LSize := 1;
+  //Bottom of the lowest visible control: after the flow wraps the buttons on more
+  //rows their Top says how many rows there are (the previous sum of the heights
+  //did not follow the wrapping, so the extra rows were clipped)
+  LSize := 0;
   ProcessControls(
     procedure (AControl: TControl)
     begin
-      if AControl.Height > LSize then
-        LSize := LSize + AControl.Height;
+      if AControl.Visible then
+        LSize := Max(LSize, AControl.Top + AControl.Height);
     end);
+  if LSize = 0 then
+    LSize := 1;
+  if AlignWithMargins then
+    Inc(LSize, Margins.Top + Margins.Bottom);
   Result := LSize;
 end;
 
@@ -2314,16 +2400,19 @@ function TStyledToolbar.ControlsWidth: Integer;
 var
   LSize: Integer;
 begin
-  if AlignWithMargins then
-    LSize := Margins.Left + Margins.Right + 1
-  else
-    LSize := 1;
+  //Right edge of the rightmost visible control: with FlowStyle fsTopBottomLeftRight
+  //the flow wraps the buttons on more columns, which Left makes visible
+  LSize := 0;
   ProcessControls(
     procedure (AControl: TControl)
     begin
-      if AControl.Width > LSize then
-        LSize := AControl.Width;
+      if AControl.Visible then
+        LSize := Max(LSize, AControl.Left + AControl.Width);
     end);
+  if LSize = 0 then
+    LSize := 1;
+  if AlignWithMargins then
+    Inc(LSize, Margins.Left + Margins.Right);
   Result := LSize;
 end;
 

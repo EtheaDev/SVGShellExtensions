@@ -66,6 +66,21 @@ const
   BasicAttr = 'Basic';
   StrokedAttr = 'Stroked';
 
+  //Angular Material 3 ("M3") families: the buttons of the current Angular Material
+  //(matButton="text|elevated|outlined|filled|tonal"), light and dark colour scheme,
+  //colours of the default "azure" palette
+  ANGULAR_M3_LIGHT_FAMILY = 'Angular-M3-Light';
+  ANGULAR_M3_DARK_FAMILY = 'Angular-M3-Dark';
+
+  //Button Appearance of the Angular Material 3 families
+  TextAttr = 'Text';
+  ElevatedAttr = 'Elevated';
+  OutlinedAttr = 'Outlined';
+  FilledAttr = 'Filled';
+  TonalAttr = 'Tonal';
+  //Floating Action Button: primary container with the shadow of the elevation
+  FabAttr = 'Fab';
+
 Type
   //Base class for light styles
   TAngularButtonStyleLight = class(TInterfacedObject, IStyledButtonAttributes)
@@ -111,6 +126,44 @@ Type
       var AStyleAppearance: TStyledButtonAppearance);
   end;
 
+  //Angular Material 3, light colour scheme
+  TAngularM3ButtonStyleLight = class(TInterfacedObject, IStyledButtonAttributes)
+  private
+    //Implementation of IStyledButtonAttributes interface
+    procedure UpdateAttributes(
+      const AFamily:  TStyledButtonFamily;
+      const AClass: TStyledButtonClass;
+      const AAppearance: TStyledButtonAppearance;
+      var ANormalStyle, APressedStyle, ASelectedStyle,
+      AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+    function ButtonFamilyName: string;
+    function GetButtonClasses: TButtonClasses;
+    function GetButtonAppearances: TButtonAppearances;
+    procedure GetStyleByModalResult(
+      const AModalResult: System.UITypes.TModalResult;
+      var AStyleClass: TStyledButtonClass;
+      var AStyleAppearance: TStyledButtonAppearance);
+  end;
+
+  //Angular Material 3, dark colour scheme
+  TAngularM3ButtonStyleDark = class(TInterfacedObject, IStyledButtonAttributes)
+  private
+    //Implementation of IStyledButtonAttributes interface
+    procedure UpdateAttributes(
+      const AFamily:  TStyledButtonFamily;
+      const AClass: TStyledButtonClass;
+      const AAppearance: TStyledButtonAppearance;
+      var ANormalStyle, APressedStyle, ASelectedStyle,
+      AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+    function ButtonFamilyName: string;
+    function GetButtonClasses: TButtonClasses;
+    function GetButtonAppearances: TButtonAppearances;
+    procedure GetStyleByModalResult(
+      const AModalResult: System.UITypes.TModalResult;
+      var AStyleClass: TStyledButtonClass;
+      var AStyleAppearance: TStyledButtonAppearance);
+  end;
+
 implementation
 
 uses
@@ -121,6 +174,8 @@ var
   LightButtonClasses: TButtonClasses;
   DarkButtonClasses: TButtonClasses;
   ButtonAppearances: TButtonAppearances;
+  M3ButtonClasses: TButtonClasses;
+  M3ButtonAppearances: TButtonAppearances;
 
 { TAngularButtonStyleLight }
 
@@ -254,6 +309,9 @@ begin
     ANormalStyle.BorderWidth := ANGULAR_STROKED_WIDTH;
     ANormalStyle.BorderDrawStyle := brdSolid;
     ANormalStyle.ButtonDrawStyle := btnClear;
+    //Material stroked outline: rgba(0,0,0,.12) over a light surface. Without
+    //an explicit value the border was the clBlack default of a fresh object (F5)
+    ANormalStyle.BorderColor := htmlToColor('#E0E0E0');
     //Only for Primary, Accent and Warn, Stroked FontColor as Button Color
     if LPrimaryAccentWarn then
       ANormalStyle.FontColor := LButtonColor
@@ -452,6 +510,8 @@ begin
     ANormalStyle.BorderWidth := ANGULAR_STROKED_WIDTH;
     ANormalStyle.BorderDrawStyle := brdSolid;
     ANormalStyle.ButtonDrawStyle := btnClear;
+    //Material stroked outline: rgba(255,255,255,.12) over a dark surface (F5)
+    ANormalStyle.BorderColor := htmlToColor('#494949');
     //Only for Primary, Accent and Warn, Stroked FontColor as Button Color
     if LPrimaryAccentWarn then
       ANormalStyle.FontColor := LButtonColor
@@ -519,6 +579,312 @@ begin
   end;
 end;
 
+{ Angular Material 3 }
+
+type
+  //System colours (roles of the Material 3 colour scheme) used by the buttons
+  TM3Scheme = record
+    Surface: TColor;
+    OnSurface: TColor;
+    Primary: TColor;
+    OnPrimary: TColor;
+    PrimaryContainer: TColor;
+    OnPrimaryContainer: TColor;
+    SecondaryContainer: TColor;
+    OnSecondaryContainer: TColor;
+    Outline: TColor;
+    OutlineVariant: TColor;
+  end;
+
+const
+  //State layers of the Angular Material 3 buttons (hover/focus/pressed)
+  M3_HOVER_OPACITY = 8;    //percent
+  M3_FOCUS_OPACITY = 12;
+  //Pressed: state layer 12% plus the ripple (12%, still visible while the button is held)
+  M3_PRESSED_OPACITY = 22;
+  //Disabled: container on-surface 12%, label on-surface 38%
+  M3_DISABLED_CONTAINER_OPACITY = 12;
+  M3_DISABLED_LABEL_OPACITY = 38;
+  //Shadow of the Elevated button (pixels): elevation level 1 at rest, 2 on hover
+  M3_ELEVATED_SHADOW = 2;
+  M3_ELEVATED_HOT_SHADOW = 3;
+  //Shadow of the FAB (elevation level 3 at rest, 4 on hover)
+  M3_FAB_SHADOW = 3;
+  M3_FAB_HOT_SHADOW = 4;
+
+function M3LightScheme: TM3Scheme;
+begin
+  //Azure palette: primary 40, secondary 90/30, neutral 98/10, neutral-variant 50/80
+  Result.Surface := htmlToColor('#FAF9FD');
+  Result.OnSurface := htmlToColor('#1A1B1F');
+  Result.Primary := htmlToColor('#005CBB');
+  Result.OnPrimary := htmlToColor('#FFFFFF');
+  Result.PrimaryContainer := htmlToColor('#D7E3FF');
+  Result.OnPrimaryContainer := htmlToColor('#001B3F');
+  Result.SecondaryContainer := htmlToColor('#DAE2F9');
+  Result.OnSecondaryContainer := htmlToColor('#3E4759');
+  Result.Outline := htmlToColor('#74777F');
+  Result.OutlineVariant := htmlToColor('#C4C6D0');
+end;
+
+function M3DarkScheme: TM3Scheme;
+begin
+  //Azure palette: primary 80, secondary 30/90, neutral 6/90, neutral-variant 60/30
+  Result.Surface := htmlToColor('#121316');
+  Result.OnSurface := htmlToColor('#E3E2E6');
+  Result.Primary := htmlToColor('#ABC7FF');
+  Result.OnPrimary := htmlToColor('#002F65');
+  Result.PrimaryContainer := htmlToColor('#00458F');
+  Result.OnPrimaryContainer := htmlToColor('#D7E3FF');
+  Result.SecondaryContainer := htmlToColor('#3E4759');
+  Result.OnSecondaryContainer := htmlToColor('#DAE2F9');
+  Result.Outline := htmlToColor('#8E9099');
+  Result.OutlineVariant := htmlToColor('#44474E');
+end;
+
+//Colour of AFront drawn at APercent opacity over ABack (state layers, disabled colours)
+function M3Blend(const ABack, AFront: TColor; const APercent: Integer): TColor;
+var
+  LBack, LFront: Integer;
+  function Channel(const AShift: Integer): Integer;
+  begin
+    Result := (((LBack shr AShift) and $FF) * (100 - APercent) +
+      ((LFront shr AShift) and $FF) * APercent + 50) div 100;
+  end;
+begin
+  LBack := ColorToRGB(ABack);
+  LFront := ColorToRGB(AFront);
+  Result := TColor(Channel(0) or (Channel(8) shl 8) or (Channel(16) shl 16));
+end;
+
+procedure M3SetStateLayer(const AStyle: TStyledButtonAttributes;
+  const ABase, ALayer: TColor; const AOpacity: Integer);
+begin
+  AStyle.ButtonDrawStyle := btnSolid;
+  AStyle.ButtonColor := M3Blend(ABase, ALayer, AOpacity);
+end;
+
+procedure M3UpdateAttributes(const AScheme: TM3Scheme;
+  const AAppearance: TStyledButtonAppearance;
+  var ANormalStyle, APressedStyle, ASelectedStyle,
+  AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+var
+  LBack, LFont, LLayer, LOutline: TColor;
+  LHasBack, LHasOutline, LElevated, LFab: Boolean;
+  LDisabledBack, LDisabledFont: TColor;
+begin
+  LElevated := False;
+  LFab := False;
+  //Colour of the container (when it has one), of the label and of the state layer
+  LHasBack := False;
+  LHasOutline := False;
+  LOutline := AScheme.Outline;
+  LBack := AScheme.Surface; //the surface under a button without container
+  LFont := AScheme.Primary;
+  LLayer := AScheme.Primary;
+  if SameText(AAppearance, FilledAttr) then
+  begin
+    LHasBack := True;
+    LBack := AScheme.Primary;
+    LFont := AScheme.OnPrimary;
+    LLayer := AScheme.OnPrimary;
+  end
+  else if SameText(AAppearance, TonalAttr) or SameText(AAppearance, FabAttr) then
+  begin
+    LHasBack := True;
+    LFab := SameText(AAppearance, FabAttr);
+    if LFab then
+    begin
+      //the FAB of Angular Material uses the primary container
+      LBack := AScheme.PrimaryContainer;
+      LFont := AScheme.OnPrimaryContainer;
+      LLayer := AScheme.OnPrimaryContainer;
+    end
+    else
+    begin
+      LBack := AScheme.SecondaryContainer;
+      LFont := AScheme.OnSecondaryContainer;
+      LLayer := AScheme.OnSecondaryContainer;
+    end;
+  end
+  else if SameText(AAppearance, ElevatedAttr) then
+  begin
+    //container = surface (as in the Angular Material tokens), with the shadow of the elevation
+    LHasBack := True;
+    LElevated := True;
+    LBack := AScheme.Surface;
+  end
+  else if SameText(AAppearance, OutlinedAttr) then
+    LHasOutline := True;
+  //else Text (also for an unknown appearance): no container, no border
+
+  //Normal. Radius: every M3 button is a "full" corner (btRounded)
+  ANormalStyle.DrawType := btRounded;
+  ANormalStyle.FontStyle := [];
+  ANormalStyle.FontColor := LFont;
+  //ButtonColor always holds a real colour: the consumers that fill a surface read it
+  ANormalStyle.ButtonColor := LBack;
+  if LHasBack then
+    ANormalStyle.ButtonDrawStyle := btnSolid
+  else
+    ANormalStyle.ButtonDrawStyle := btnClear;
+  if LHasOutline then
+  begin
+    ANormalStyle.BorderDrawStyle := brdSolid;
+    ANormalStyle.BorderWidth := 1;
+    ANormalStyle.BorderColor := LOutline;
+  end
+  else
+  begin
+    ANormalStyle.BorderDrawStyle := brdClear;
+    ANormalStyle.BorderWidth := 0;
+    ANormalStyle.BorderColor := LBack;
+  end;
+
+  if LElevated then
+    ANormalStyle.ShadowSize := M3_ELEVATED_SHADOW
+  else if LFab then
+    ANormalStyle.ShadowSize := M3_FAB_SHADOW
+  else
+    ANormalStyle.ShadowSize := 0;
+
+  CloneButtonStyle(ANormalStyle, APressedStyle);
+  CloneButtonStyle(ANormalStyle, ASelectedStyle);
+  CloneButtonStyle(ANormalStyle, AHotStyle);
+  CloneButtonStyle(ANormalStyle, ADisabledStyle);
+  //Elevation: higher on hover, none when disabled
+  if LElevated then
+    AHotStyle.ShadowSize := M3_ELEVATED_HOT_SHADOW
+  else if LFab then
+    AHotStyle.ShadowSize := M3_FAB_HOT_SHADOW;
+  ADisabledStyle.ShadowSize := 0;
+
+  //State layers: the label colour over the container (or over the surface)
+  M3SetStateLayer(AHotStyle, LBack, LLayer, M3_HOVER_OPACITY);
+  M3SetStateLayer(ASelectedStyle, LBack, LLayer, M3_FOCUS_OPACITY);
+  M3SetStateLayer(APressedStyle, LBack, LLayer, M3_PRESSED_OPACITY);
+  //The border of Outlined keeps its colour in every state
+
+  //Disabled: container on-surface 12%, label on-surface 38%, outline on-surface 12%
+  LDisabledBack := M3Blend(AScheme.Surface, AScheme.OnSurface, M3_DISABLED_CONTAINER_OPACITY);
+  LDisabledFont := M3Blend(AScheme.Surface, AScheme.OnSurface, M3_DISABLED_LABEL_OPACITY);
+  ADisabledStyle.FontColor := LDisabledFont;
+  if LHasBack then
+  begin
+    ADisabledStyle.ButtonDrawStyle := btnSolid;
+    ADisabledStyle.ButtonColor := LDisabledBack;
+    ADisabledStyle.BorderDrawStyle := brdClear;
+    ADisabledStyle.BorderWidth := 0;
+    ADisabledStyle.BorderColor := LDisabledBack;
+  end
+  else
+  begin
+    ADisabledStyle.ButtonDrawStyle := btnClear;
+    ADisabledStyle.ButtonColor := AScheme.Surface;
+    if LHasOutline then
+    begin
+      ADisabledStyle.BorderDrawStyle := brdSolid;
+      ADisabledStyle.BorderWidth := 1;
+      ADisabledStyle.BorderColor := LDisabledBack;
+    end;
+  end;
+end;
+
+procedure M3StyleByModalResult(
+  const AModalResult: System.UITypes.TModalResult;
+  var AStyleClass: TStyledButtonClass;
+  var AStyleAppearance: TStyledButtonAppearance);
+begin
+  //Only the Basic class exists: what changes is the appearance
+  AStyleClass := btn_Basic;
+  case AModalResult of
+    //affirmative answers: filled
+    mrNone, mrYes, mrOk, mrAll, mrYesToAll, mrRetry, mrTryAgain, mrContinue:
+      AStyleAppearance := FilledAttr;
+    //negative answers: outlined
+    mrNo, mrCancel, mrAbort, mrNoToAll, mrClose:
+      AStyleAppearance := OutlinedAttr;
+    //the others: text
+    mrIgnore, mrHelp:
+      AStyleAppearance := TextAttr;
+  else
+    AStyleAppearance := FilledAttr;
+  end;
+end;
+
+{ TAngularM3ButtonStyleLight }
+
+function TAngularM3ButtonStyleLight.ButtonFamilyName: string;
+begin
+  Result := ANGULAR_M3_LIGHT_FAMILY;
+end;
+
+function TAngularM3ButtonStyleLight.GetButtonAppearances: TButtonAppearances;
+begin
+  Result := M3ButtonAppearances;
+end;
+
+function TAngularM3ButtonStyleLight.GetButtonClasses: TButtonClasses;
+begin
+  Result := M3ButtonClasses;
+end;
+
+procedure TAngularM3ButtonStyleLight.GetStyleByModalResult(
+  const AModalResult: System.UITypes.TModalResult;
+  var AStyleClass: TStyledButtonClass;
+  var AStyleAppearance: TStyledButtonAppearance);
+begin
+  M3StyleByModalResult(AModalResult, AStyleClass, AStyleAppearance);
+end;
+
+procedure TAngularM3ButtonStyleLight.UpdateAttributes(
+  const AFamily: TStyledButtonFamily;
+  const AClass: TStyledButtonClass;
+  const AAppearance: TStyledButtonAppearance;
+  var ANormalStyle, APressedStyle, ASelectedStyle,
+  AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+begin
+  //single class (Basic): the class does not change the colours
+  M3UpdateAttributes(M3LightScheme, AAppearance,
+    ANormalStyle, APressedStyle, ASelectedStyle, AHotStyle, ADisabledStyle);
+end;
+
+{ TAngularM3ButtonStyleDark }
+
+function TAngularM3ButtonStyleDark.ButtonFamilyName: string;
+begin
+  Result := ANGULAR_M3_DARK_FAMILY;
+end;
+
+function TAngularM3ButtonStyleDark.GetButtonAppearances: TButtonAppearances;
+begin
+  Result := M3ButtonAppearances;
+end;
+
+function TAngularM3ButtonStyleDark.GetButtonClasses: TButtonClasses;
+begin
+  Result := M3ButtonClasses;
+end;
+
+procedure TAngularM3ButtonStyleDark.GetStyleByModalResult(
+  const AModalResult: System.UITypes.TModalResult;
+  var AStyleClass: TStyledButtonClass;
+  var AStyleAppearance: TStyledButtonAppearance);
+begin
+  M3StyleByModalResult(AModalResult, AStyleClass, AStyleAppearance);
+end;
+
+procedure TAngularM3ButtonStyleDark.UpdateAttributes(
+  const AFamily: TStyledButtonFamily;
+  const AClass: TStyledButtonClass;
+  const AAppearance: TStyledButtonAppearance;
+  var ANormalStyle, APressedStyle, ASelectedStyle,
+  AHotStyle, ADisabledStyle: TStyledButtonAttributes);
+begin
+  M3UpdateAttributes(M3DarkScheme, AAppearance,
+    ANormalStyle, APressedStyle, ASelectedStyle, AHotStyle, ADisabledStyle);
+end;
+
 initialization
   SetLength(LightButtonClasses, 7);
   LightButtonClasses[0] := btn_Basic;
@@ -544,7 +910,23 @@ initialization
   ButtonAppearances[2] := BasicAttr;
   ButtonAppearances[3] := StrokedAttr;
 
+  //Angular Material 3: a single class. The Basic/Link/Disabled variants of the
+  //documentation page are the same button as <button>, as <a> and disabled: here
+  //there is no difference between a button and a link, and Disabled is a state
+  SetLength(M3ButtonClasses, 1);
+  M3ButtonClasses[0] := btn_Basic;
+
+  SetLength(M3ButtonAppearances, 6);
+  M3ButtonAppearances[0] := TextAttr;
+  M3ButtonAppearances[1] := ElevatedAttr;
+  M3ButtonAppearances[2] := OutlinedAttr;
+  M3ButtonAppearances[3] := FilledAttr;
+  M3ButtonAppearances[4] := TonalAttr;
+  M3ButtonAppearances[5] := FabAttr;
+
   RegisterButtonFamily(TAngularButtonStyleLight.Create);
   RegisterButtonFamily(TAngularButtonStyleDark.Create);
+  RegisterButtonFamily(TAngularM3ButtonStyleLight.Create);
+  RegisterButtonFamily(TAngularM3ButtonStyleDark.Create);
 
 end.

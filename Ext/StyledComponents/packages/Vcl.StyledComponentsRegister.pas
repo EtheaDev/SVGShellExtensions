@@ -520,6 +520,7 @@ begin
     try
       LNewButton.StyleDrawType := LToolbar.StyleDrawType;
       LNewButton.StyleRadius := LToolbar.StyleRadius;
+      LNewButton.StyleShadowSize := LToolbar.StyleShadowSize;
       LNewButton.SetBounds(0, 0, LToolbar.ButtonWidth, LToolbar.ButtonHeight);
       if LToolbar.ShowCaptions then
       begin
@@ -531,6 +532,7 @@ begin
         LToolbar.SetToolbarStyle(LNewButton.StyleFamily,
           LNewButton.StyleClass, LNewButton.StyleAppearance);
         LToolbar.StyleRadius := LNewButton.StyleRadius;
+        LToolbar.StyleShadowSize := LNewButton.StyleShadowSize;
         LToolbar.StyleDrawType := LNewButton.StyleDrawType;
         Designer.Modified;
       end;
@@ -613,6 +615,7 @@ begin
     try
       LNavButton.StyleDrawType := LDbNavigator.StyleDrawType;
       LNavButton.StyleRadius := LDbNavigator.StyleRadius;
+      LNavButton.StyleShadowSize := LDbNavigator.StyleShadowSize;
       LNavButton.SetBounds(0, 0, LDbNavigator.ButtonWidth, LDbNavigator.ButtonHeight);
       if LDbNavigator.ShowCaptions then
       begin
@@ -624,6 +627,7 @@ begin
         LDbNavigator.SetDbNavigatorStyle(LNavButton.StyleFamily,
           LNavButton.StyleClass, LNavButton.StyleAppearance);
         LDbNavigator.StyleRadius := LNavButton.StyleRadius;
+        LDbNavigator.StyleShadowSize := LNavButton.StyleShadowSize;
         LDbNavigator.StyleDrawType := LNavButton.StyleDrawType;
         Designer.Modified;
       end;
@@ -675,6 +679,7 @@ begin
       LButtonGroup.StyleDrawType, LButtonGroup.ButtonsCursor, False);
     try
       LButton.StyleRadius := LButtonGroup.StyleRadius;
+      LButton.StyleShadowSize := LButtonGroup.StyleShadowSize;
       LButton.StyleRoundedCorners := LButtonGroup.StyleRoundedCorners;
       LButton.StyleDrawType := LButtonGroup.StyleDrawType;
       if gboFullSize in LButtonGroup.ButtonOptions then
@@ -692,6 +697,7 @@ begin
         LButtonGroup.SetButtonGroupStyle(LButton.StyleFamily,
           LButton.StyleClass, LButton.StyleAppearance);
         LButtonGroup.StyleRadius := LButton.StyleRadius;
+        LButtonGroup.StyleShadowSize := LButton.StyleShadowSize;
         LButtonGroup.StyleRoundedCorners := LButton.StyleRoundedCorners;
         LButtonGroup.StyleDrawType := LButton.StyleDrawType;
         LButtonGroup.Invalidate;
@@ -830,6 +836,7 @@ begin
       LCategoryButtons.StyleDrawType, LCategoryButtons.ButtonsCursor, False);
     try
       LButton.StyleRadius := LCategoryButtons.StyleRadius;
+      LButton.StyleShadowSize := LCategoryButtons.StyleShadowSize;
       LButton.StyleRoundedCorners := LCategoryButtons.StyleRoundedCorners;
       LButton.StyleDrawType := LCategoryButtons.StyleDrawType;
       if boFullSize in LCategoryButtons.ButtonOptions then
@@ -847,6 +854,7 @@ begin
         LCategoryButtons.SetCategoryButtonsStyle(LButton.StyleFamily,
           LButton.StyleClass, LButton.StyleAppearance);
         LCategoryButtons.StyleRadius := LButton.StyleRadius;
+        LCategoryButtons.StyleShadowSize := LButton.StyleShadowSize;
         LCategoryButtons.StyleRoundedCorners := LButton.StyleRoundedCorners;
         LCategoryButtons.StyleDrawType := LButton.StyleDrawType;
         LCategoryButtons.Invalidate;

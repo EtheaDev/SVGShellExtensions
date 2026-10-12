@@ -32,6 +32,7 @@ uses
   WinApi.Messages,
   System.SysUtils,
   System.Classes,
+  System.UITypes,
   System.Contnrs,
   System.Actions,
   System.ImageList,
@@ -91,6 +92,8 @@ uses
   , Vcl.StyledButtonGroup
   , Vcl.StyledCategoryButtons
   , PageControlHook
+  , uSVGColorScanner
+  , uSVGPaletteBar
   ;
 
 const
@@ -118,6 +121,19 @@ resourcestring
   SVG_PARSING_OK = 'SVG Parsing is correct.';
   FILES_NOT_SAVED = 'The following files could not be saved:%s';
   FILES_TYPE = 'SVG Image files';
+  PALETTE_TITLE = 'COLOR PALETTE (%d)';
+  PALETTE_DOCUMENT = 'Document';
+  PALETTE_CUSTOM = 'Custom';
+  PALETTE_EMPTY = 'No colors found in the document';
+  PALETTE_ADD_HINT = 'Add a custom color...';
+  PALETTE_HINT_OCCURRENCES = 'Occurrences: %d';
+  PALETTE_HINT_PROPERTIES = 'Used in: %s';
+  PALETTE_HINT_ALPHA = 'Opacity: %s';
+  PALETTE_INFO_COUNT = '%s - %d occurrences';
+  PALETTE_INFO_POSITION = '%s - %d of %d';
+  PALETTE_INFO_UNUSED = '%s - not used in the document';
+  PALETTE_HINT_CUSTOM = 'Custom color';
+  PALETTE_REPLACED = 'Color values replaced: %d';
 
 type
   TEditingFile = class
@@ -242,6 +258,24 @@ type
     FixedColorBox: TColorBox;
     FixedColorCheckBox: TCheckBox;
     ClientPanel: TPanel;
+    PaletteSplitter: TSplitter;
+    PalettePanel: TPanel;
+    PaletteHeaderPanel: TPanel;
+    PaletteTitleLabel: TLabel;
+    PaletteToolBar: TStyledToolbar;
+    PalettePrevToolButton: TStyledToolButton;
+    PaletteNextToolButton: TStyledToolButton;
+    PaletteInfoLabel: TLabel;
+    acPalettePrev: TAction;
+    acPaletteNext: TAction;
+    PalettePopupMenu: TPopupMenu;
+    ReplaceAllColorMenuItem: TMenuItem;
+    SelectAllColorMenuItem: TMenuItem;
+    CopyColorMenuItem: TMenuItem;
+    PaletteSepMenuItem: TMenuItem;
+    AddCustomColorMenuItem: TMenuItem;
+    RemoveCustomColorMenuItem: TMenuItem;
+    PaletteColorDialog: TColorDialog;
     procedure WMGetMinMaxInfo(var Message: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure acOpenFileExecute(Sender: TObject);
     procedure acSaveExecute(Sender: TObject);
@@ -326,6 +360,13 @@ type
     procedure LoadTimerTimer(Sender: TObject);
     procedure AppDeactivate(Sender: TObject);
     procedure AppActivate(Sender: TObject);
+    procedure acPaletteNavigateExecute(Sender: TObject);
+    procedure acPaletteNavigateUpdate(Sender: TObject);
+    procedure ReplaceAllColorMenuItemClick(Sender: TObject);
+    procedure SelectAllColorMenuItemClick(Sender: TObject);
+    procedure CopyColorMenuItemClick(Sender: TObject);
+    procedure AddCustomColorMenuItemClick(Sender: TObject);
+    procedure RemoveCustomColorMenuItemClick(Sender: TObject);
   private
     PageControl: TPageControlEx;
     FEditingInProgress: Boolean;
@@ -352,6 +393,32 @@ type
     FEditorOptions: TSynEditorOptionsContainer;
     FFontSize: Integer;
     FDropTarget: TDropTarget;
+    //Color palette of the current editor
+    FPaletteBar: TSVGPaletteBar;
+    FColorOccurrences: TSVGColorOccurrences;
+    FColorPalette: TSVGPalette;
+    //Editor and text last scanned, to skip a scan with the same result
+    FPaletteEditor: TSynEdit;
+    FPaletteText: string;
+    //Palette entry whose occurrences are highlighted (-1 = none), position of
+    //the current occurrence in its list (-1 = none reached yet) and the editor
+    //holding the indicators
+    FPaletteMatchEntry: Integer;
+    FPaletteMatchPos: Integer;
+    FPaletteMatchColor: TAlphaColor;
+    FHighlightedEditor: TSynEdit;
+    //Where the caret was before the first click of a double click
+    FClickEditor: TSynEdit;
+    FClickCaretOccurrence: Integer;
+    FClickSelStart, FClickSelEnd: TBufferCoord;
+    //Swatch under the mouse when the palette context menu was opened
+    FPopupHit: TSVGPaletteHit;
+    FCustomColors: TArray<TAlphaColor>;
+    //Text changed after the last scan: the positions are not reliable until
+    //the debounced rescan, so the caret is not matched against them
+    FPaletteStale: Boolean;
+    //Occurrence under the editor caret (-1 = none)
+    FCaretOccurrence: Integer;
     procedure OnExportToPng(const ASizes: TPngExportSizes; const SVGText: string;
       const AFolder, AFormat: string; ACustomSize: Integer);
     // implement IDragDrop
@@ -399,6 +466,37 @@ type
     procedure SetGrayScale(const Value: Boolean);
     procedure UpdateColorGUI;
     procedure CreatePageControl;
+    procedure CreatePaletteBar;
+    procedure UpdatePaletteVisibility;
+    procedure UpdateColorPalette(const AForce: Boolean = False);
+    function PaletteEntryHint(const AEntry: TSVGPaletteEntry): string;
+    procedure PaletteSwatchClick(Sender: TObject;
+      ASection: TSVGPaletteSection; AIndex: Integer);
+    procedure HighlightPaletteEntry(const AEntry: Integer);
+    procedure ClearPaletteHighlight;
+    procedure GotoPaletteOccurrence(const APos: Integer);
+    procedure UpdatePaletteInfo;
+    procedure UpdatePaletteCaret;
+    procedure SynEditStatusChange(Sender: TObject; Changes: TSynStatusChanges);
+    function ColorDescription(const AColor: TAlphaColor): string;
+    function SwatchColor(const ASection: TSVGPaletteSection;
+      const AIndex: Integer): TAlphaColor;
+    function GetSelectedPaletteColor(out AColor: TAlphaColor): Boolean;
+    procedure FocusCurrentEditor;
+    procedure SavePaletteClickTarget;
+    procedure PaletteSwatchDblClick(Sender: TObject;
+      ASection: TSVGPaletteSection; AIndex: Integer);
+    procedure PaletteAddClick(Sender: TObject);
+    procedure PaletteBarContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
+    function ReplaceColorOccurrences(const AOccurrences: TArray<Integer>;
+      const AColor: TAlphaColor): Integer;
+    function ExecutePaletteColorDialog(var AColor: TAlphaColor): Boolean;
+    function IndexOfCustomColor(const AColor: TAlphaColor): Integer;
+    procedure LoadCustomColors;
+    procedure SaveCustomColors;
+    procedure AddCustomColor(const AColor: TAlphaColor);
+    procedure UpdateCustomColorItems;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure CreateWindowHandle(const Params: TCreateParams); override;
@@ -420,7 +518,6 @@ uses
   Vcl.Themes
   , System.IOUtils
   , System.StrUtils
-  , System.UITypes
   , Winapi.ShellAPI
   , uMisc
   , Xml.XMLDoc
@@ -432,15 +529,22 @@ uses
   , DPageSetup
   , FSynHighlightProp
   , System.Math
+  , System.Generics.Collections
   , Winapi.SHFolder
   , SettingsForm
   , uSingleInstance
   , Vcl.StyledTaskDialog
+  , SynDWrite
+  , Vcl.Clipbrd
+  , uRegistry
   ;
 
 {$R *.dfm}
 
 const
+  //Indicator marking the occurrences of the color selected in the palette
+  PALETTE_INDICATOR_ID: TGUID = '{673F1EC0-914A-4A39-BDE9-4399E6C75BBB}';
+
   STATUSBAR_PANEL_FONTNAME = 0;
   STATUSBAR_PANEL_FONTSIZE = 1;
   STATUSBAR_PANEL_CARET = 2;
@@ -453,10 +557,30 @@ begin
   Result := '"'+AValue+'"';
 end;
 
-procedure UpdateApplicationStyle(const VCLStyleName: string);
+//Applies the style and returns the one actually applied. TrySetStyle with
+//False does not raise: a style saved by an older version, and no longer
+//linked into the editor, falls back to the default style instead of
+//stopping the editor with an exception
+function UpdateApplicationStyle(const VCLStyleName: string): string;
 begin
   if StyleServices.Enabled then
-    TStyleManager.SetStyle(VCLStyleName);
+  begin
+    Result := VCLStyleName;
+    if not TStyleManager.TrySetStyle(Result, False) then
+    begin
+      //Style no longer linked (e.g. saved by an older version): use the
+      //default one, light or dark like the Windows theme, and "Windows
+      //Modern" only as a last resort
+      Result := DefaultStyleName;
+      if not TStyleManager.TrySetStyle(Result, False) then
+      begin
+        Result := 'Windows Modern';
+        TStyleManager.TrySetStyle(Result, False);
+      end;
+    end;
+  end
+  else
+    Result := 'Windows';
 end;
 
 { TEditingFile }
@@ -527,6 +651,15 @@ begin
     else
       raise;
   end;
+  //NB: loading the content leaves an undo entry behind, so the first Ctrl+Z
+  //emptied the file just opened - and left Modified True, so a save right
+  //after would have written an empty file over the document.
+  //TSynUndoPlugin.LinesInserted pushes a TSynLinesInsertedUndoItem for the
+  //lines the load inserts, and the ClearUndo that TCustomSynEdit.ListCleared
+  //would normally perform never runs: TSynEditStringList.Clear has its whole
+  //body guarded by "if FCount <> 0", so on a still-empty buffer it does
+  //nothing at all and no OnCleared is fired.
+  SynEditor.ClearUndo;
   SynEditor.Modified := False;
   SynEditor.OnChange(SynEditor);
   FileAge(AFileName, FFileAge);
@@ -958,6 +1091,9 @@ begin
     else
       LCurrentFileName := '';
     FEditorSettings.UpdateOpenedFiles(LFileList, LCurrentFileName);
+    //Palette height is stored at 96 DPI
+    FEditorSettings.ColorPaletteHeight := MulDiv(PalettePanel.Height,
+      Screen.DefaultPixelsPerInch, CurrentPPI);
     FEditorSettings.WriteSettings(nil, FEditorOptions);
   finally
     LFileList.Free;
@@ -1048,6 +1184,9 @@ begin
   WindowState := wsMaximized;
 
   UpdateFromSettings(nil);
+
+  //Color palette under the editor
+  CreatePaletteBar;
 
   //Explicit attach imagelist
   ActionList.Images := VirtualImageList;
@@ -1171,6 +1310,7 @@ begin
     //returns early when the value is unchanged), so it would not reset it.
     LoadTimer.Enabled := False;
     LoadTimer.Enabled := True;
+    FPaletteStale := True;
     UpdateTabsheetImage(pageControl.ActivePage, CurrentEditor.Modified);
   end;
 end;
@@ -1201,6 +1341,7 @@ begin
     //Create the SynEdit object editor into the TabSheet that is the owner
     LEditor := TSynEdit.Create(LTabSheet);
     LEditor.OnChange := SynEditChange;
+    LEditor.OnStatusChange := SynEditStatusChange;
     LEditor.OnEnter := SynEditEnter;
     LEditor.MaxUndo := 5000;
     LEditor.Align := alClient;
@@ -1258,6 +1399,8 @@ var
 begin
   if FProcessingFiles then
     Exit;
+  //The palette has its own check of the text already scanned
+  UpdateColorPalette;
   //Assign SVG image
   try
     if CurrentEditor <> nil then
@@ -1558,6 +1701,14 @@ begin
   else
     LPageIndex := -1;
 
+  //The editor is about to be destroyed: forget the palette references to it
+  if FHighlightedEditor = EditingFile.SynEditor then
+    FHighlightedEditor := nil;
+  if FPaletteEditor = EditingFile.SynEditor then
+    FPaletteEditor := nil;
+  if FClickEditor = EditingFile.SynEditor then
+    FClickEditor := nil;
+
   //Delete the file from the Opened-List. EditFileList owns the object, so this
   //frees the TEditingFile; the SynEdit belongs to the TabSheet, not to it.
   EditFileList.Delete(LPos);
@@ -1843,7 +1994,7 @@ procedure TfrmMain.UpdateFromSettings(AEditor: TSynEdit);
 var
   LStyle: TStyledButtonDrawType;
 begin
-  UpdateApplicationStyle(FEditorSettings.StyleName);
+  FEditorSettings.StyleName := UpdateApplicationStyle(FEditorSettings.StyleName);
   if AEditor <> nil then
   begin
     FEditorSettings.ReadSettings(AEditor.Highlighter, self.FEditorOptions);
@@ -1876,6 +2027,7 @@ begin
   TStyledButtonGroup.RegisterDefaultRenderingStyle(LStyle);
   catMenuItems.StyleDrawType := LStyle;
   MenuButtonToolbar.StyleDrawType := LStyle;
+  PaletteToolBar.StyleDrawType := LStyle;
 
   if FEditorSettings.FontSize >= MinfontSize then
     EditorFontSize := FEditorSettings.FontSize
@@ -1942,6 +2094,12 @@ begin
   //without going through the options container.
   ApplyStyleToGutter(ASynEditor.Gutter);
   ASynEditor.Font.Color := StyleServices.GetSystemColor(clWindowText);
+  //Occurrences of the color selected in the palette: re-registered here so
+  //the frame follows the active style
+  ASynEditor.Indicators.RegisterSpec(PALETTE_INDICATOR_ID,
+    TSynIndicatorSpec.New(sisRoundedFilledRectangle,
+    D2D1ColorF(StyleServices.GetSystemColor(clHighlight)),
+    D2D1ColorF(StyleServices.GetSystemColor(clHighlight), 0.2), []));
 end;
 
 procedure TfrmMain.UpdateHighlighters;
@@ -2152,7 +2310,9 @@ begin
     //NB: the HTTP call runs in background. Performing it here, inside an
     //action-update handler, used to freeze the UI at startup whenever the
     //network was slow or unreachable.
-    if True then //FEditorSettings.IsTimeToCheckNewVersion then
+    //NB: the condition was disabled ("if True then"), so the check ran at
+    //every startup ignoring the "Automatic check" option and its interval.
+    if FEditorSettings.IsTimeToCheckNewVersion then
       CheckNewSetupAsync(
         procedure(ACurrentVersion, ANewVersion: string)
         begin
@@ -2187,6 +2347,7 @@ begin
       FEditorSettings.WriteSettings(CurrentEditor.Highlighter, FEditorOptions);
       UpdateFromSettings(CurrentEditor);
       UpdateHighlighters;
+      UpdatePaletteVisibility;
     end;
   end;
 end;
@@ -2383,6 +2544,661 @@ begin
       //Help button was shown and did nothing at all.
       [TMsgDlgBtn.mbOK], 0);
   end;
+end;
+
+procedure TfrmMain.CreatePaletteBar;
+begin
+  FPaletteBar := TSVGPaletteBar.Create(Self);
+  FPaletteBar.Parent := PalettePanel;
+  FPaletteBar.Align := alClient;
+  FPaletteBar.DocumentCaption := PALETTE_DOCUMENT;
+  FPaletteBar.CustomCaption := PALETTE_CUSTOM;
+  FPaletteBar.EmptyText := PALETTE_EMPTY;
+  FPaletteBar.AddHint := PALETTE_ADD_HINT;
+  FPaletteBar.OnSwatchClick := PaletteSwatchClick;
+  FPaletteBar.OnSwatchDblClick := PaletteSwatchDblClick;
+  FPaletteBar.OnAddClick := PaletteAddClick;
+  FPaletteBar.OnContextPopup := PaletteBarContextPopup;
+  FPaletteBar.PopupMenu := PalettePopupMenu;
+  FPaletteMatchEntry := -1;
+  FPaletteMatchPos := -1;
+  FCaretOccurrence := -1;
+  FClickCaretOccurrence := -1;
+  PaletteTitleLabel.Font.Style := PaletteTitleLabel.Font.Style + [fsBold];
+  PaletteTitleLabel.Caption := Format(PALETTE_TITLE, [0]);
+  PalettePanel.Height := MulDiv(FEditorSettings.ColorPaletteHeight,
+    CurrentPPI, Screen.DefaultPixelsPerInch);
+  LoadCustomColors;
+  UpdatePaletteVisibility;
+end;
+
+procedure TfrmMain.UpdatePaletteVisibility;
+begin
+  PalettePanel.Visible := FEditorSettings.ShowColorPalette;
+  PaletteSplitter.Visible := PalettePanel.Visible;
+  if PalettePanel.Visible then
+  begin
+    //A bottom-aligned splitter must stay above its panel
+    PaletteSplitter.Top := PalettePanel.Top - PaletteSplitter.Height;
+    UpdateColorPalette(True);
+  end
+  else
+  begin
+    //Nothing must stay highlighted by a hidden palette
+    ClearPaletteHighlight;
+    FPaletteEditor := nil;
+  end;
+end;
+
+function TfrmMain.ColorDescription(const AColor: TAlphaColor): string;
+var
+  LName: string;
+begin
+  Result := Format('%s  rgb(%d, %d, %d)', [TSVGColorScanner.ColorToHex(OpaqueColor(AColor)),
+    (AColor shr 16) and $FF, (AColor shr 8) and $FF, AColor and $FF]);
+  LName := TSVGColorScanner.ColorToName(OpaqueColor(AColor));
+  if LName <> '' then
+    Result := Result + '  ' + LName;
+end;
+
+function TfrmMain.PaletteEntryHint(const AEntry: TSVGPaletteEntry): string;
+var
+  LAlphas: string;
+  I: Integer;
+begin
+  Result := ColorDescription(AEntry.Color) + sLineBreak +
+    Format(PALETTE_HINT_OCCURRENCES, [AEntry.Count]) + sLineBreak +
+    Format(PALETTE_HINT_PROPERTIES, [string.Join(', ', AEntry.PropertyNames)]);
+  //Occurrences of the same RGB with a different alpha share the swatch
+  if (Length(AEntry.Alphas) > 1) or
+    ((Length(AEntry.Alphas) = 1) and (AEntry.Alphas[0] <> 255)) then
+  begin
+    LAlphas := '';
+    for I := 0 to High(AEntry.Alphas) do
+    begin
+      if LAlphas <> '' then
+        LAlphas := LAlphas + ', ';
+      LAlphas := LAlphas + IntToStr(Round(AEntry.Alphas[I] * 100 / 255)) + '%';
+    end;
+    Result := Result + sLineBreak + Format(PALETTE_HINT_ALPHA, [LAlphas]);
+  end;
+end;
+
+function TfrmMain.SwatchColor(const ASection: TSVGPaletteSection;
+  const AIndex: Integer): TAlphaColor;
+begin
+  Result := FPaletteBar.Items(ASection)[AIndex].Color;
+end;
+
+function TfrmMain.GetSelectedPaletteColor(out AColor: TAlphaColor): Boolean;
+var
+  LSelected: TSVGPaletteHit;
+begin
+  LSelected := FPaletteBar.Selected;
+  Result := LSelected.IsSwatch and
+    (LSelected.Index <= High(FPaletteBar.Items(LSelected.Section)));
+  if Result then
+    AColor := SwatchColor(LSelected.Section, LSelected.Index)
+  else
+    AColor := 0;
+end;
+
+procedure TfrmMain.UpdateColorPalette(const AForce: Boolean = False);
+var
+  LEditor: TSynEdit;
+  LText: string;
+  LItems: TSVGPaletteItems;
+  LSelected: TSVGPaletteHit;
+  LSelectedColor: TAlphaColor;
+  LHadDocumentSelection: Boolean;
+  I: Integer;
+begin
+  if not Assigned(FPaletteBar) or not PalettePanel.Visible then
+    Exit;
+  LEditor := CurrentEditor;
+  if LEditor <> nil then
+    LText := LEditor.Lines.Text
+  else
+    LText := '';
+  if not AForce and (LEditor = FPaletteEditor) and (LText = FPaletteText) then
+  begin
+    //The typing ended with the text already scanned (e.g. undo): the
+    //positions are reliable again
+    if FPaletteStale then
+    begin
+      FPaletteStale := False;
+      UpdatePaletteCaret;
+    end;
+    Exit;
+  end;
+  //Keep the selected document color selected, if it is still in the document
+  LSelected := FPaletteBar.Selected;
+  LHadDocumentSelection := (LEditor = FPaletteEditor) and LSelected.IsSwatch and
+    (LSelected.Section = psDocument) and (LSelected.Index <= High(FColorPalette));
+  if LHadDocumentSelection then
+    LSelectedColor := FColorPalette[LSelected.Index].Color
+  else
+    LSelectedColor := 0;
+  FPaletteEditor := LEditor;
+  FPaletteText := LText;
+  FPaletteStale := False;
+  try
+    FColorOccurrences := TSVGColorScanner.Scan(LText);
+  except
+    //A wrong document must never stop the editing: just show no colors
+    FColorOccurrences := nil;
+  end;
+  FColorPalette := TSVGColorScanner.BuildPalette(FColorOccurrences);
+  SetLength(LItems, Length(FColorPalette));
+  for I := 0 to High(FColorPalette) do
+  begin
+    LItems[I].Color := FColorPalette[I].Color;
+    LItems[I].Count := FColorPalette[I].Count;
+    LItems[I].Hint := PaletteEntryHint(FColorPalette[I]);
+  end;
+  if LSelected.Section = psDocument then
+    FPaletteBar.Select(psDocument, -1);
+  FPaletteBar.SetItems(psDocument, LItems);
+  if LHadDocumentSelection then
+    FPaletteBar.Select(psDocument,
+      TSVGColorScanner.IndexOfColor(FColorPalette, LSelectedColor));
+  PaletteTitleLabel.Caption := Format(PALETTE_TITLE, [Length(FColorPalette)]);
+  //The positions have changed: highlight again the occurrences of the
+  //selected color (document or custom), or remove the highlight if the color
+  //is not in the document
+  if GetSelectedPaletteColor(LSelectedColor) then
+    HighlightPaletteEntry(TSVGColorScanner.IndexOfColor(FColorPalette, LSelectedColor))
+  else
+    ClearPaletteHighlight;
+  UpdatePaletteCaret;
+end;
+
+procedure TfrmMain.SynEditStatusChange(Sender: TObject;
+  Changes: TSynStatusChanges);
+begin
+  if (Sender = CurrentEditor) and
+    (Changes * [scAll, scCaretX, scCaretY] <> []) then
+    UpdatePaletteCaret;
+end;
+
+procedure TfrmMain.UpdatePaletteCaret;
+var
+  LEditor: TSynEdit;
+  LEntry, LPos: Integer;
+begin
+  if not Assigned(FPaletteBar) or not PalettePanel.Visible then
+    Exit;
+  LEditor := CurrentEditor;
+  FCaretOccurrence := -1;
+  LEntry := -1;
+  //While typing the positions are stale: the marker is refreshed by the
+  //rescan, which calls this method again
+  if (LEditor <> nil) and (LEditor = FPaletteEditor) and not FPaletteStale then
+  begin
+    FCaretOccurrence := TSVGColorScanner.OccurrenceAt(FColorOccurrences,
+      LEditor.CaretY, LEditor.CaretX);
+    if FCaretOccurrence >= 0 then
+      LEntry := TSVGColorScanner.IndexOfColor(FColorPalette,
+        FColorOccurrences[FCaretOccurrence].Color);
+  end;
+  FPaletteBar.CaretIndex := LEntry;
+  if LEntry >= 0 then
+  begin
+    FPaletteBar.ScrollIntoView(psDocument, LEntry);
+    //Caret on an occurrence of the highlighted color: navigation goes on
+    //from there
+    if LEntry = FPaletteMatchEntry then
+    begin
+      LPos := TArray.IndexOf<Integer>(FColorPalette[LEntry].Occurrences,
+        FCaretOccurrence);
+      if (LPos >= 0) and (LPos <> FPaletteMatchPos) then
+      begin
+        FPaletteMatchPos := LPos;
+        UpdatePaletteInfo;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmMain.ClearPaletteHighlight;
+begin
+  if Assigned(FHighlightedEditor) then
+    FHighlightedEditor.Indicators.Clear(PALETTE_INDICATOR_ID);
+  FHighlightedEditor := nil;
+  FPaletteMatchEntry := -1;
+  FPaletteMatchPos := -1;
+  UpdatePaletteInfo;
+end;
+
+procedure TfrmMain.HighlightPaletteEntry(const AEntry: Integer);
+var
+  LEditor: TSynEdit;
+  LOccurrence: TSVGColorOccurrence;
+  LCount: Integer;
+  I: Integer;
+begin
+  LEditor := CurrentEditor;
+  if (LEditor = nil) or (AEntry < 0) or (AEntry > High(FColorPalette)) then
+  begin
+    ClearPaletteHighlight;
+    Exit;
+  end;
+  if Assigned(FHighlightedEditor) then
+    FHighlightedEditor.Indicators.Clear(PALETTE_INDICATOR_ID);
+  for I in FColorPalette[AEntry].Occurrences do
+  begin
+    LOccurrence := FColorOccurrences[I];
+    LEditor.Indicators.Add(LOccurrence.Line, TSynIndicator.New(
+      PALETTE_INDICATOR_ID, LOccurrence.CharStart, LOccurrence.CharEnd));
+  end;
+  FHighlightedEditor := LEditor;
+  //Same color after a rescan: keep the position, within the new count. The
+  //color is compared, not the index, which a rescan may change
+  LCount := FColorPalette[AEntry].Count;
+  if (FPaletteMatchEntry < 0) or (FColorPalette[AEntry].Color <> FPaletteMatchColor) then
+    FPaletteMatchPos := -1
+  else if FPaletteMatchPos >= LCount then
+    FPaletteMatchPos := LCount - 1;
+  FPaletteMatchEntry := AEntry;
+  FPaletteMatchColor := FColorPalette[AEntry].Color;
+  UpdatePaletteInfo;
+end;
+
+procedure TfrmMain.GotoPaletteOccurrence(const APos: Integer);
+var
+  LEditor: TSynEdit;
+  LOccurrence: TSVGColorOccurrence;
+  LStart, LEnd: TBufferCoord;
+begin
+  LEditor := CurrentEditor;
+  if (LEditor = nil) or (FPaletteMatchEntry < 0) or
+    (APos < 0) or (APos >= FColorPalette[FPaletteMatchEntry].Count) then
+    Exit;
+  FPaletteMatchPos := APos;
+  LOccurrence := FColorOccurrences[FColorPalette[FPaletteMatchEntry].Occurrences[APos]];
+  LStart := BufferCoord(LOccurrence.CharStart, LOccurrence.Line);
+  LEnd := BufferCoord(LOccurrence.CharEnd, LOccurrence.Line);
+  //Select the value, so the current occurrence stands out from the others
+  LEditor.SetCaretAndSelection(LEnd, LStart, LEnd, True, True);
+  UpdatePaletteInfo;
+end;
+
+procedure TfrmMain.UpdatePaletteInfo;
+var
+  LHex: string;
+  LColor: TAlphaColor;
+begin
+  if (FPaletteMatchEntry >= 0) and (FPaletteMatchEntry <= High(FColorPalette)) then
+  begin
+    LHex := TSVGColorScanner.ColorToHex(FColorPalette[FPaletteMatchEntry].Color);
+    if FPaletteMatchPos < 0 then
+      PaletteInfoLabel.Caption := Format(PALETTE_INFO_COUNT,
+        [LHex, FColorPalette[FPaletteMatchEntry].Count])
+    else
+      PaletteInfoLabel.Caption := Format(PALETTE_INFO_POSITION,
+        [LHex, FPaletteMatchPos + 1, FColorPalette[FPaletteMatchEntry].Count]);
+  end
+  else if Assigned(FPaletteBar) and GetSelectedPaletteColor(LColor) then
+    //A custom color not used in the document
+    PaletteInfoLabel.Caption := Format(PALETTE_INFO_UNUSED,
+      [TSVGColorScanner.ColorToHex(OpaqueColor(LColor))])
+  else
+    PaletteInfoLabel.Caption := '';
+end;
+
+procedure TfrmMain.FocusCurrentEditor;
+begin
+  if (CurrentEditor <> nil) and CurrentEditor.CanFocus then
+    CurrentEditor.SetFocus;
+end;
+
+procedure TfrmMain.SavePaletteClickTarget;
+begin
+  //The first click of a double click moves the caret to the clicked color:
+  //the double click must act where the caret was before it
+  FClickEditor := CurrentEditor;
+  FClickCaretOccurrence := -1;
+  if FClickEditor = nil then
+    Exit;
+  FClickCaretOccurrence := FCaretOccurrence;
+  FClickSelStart := FClickEditor.BlockBegin;
+  FClickSelEnd := FClickEditor.BlockEnd;
+end;
+
+procedure TfrmMain.PaletteSwatchClick(Sender: TObject;
+  ASection: TSVGPaletteSection; AIndex: Integer);
+var
+  LEntry: Integer;
+begin
+  //Bring positions up to date with the text typed since the last scan
+  UpdateColorPalette;
+  SavePaletteClickTarget;
+  LEntry := TSVGColorScanner.IndexOfColor(FColorPalette, SwatchColor(ASection, AIndex));
+  if LEntry < 0 then
+    //A custom color not used in the document: nothing to highlight
+    ClearPaletteHighlight
+  else if LEntry = FPaletteMatchEntry then
+    //Clicking again the same color moves to its next occurrence
+    acPaletteNext.Execute
+  else
+  begin
+    HighlightPaletteEntry(LEntry);
+    GotoPaletteOccurrence(0);
+  end;
+  FocusCurrentEditor;
+end;
+
+procedure TfrmMain.PaletteSwatchDblClick(Sender: TObject;
+  ASection: TSVGPaletteSection; AIndex: Integer);
+var
+  LEditor: TSynEdit;
+  LColor: TAlphaColor;
+begin
+  LEditor := CurrentEditor;
+  if (LEditor = nil) or (LEditor <> FClickEditor) or LEditor.ReadOnly then
+    Exit;
+  LColor := SwatchColor(ASection, AIndex);
+  if (FClickCaretOccurrence >= 0) and (FClickCaretOccurrence <= High(FColorOccurrences)) then
+    //The caret was on a color: replace it
+    ReplaceColorOccurrences([FClickCaretOccurrence], LColor)
+  else
+  begin
+    //Otherwise insert the color where the caret was, over the selection
+    LEditor.SetCaretAndSelection(FClickSelEnd, FClickSelStart, FClickSelEnd, True);
+    LEditor.SelText := TSVGColorScanner.ColorToHex(OpaqueColor(LColor));
+    UpdateColorPalette;
+  end;
+  FClickCaretOccurrence := -1;
+  FocusCurrentEditor;
+end;
+
+function TfrmMain.ReplaceColorOccurrences(const AOccurrences: TArray<Integer>;
+  const AColor: TAlphaColor): Integer;
+var
+  LEditor: TSynEdit;
+  LIndexes: TArray<Integer>;
+  LOccurrence: TSVGColorOccurrence;
+  LNewColor: TAlphaColor;
+  LNewText: string;
+  LStart, LEnd, LLastStart, LLastEnd: TBufferCoord;
+  I: Integer;
+begin
+  Result := 0;
+  LEditor := CurrentEditor;
+  if (LEditor = nil) or LEditor.ReadOnly or (Length(AOccurrences) = 0) then
+    Exit;
+  LIndexes := Copy(AOccurrences);
+  TArray.Sort<Integer>(LIndexes);
+  LEditor.BeginUndoBlock;
+  try
+    //From the last to the first, so the positions still to replace are not
+    //moved by the replacements already done on the same line
+    for I := High(LIndexes) downto 0 do
+    begin
+      LOccurrence := FColorOccurrences[LIndexes[I]];
+      //Never write over text that is not the scanned value any more
+      if (LOccurrence.Line > LEditor.Lines.Count) or
+        (Copy(LEditor.Lines[LOccurrence.Line - 1], LOccurrence.CharStart,
+          LOccurrence.Length) <> LOccurrence.RawText) then
+        Continue;
+      //New RGB, with the alpha of the value being replaced
+      LNewColor := (AColor and $00FFFFFF) or
+        (TAlphaColor(AlphaOf(LOccurrence.Color)) shl 24);
+      LNewText := TSVGColorScanner.FormatColorLike(LNewColor, LOccurrence);
+      if LNewText = LOccurrence.RawText then
+        Continue;
+      LStart := BufferCoord(LOccurrence.CharStart, LOccurrence.Line);
+      LEnd := BufferCoord(LOccurrence.CharEnd, LOccurrence.Line);
+      LEditor.SetCaretAndSelection(LEnd, LStart, LEnd, False);
+      LEditor.SelText := LNewText;
+      LLastStart := LStart;
+      LLastEnd := BufferCoord(LOccurrence.CharStart + Length(LNewText), LOccurrence.Line);
+      Inc(Result);
+    end;
+  finally
+    LEditor.EndUndoBlock;
+  end;
+  if Result > 0 then
+  begin
+    //Leave the first replaced value selected
+    LEditor.SetCaretAndSelection(LLastEnd, LLastStart, LLastEnd, True);
+    UpdateColorPalette;
+    StatusBar.Panels[STATUSBAR_MESSAGE].Text := Format(PALETTE_REPLACED, [Result]);
+  end;
+end;
+
+function TfrmMain.ExecutePaletteColorDialog(var AColor: TAlphaColor): Boolean;
+var
+  LCount, I: Integer;
+  LValue: string;
+  LDialogColor: Integer;
+begin
+  PaletteColorDialog.Color := AlphaColorToColor(AColor);
+  //The custom colors of the dialog show the first custom colors of the palette
+  LCount := Min(Length(FCustomColors), 16);
+  PaletteColorDialog.CustomColors.Clear;
+  for I := 0 to LCount - 1 do
+    PaletteColorDialog.CustomColors.Add(Format('Color%s=%.6x',
+      [Chr(Ord('A') + I), Integer(AlphaColorToColor(FCustomColors[I]))]));
+  Result := PaletteColorDialog.Execute(Handle);
+  if not Result then
+    Exit;
+  AColor := ColorToAlphaColor(PaletteColorDialog.Color);
+  //Colors added to the custom colors of the dialog become custom colors of
+  //the palette too
+  for I := 0 to 15 do
+  begin
+    LValue := PaletteColorDialog.CustomColors.Values['Color' + Chr(Ord('A') + I)];
+    if (LValue = '') or not TryStrToInt('$' + LValue, LDialogColor) then
+      Continue;
+    if (I < LCount) and (TColor(LDialogColor) = AlphaColorToColor(FCustomColors[I])) then
+      Continue; //slot unchanged
+    if (I >= LCount) and (LDialogColor = $FFFFFF) then
+      Continue; //empty slot
+    AddCustomColor(ColorToAlphaColor(TColor(LDialogColor)));
+  end;
+end;
+
+function TfrmMain.IndexOfCustomColor(const AColor: TAlphaColor): Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to High(FCustomColors) do
+    if FCustomColors[I] = OpaqueColor(AColor) then
+      Exit(I);
+  Result := -1;
+end;
+
+procedure TfrmMain.LoadCustomColors;
+var
+  LValue: string;
+  LColor: TAlphaColor;
+  LFormat: TSVGColorFormat;
+begin
+  FCustomColors := nil;
+  for LValue in FEditorSettings.CustomColors.Split([',']) do
+    if TSVGColorScanner.TryParseColor(LValue, LColor, LFormat) and
+      (IndexOfCustomColor(LColor) < 0) then
+      FCustomColors := FCustomColors + [OpaqueColor(LColor)];
+  UpdateCustomColorItems;
+end;
+
+procedure TfrmMain.SaveCustomColors;
+var
+  LValues: TArray<string>;
+  I: Integer;
+begin
+  SetLength(LValues, Length(FCustomColors));
+  for I := 0 to High(FCustomColors) do
+    LValues[I] := TSVGColorScanner.ColorToHex(FCustomColors[I]);
+  FEditorSettings.WriteCustomColors(string.Join(',', LValues));
+  UpdateCustomColorItems;
+end;
+
+procedure TfrmMain.AddCustomColor(const AColor: TAlphaColor);
+begin
+  if IndexOfCustomColor(AColor) >= 0 then
+    Exit;
+  FCustomColors := FCustomColors + [OpaqueColor(AColor)];
+  SaveCustomColors;
+end;
+
+procedure TfrmMain.UpdateCustomColorItems;
+var
+  LItems: TSVGPaletteItems;
+  I: Integer;
+begin
+  SetLength(LItems, Length(FCustomColors));
+  for I := 0 to High(FCustomColors) do
+  begin
+    LItems[I].Color := FCustomColors[I];
+    LItems[I].Count := 0;
+    LItems[I].Hint := ColorDescription(FCustomColors[I]) + sLineBreak + PALETTE_HINT_CUSTOM;
+  end;
+  FPaletteBar.SetItems(psCustom, LItems);
+end;
+
+procedure TfrmMain.PaletteAddClick(Sender: TObject);
+var
+  LColor: TAlphaColor;
+begin
+  //Start from the selected color or from the one under the caret
+  if not GetSelectedPaletteColor(LColor) then
+  begin
+    if FCaretOccurrence >= 0 then
+      LColor := FColorOccurrences[FCaretOccurrence].Color
+    else
+      LColor := TAlphaColors.Black;
+  end;
+  if ExecutePaletteColorDialog(LColor) then
+    AddCustomColor(LColor);
+end;
+
+procedure TfrmMain.PaletteBarContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+var
+  LColor: TAlphaColor;
+  LUsed: Boolean;
+begin
+  //Bring positions up to date with the text typed since the last scan
+  UpdateColorPalette;
+  if (MousePos.X = -1) and (MousePos.Y = -1) then
+    FPopupHit := FPaletteBar.Selected //from the keyboard
+  else
+    FPopupHit := FPaletteBar.HitTest(MousePos.X, MousePos.Y);
+  if not FPopupHit.IsSwatch then
+  begin
+    Handled := True;
+    Exit;
+  end;
+  LColor := SwatchColor(FPopupHit.Section, FPopupHit.Index);
+  LUsed := TSVGColorScanner.IndexOfColor(FColorPalette, LColor) >= 0;
+  ReplaceAllColorMenuItem.Enabled := LUsed and (CurrentEditor <> nil) and
+    not CurrentEditor.ReadOnly;
+  SelectAllColorMenuItem.Enabled := LUsed and (CurrentEditor <> nil);
+  AddCustomColorMenuItem.Visible := FPopupHit.Section = psDocument;
+  AddCustomColorMenuItem.Enabled := IndexOfCustomColor(LColor) < 0;
+  RemoveCustomColorMenuItem.Visible := FPopupHit.Section = psCustom;
+end;
+
+procedure TfrmMain.ReplaceAllColorMenuItemClick(Sender: TObject);
+var
+  LEntry: Integer;
+  LColor: TAlphaColor;
+begin
+  LColor := SwatchColor(FPopupHit.Section, FPopupHit.Index);
+  LEntry := TSVGColorScanner.IndexOfColor(FColorPalette, LColor);
+  if (LEntry < 0) or not ExecutePaletteColorDialog(LColor) then
+    Exit;
+  if ReplaceColorOccurrences(FColorPalette[LEntry].Occurrences, LColor) > 0 then
+  begin
+    //Follow the new color: select it and highlight its occurrences
+    LEntry := TSVGColorScanner.IndexOfColor(FColorPalette, LColor);
+    FPaletteBar.Select(psDocument, LEntry);
+    HighlightPaletteEntry(LEntry);
+  end;
+  FocusCurrentEditor;
+end;
+
+procedure TfrmMain.SelectAllColorMenuItemClick(Sender: TObject);
+var
+  LEditor: TSynEdit;
+  LEntry, I: Integer;
+  LStorage: TSynSelStorage;
+  LOccurrence: TSVGColorOccurrence;
+  LStart, LEnd: TBufferCoord;
+begin
+  LEditor := CurrentEditor;
+  LEntry := TSVGColorScanner.IndexOfColor(FColorPalette,
+    SwatchColor(FPopupHit.Section, FPopupHit.Index));
+  if (LEditor = nil) or (LEntry < 0) then
+    Exit;
+  //One selection (multi-caret) for each occurrence, to edit them together
+  SetLength(LStorage.Selections, FColorPalette[LEntry].Count);
+  for I := 0 to High(LStorage.Selections) do
+  begin
+    LOccurrence := FColorOccurrences[FColorPalette[LEntry].Occurrences[I]];
+    LStart := BufferCoord(LOccurrence.CharStart, LOccurrence.Line);
+    LEnd := BufferCoord(LOccurrence.CharEnd, LOccurrence.Line);
+    LStorage.Selections[I] := TSynSelection.Create(LEnd, LStart, LEnd);
+  end;
+  LStorage.BaseIndex := 0;
+  LStorage.ActiveIndex := 0;
+  LEditor.Selections.Restore(LStorage);
+  FocusCurrentEditor;
+end;
+
+procedure TfrmMain.CopyColorMenuItemClick(Sender: TObject);
+begin
+  Clipboard.AsText := TSVGColorScanner.ColorToHex(
+    OpaqueColor(SwatchColor(FPopupHit.Section, FPopupHit.Index)));
+end;
+
+procedure TfrmMain.AddCustomColorMenuItemClick(Sender: TObject);
+begin
+  AddCustomColor(SwatchColor(FPopupHit.Section, FPopupHit.Index));
+end;
+
+procedure TfrmMain.RemoveCustomColorMenuItemClick(Sender: TObject);
+begin
+  if (FPopupHit.Section <> psCustom) or (FPopupHit.Index > High(FCustomColors)) then
+    Exit;
+  if (FPaletteBar.Selected.Section = psCustom) and FPaletteBar.Selected.IsSwatch then
+  begin
+    FPaletteBar.Select(psCustom, -1);
+    ClearPaletteHighlight;
+  end;
+  Delete(FCustomColors, FPopupHit.Index, 1);
+  SaveCustomColors;
+end;
+
+procedure TfrmMain.acPaletteNavigateExecute(Sender: TObject);
+var
+  LCount, LPos: Integer;
+begin
+  //Bring positions up to date with the text typed since the last scan
+  UpdateColorPalette;
+  if FPaletteMatchEntry < 0 then
+    Exit;
+  LCount := FColorPalette[FPaletteMatchEntry].Count;
+  if LCount = 0 then
+    Exit;
+  if Sender = acPalettePrev then
+  begin
+    if FPaletteMatchPos <= 0 then
+      LPos := LCount - 1
+    else
+      LPos := FPaletteMatchPos - 1;
+  end
+  else
+    LPos := (FPaletteMatchPos + 1) mod LCount;
+  GotoPaletteOccurrence(LPos);
+end;
+
+procedure TfrmMain.acPaletteNavigateUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := PalettePanel.Visible and
+    (CurrentEditor <> nil) and (FPaletteMatchEntry >= 0);
 end;
 
 procedure TfrmMain.CreatePageControl;

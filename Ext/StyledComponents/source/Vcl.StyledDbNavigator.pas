@@ -127,6 +127,7 @@ type
     procedure SetImageAlignment(const AValue: TImageAlignment);
     function IsCustomDrawType: Boolean;
     function IsCustomRadius: Boolean;
+    function IsCustomShadowSize: Boolean;
     function IsCustomRoundedCorners: Boolean;
     function IsStoredStyleFamily: Boolean;
     function IsStoredStyleAppearance: Boolean;
@@ -150,6 +151,7 @@ type
     property Caption: TCaption read GetCaption write SetCaption stored IsCaptionStored;
     //StyledComponents Attributes
     property StyleRadius stored IsCustomRadius;
+    property StyleShadowSize stored IsCustomShadowSize;
     property StyleRoundedCorners stored IsCustomRoundedCorners;
     property StyleDrawType stored IsCustomDrawType;
     property StyleFamily stored IsStoredStyleFamily;
@@ -198,6 +200,7 @@ type
 
     //Styled Attributes
     FStyleRadius: Integer;
+    FStyleShadowSize: Integer;
     FStyleDrawType: TStyledButtonDrawType;
     FStyleFamily: TStyledButtonFamily;
     FStyleClass: TStyledButtonClass;
@@ -264,6 +267,7 @@ type
     procedure WMWindowPosChanging(var Message: TWMWindowPosChanging); message WM_WINDOWPOSCHANGING;
     function IsCustomDrawType: Boolean;
     function IsCustomRadius: Boolean;
+    function IsCustomShadowSize: Boolean;
     function IsStoredStyleAppearance: Boolean;
     function IsStoredStyleClass: Boolean;
     function IsStoredStyleFamily: Boolean;
@@ -272,6 +276,7 @@ type
     procedure SetStyleDrawType(const AValue: TStyledButtonDrawType);
     procedure SetStyleFamily(const AValue: TStyledButtonFamily);
     procedure SetStyleRadius(const AValue: Integer);
+    procedure SetStyleShadowSize(const AValue: Integer);
     procedure SetDisabledImages(const AValue: TCustomImageList);
     procedure SetImages(const AValue: TCustomImageList);
     procedure SetStyleApplied(const AValue: Boolean);
@@ -377,6 +382,7 @@ type
     property OnEnableNavBtn:  TEnableNavBtnProc read FOnEnableNavBtn write FOnEnableNavBtn;
     //StyledComponents Attributes
     property StyleRadius: Integer read FStyleRadius write SetStyleRadius stored IsCustomRadius;
+    property StyleShadowSize: Integer read FStyleShadowSize write SetStyleShadowSize stored IsCustomShadowSize;
     property StyleDrawType: TStyledButtonDrawType read FStyleDrawType write SetStyleDrawType stored IsCustomDrawType;
     property StyleFamily: TStyledButtonFamily read FStyleFamily write SetStyleFamily stored IsStoredStyleFamily;
     property StyleClass: TStyledButtonClass read FStyleClass write SetStyleClass stored IsStoredStyleClass;
@@ -462,6 +468,7 @@ type
 
     //StyledComponents Attributes
     property StyleRadius;
+    property StyleShadowSize;
     property StyleDrawType;
     property StyleFamily;
     property StyleClass;
@@ -570,6 +577,7 @@ type
 
     //StyledComponents Attributes
     property StyleRadius;
+    property StyleShadowSize;
     property StyleDrawType;
     property StyleFamily;
     property StyleClass;
@@ -687,6 +695,7 @@ begin
 
   FStyleDrawType := _DefaultStyleDrawType;
   FStyleRadius := _DefaultStyleRadius;
+  FStyleShadowSize := DEFAULT_SHADOW_SIZE;
   FStyleFamily := AFamily;
   FStyleClass := AClass;
   FStyleAppearance := AAppearance;
@@ -1022,6 +1031,11 @@ end;
 function TCustomStyledDBNavigator.IsCustomRadius: Boolean;
 begin
   Result := StyleRadius <> DEFAULT_RADIUS;
+end;
+
+function TCustomStyledDBNavigator.IsCustomShadowSize: Boolean;
+begin
+  Result := StyleShadowSize <> DEFAULT_SHADOW_SIZE;
 end;
 
 function TCustomStyledDBNavigator.IsStoredStyleAppearance: Boolean;
@@ -1480,6 +1494,23 @@ begin
     StyleElements := [seFont, seClient, seBorder];
 end;
 
+procedure TCustomStyledDBNavigator.SetStyleShadowSize(const AValue: Integer);
+begin
+  if FStyleShadowSize <> AValue then
+  begin
+    if AValue < DEFAULT_SHADOW_SIZE then
+      raise EReadError.create(SInvalidProperty);
+    ProcessButtons(
+      procedure (ABtn: TStyledNavButton)
+      begin
+        if ABtn.StyleShadowSize = FStyleShadowSize then
+          ABtn.StyleShadowSize := AValue;
+      end);
+    FStyleShadowSize := AValue;
+    StyleApplied := ApplyDbnavigatorStyle;
+  end;
+end;
+
 procedure TCustomStyledDBNavigator.SetStyleRadius(const AValue: Integer);
 begin
   if FStyleRadius <> AValue then
@@ -1596,6 +1627,7 @@ begin
     Images :=  LNavigator.FImages;
     FShowCaptions := LNavigator.FShowCaptions;
     FStyleRadius := LNavigator.FStyleRadius;
+    FStyleShadowSize := LNavigator.FStyleShadowSize;
     FStyleDrawType := LNavigator.FStyleDrawType;
     FStyleFamily := LNavigator.FStyleFamily;
     FStyleClass := LNavigator.FStyleClass;
@@ -1956,6 +1988,7 @@ begin
       FDbNavigator._DefaultCursor,
       FDbNavigator._UseCustomDrawType);
     StyleRadius := FDbNavigator.StyleRadius;
+    StyleShadowSize := FDbNavigator.StyleShadowSize;
     StyleDrawType := FDbNavigator.StyleDrawType;
     ControlStyle := [csCaptureMouse, csDoubleClicks, csSetCaption, csOpaque];
   end
@@ -1986,6 +2019,14 @@ begin
     Result := StyleDrawType <> FDbNavigator.StyleDrawType
   else
     Result := StyleDrawType <> btRoundRect;
+end;
+
+function TStyledNavButton.IsCustomShadowSize: Boolean;
+begin
+  if Assigned(FDbNavigator) then
+    Result := StyleShadowSize <> FDbNavigator.StyleShadowSize
+  else
+    Result := StyleShadowSize <> DEFAULT_SHADOW_SIZE;
 end;
 
 function TStyledNavButton.IsCustomRadius: Boolean;

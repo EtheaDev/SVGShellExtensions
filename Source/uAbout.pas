@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {       SVG Shell Extensions: Shell extensions for SVG files                   }
 {       (Preview Panel, Thumbnail Icon, SVG Editor)                            }
@@ -45,7 +45,7 @@ resourcestring
 
   NewVersionAvailable = 'A new installer is available to download:'+sLineBreak+
     'Current version: %s - Available version: %s'+sLineBreak+
-    'Do you want to dowload and install the new version?';
+    'Do you want to download and install the new version?';
   NewVersionNotAvailable = 'No updates available.'+sLineBreak+
     'You have already the latest version: %s';
   Stop_Download_Msg = 'Stop download installer!';
@@ -58,7 +58,7 @@ const
   //NB: HELP_URL is the documentation site, GITHUB_URL is the repository.
   //They are deliberately distinct: the Issues button and the new-version
   //check must go to GitHub, the web help to the project site.
-  HELP_URL = 'https://ethea.it/componenti/svgshellextensions/';
+  HELP_URL = 'https://ethea.it/docs/svgtools/';
   GITHUB_URL = 'https://github.com/EtheaDev/SVGShellExtensions';
   SETUP_FILENAME = 'SVGShellExtensionsSetup.exe';
 
@@ -429,21 +429,21 @@ begin
   MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');
-  MemoCopyRights.Lines.Add('Copyright � 2021-2025 all rights reserved.');
+  MemoCopyRights.Lines.Add('Copyright © 2021-2025 all rights reserved.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Third Party libraries and tools used from Ethea:');
   MemoCopyRights.Lines.Add('SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/');
-  MemoCopyRights.Lines.Add('Copyright � 2019-2025 all rights reserved.');
+  MemoCopyRights.Lines.Add('Copyright © 2019-2025 all rights reserved.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('The Initial Developer of the Original Code is Rodrigo Ruz V.');
-  MemoCopyRights.Lines.Add('Portions created by Rodrigo Ruz V. are Copyright � 2011-2022 Rodrigo Ruz V.');
+  MemoCopyRights.Lines.Add('Portions created by Rodrigo Ruz V. are Copyright © 2011-2022 Rodrigo Ruz V.');
   MemoCopyRights.Lines.Add('https://github.com/RRUZ/delphi-preview-handler');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Third Party libraries and tools used');
   MemoCopyRights.Lines.Add('SynEdit forked by Pyscripter https://github.com/pyscripter/SynEdit/');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Image32 Library - http://www.angusj.com/delphi/image32/Docs/_Body.htm');
-  MemoCopyRights.Lines.Add('Copyright �2019-2025 Angus Johnson.');
+  MemoCopyRights.Lines.Add('Copyright ©2019-2025 Angus Johnson.');
   MemoCopyRights.Lines.Add('');
 end;
 

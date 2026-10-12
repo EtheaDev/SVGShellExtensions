@@ -1,14 +1,29 @@
-﻿# SVG Editor and Shell Extensions [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+﻿# SVG Editor and Shell Extensions
 
-**Latest Version 3.4.2 - 03 Sep 2026**
+<!-- badges -->
+[![License: Apache](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/EtheaDev/SvgShellExtensions?label=release&color=blue)](https://github.com/EtheaDev/SVGShellExtensions/releases)
+[![Delphi 12+](https://img.shields.io/badge/Delphi-12%2B-e62329.svg)](https://www.embarcadero.com/products/delphi)
+[![Platform: VCL](https://img.shields.io/badge/Platform-VCL-8a2be2.svg)](https://docwiki.embarcadero.com/RADStudio/en/Main_Page)
+[![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d6.svg)](https://www.microsoft.com/windows)
 
-**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):**
+**A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11) and a useful SVG Text Editor:**
 
+![Delphi Support](/Setup/SupportingDelphi.jpg)
+
+Related links: [embarcadero.com][10] - [learndelphi.org][11]
+
+---
+ 
 - A [Preview handler][1]  which allows you to see the SVG image and text without open it, in the "Preview Panel".
  
 - A [Thumbnail handler][2] which allows you to see the SVG image into Windows Explorer.
 
 - An [SVG-XML Text Editor][12] to manually edit and preview the text of SVG files.
+
+### Documentation
+
+Follow the [Project Site](https://ethea.it/docs/svgtools/) to know all the SVG tools: SVG Text Editor, Shell Extensions (Preview Panel, Thumbnails and Context menu) and the SVGToPNG command-line tool.
 
 ### Features
 
@@ -41,6 +56,24 @@ In Windows 11 with Dark theme:
 A useful Text editor with preview of SVG Image:
 
 ![SVG Text Editor Dark](./Images/SVGTextEditorDark.png)
+
+**Color palette**: under the editor a panel shows all the colors used by the SVG, with the number of occurrences of each one. Colors are found in the presentation attributes (`fill`, `stroke`, `stop-color`, `flood-color`, `lighting-color`, `color`, `solid-color`), in `style` attributes and in `<style>` blocks, written as hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), `rgb()`, `rgba()`, `hsl()`, `hsla()` or color names; the same color written in different ways is shown once.
+
+- Click on a color to highlight all its occurrences in the text, then move between them with `Alt+Right` / `Alt+Left` or with the arrow buttons of the palette.
+- When the caret is on a color value, the corresponding color is marked in the palette.
+- Double-click on a color to replace the color value under the caret (keeping its notation and opacity), or to insert it at the caret position as `#RRGGBB`.
+- Right-click on a color to replace all its occurrences with another color (one single undo), to select all its occurrences with multiple carets, or to copy its value.
+- Add your own colors to the "Custom" section with the `+` button (color picker) or from the context menu: they are kept for all files and shared with the custom colors of the color picker.
+- The hint of each color shows its value, the properties using it and its opacities.
+- The palette can be hidden in the Settings ("Show color palette under the editor").
+
+### Automatic updates
+
+The SVG Text Editor checks if a new version is available on GitHub, then downloads and installs it:
+
+- **Automatic check**: at startup, once every *n* days (7 by default), in background; it can be disabled or its interval changed in Settings - Updates.
+- **Manual check**: with the "Check for updates" button of the About dialog.
+- When a new version is available the editor asks to download it: the About dialog shows the progress of the download (that can be stopped), then the editor starts the Setup and closes itself.
 
 ### COMMAND LINE TOOLS
 ![svg_png Tool](./Images/svg_png_128.png)
@@ -102,6 +135,20 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+12 Oct 2026: ver. 3.5.0
+- SVG Text Editor: new Color palette panel under the editor, showing the colors used in the SVG text (presentation attributes, style attributes and `<style>` blocks; hex, rgb(), rgba(), hsl(), hsla() and named colors), grouped by color with the number of occurrences and a hint with value, properties and opacities.
+- SVG Text Editor: click on a palette color to highlight all its occurrences in the text; move between them with Alt+Right / Alt+Left or with the arrow buttons of the palette.
+- SVG Text Editor: the palette marks the color under the editor caret.
+- SVG Text Editor: double-click on a palette color to replace the color under the caret, keeping its notation (hex, rgb(), hsl(), name) and opacity, or to insert it at the caret.
+- SVG Text Editor: palette context menu to replace all the occurrences of a color, select them with multiple carets, copy the color value, add or remove custom colors.
+- SVG Text Editor: custom colors added with the color picker, kept for all files and shared with the custom colors of the color picker.
+- SVG Text Editor: option in Settings to show or hide the color palette; its height is remembered.
+- Added the Google Skia (Skia4Delphi) SVG rendering engine, beside Image32 and Direct2D: it can be selected in Settings ("SVG rendering options") and is used by the Preview, the Thumbnails and the SVG Text Editor.
+- SVG Text Editor: the "Automatic check" option for new versions and its interval in days are respected again: the check ran at every startup, also when disabled.
+- Fixed a typo in the message of the new version available.
+- The web help link of the About dialog points to the new documentation site https://ethea.it/docs/svgtools/.
+- Version aligned to 3.5.0 on every project and on the setup.
+
 03 Sep 2026: ver. 3.4.2
 - Fixed a GDI handle and memory leak in the Thumbnail provider: the bitmap handed over to Explorer was released incorrectly, so every generated thumbnail leaked resources inside the Explorer process.
 - The shared resources data module is now a single instance created on demand, instead of one created and destroyed by every preview.
@@ -277,28 +324,23 @@ Third Party libraries and tools used:
 
 - [SynEdit of PyScripter project][5]
 
-![Delphi Support](/Setup/SupportingDelphi.jpg)
-
-Related links: [embarcadero.com][10] - [learndelphi.org][11]
-
-
 [1]: https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers
 
 [2]: https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers
 
 [3]: https://github.com/EtheaDev/SVGShellExtensions/releases/latest/download/SVGShellExtensionsSetup.exe
 
-[4]: https://github.com/EtheaDev/SVGIconImageList
+[4]: https://ethea.it/docs/svgiconimagelist/
 
-[5]: https://github.com/pyscripter/SynEdit
+[5]: https://github.com/pyscripter/SynEdit/
 
-[6]: https://github.com/RRUZ/vcl-styles-utils
+[6]: https://github.com/RRUZ/vcl-styles-utils/
 
 [7]: https://theroadtodelphi.com/
 
-[8]: https://github.com/RRUZ/delphi-preview-handler
+[8]: https://github.com/RRUZ/delphi-preview-handler/
 
-[9]: https://opensource.org/licenses/Apache-2.0
+[9]: https://opensource.org/licenses/Apache-2.0/
 
 [10]: https://www.embarcadero.com/
 

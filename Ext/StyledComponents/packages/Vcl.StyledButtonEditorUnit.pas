@@ -1,4 +1,4 @@
-{******************************************************************************}
+﻿{******************************************************************************}
 {                                                                              }
 {  StyledButton Editor: Component editor for Styled Button                     }
 {                                                                              }
@@ -35,6 +35,7 @@ uses
   System.SysUtils,
   System.Variants,
   System.Classes,
+  System.Generics.Collections,
   System.Actions,
   Vcl.ActnList,
   Vcl.ComCtrls,
@@ -49,11 +50,12 @@ uses
   Vcl.BootstrapButtonStyles,
   Vcl.AngularButtonStyles,
   Vcl.ColorButtonStyles,
-  Vcl.ImgList;
+  Vcl.ImgList{$IFDEF DXE8+}, System.ImageList{$ENDIF};
 
 const
   BUTTON_WIDTH = 100;
   BUTTON_HEIGHT = 34;
+  COMPONENT_EDITOR_HELP_URL = 'https://ethea.it/docs/styledcomponents/Component-Editor.html';
   BUTTON_MARGIN = 10;
 type
   TStyledButtonEditor = class(TForm)
@@ -85,7 +87,10 @@ type
     BottomRightCheckBox: TCheckBox;
     CornerRadiusGroupBox: TGroupBox;
     RadiusTrackBar: TTrackBar;
-    StyleRadiusLabel: TLabel;
+    ShadowSizeTrackBar: TTrackBar;
+    RadiusLabel: TLabel;
+    ShadowSizeLabel: TLabel;
+    ShadowGroupBox: TGroupBox;
     procedure FormCreate(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure ApplyButtonClick(Sender: TObject);
@@ -102,6 +107,7 @@ type
     procedure RoundedCheckBoxClick(Sender: TObject);
     procedure TabControlGetImageIndex(Sender: TObject; TabIndex: Integer;
       var ImageIndex: Integer);
+    procedure ShadowSizeTrackBarChange(Sender: TObject);
   private
     FSourceButton: TStyledGraphicButton;
     FDestButton: TStyledGraphicButton;
@@ -113,7 +119,9 @@ type
     FStyledPanel: TStyledPanel;
     FStyledControl: TControl;
     FCustomStyleDrawType: Boolean;
+    function OrderedFamilyNames: TArray<TStyledButtonFamily>;
     procedure BuildTabControls;
+    procedure ShowFamilyPreview;
     procedure BuildFamilyPreview(const AFamily: TStyledButtonFamily);
     procedure BuildButtonsPreview(const AFamily: TStyledButtonFamily;
       const AAppearance: TStyledButtonAppearance; const AFlowPanel: TFlowPanel);
@@ -121,6 +129,7 @@ type
     procedure InitGUI;
     procedure UpdateDestFromGUI;
     procedure SelectButtonClick(Sender: TObject);
+    procedure SelectPanelClick(Sender: TObject);
     //procedure ButtonEnter(Sender: TObject);
     procedure UpdateSizeGUI;
     procedure FlowPanelResize(Sender: TObject);
@@ -162,6 +171,19 @@ uses
 
 var
   SavedBounds: TRect = (Left: 0; Top: 0; Right: 0; Bottom: 0);
+  SavedWindowState: TWindowState = wsNormal;
+
+procedure SaveEditorBounds(const AEditor: TForm);
+begin
+  //Bounds of the normal window only: the ones of a maximized window, restored
+  //on a normal one, give a window as big as the screen but not maximized
+  if AEditor.WindowState = wsNormal then
+    SavedBounds := AEditor.BoundsRect;
+  if AEditor.WindowState = wsMaximized then
+    SavedWindowState := wsMaximized
+  else
+    SavedWindowState := wsNormal;
+end;
 
 function EditStyledControl(const AControl: TControl): Boolean;
 begin
@@ -213,7 +235,7 @@ begin
         FDestButton.StyleDrawType := AButtonRender.StyleDrawType;
 
       Result := ShowModal = mrOk;
-      SavedBounds := BoundsRect;
+      SaveEditorBounds(LEditor);
       if Result then
         AButtonRender.OwnerControl.Invalidate;
     finally
@@ -252,7 +274,7 @@ begin
         FDestPanel.StyleDrawType := APanel.StyleDrawType;
 
       Result := ShowModal = mrOk;
-      SavedBounds := BoundsRect;
+      SaveEditorBounds(LEditor);
       if Result then
         APanel.Invalidate;
     finally
@@ -263,10 +285,35 @@ end;
 
 { TStyledButtonEditorForm }
 
+procedure TStyledButtonEditor.SelectPanelClick(Sender: TObject);
+var
+  LPreview: TStyledPanel;
+begin
+  //Preview panel clicked (editing a TStyledPanel): copy its style to the new panel
+  LPreview := TStyledPanel(Sender);
+  FCustomStyleDrawType := False;
+  FDestPanel.SetCustomStyleDrawType(FCustomStyleDrawType);
+  FDestPanel.StyleRadius := LPreview.StyleRadius;
+  FDestPanel.StyleRoundedCorners := LPreview.StyleRoundedCorners;
+  FDestPanel.StyleDrawType := LPreview.StyleDrawType;
+  FDestPanel.StyleFamily := LPreview.StyleFamily;
+  FDestPanel.StyleClass := LPreview.StyleClass;
+  FDestPanel.StyleAppearance := LPreview.StyleAppearance;
+  FDestPanel.CaptionAlignment := LPreview.CaptionAlignment;
+  StyleDrawTypeComboBox.ItemIndex := Ord(LPreview.StyleDrawType);
+  AsVCLComponentCheckBox.Checked := LPreview.AsVCLComponent;
+  UpdateDestFromGUI;
+end;
+
 procedure TStyledButtonEditor.SelectButtonClick(Sender: TObject);
 var
   LStyledButton: TStyledGraphicButton;
 begin
+  if Sender is TStyledPanel then
+  begin
+    SelectPanelClick(Sender);
+    Exit;
+  end;
   LStyledButton := TStyledGraphicButton(Sender);
   if Assigned(FDestButton) then
   begin
@@ -315,7 +362,7 @@ end;
 
 procedure TStyledButtonEditor.AsVCLComponentCheckBoxClick(Sender: TObject);
 begin
-  if AsVCLComponentCheckBox.Checked then
+  if AsVCLComponentCheckBox.Checked and not FUpdating then
   begin
     TabControl.TabIndex := 0;
     TabControlChange(TabControl);
@@ -338,7 +385,12 @@ var
   LGroupBox: TGroupBox;
   LFlowPanel: TFlowPanel;
   LGroupBoxHeight: Integer;
+  LOldCursor: TCursor;
 begin
+  //One hourglass for the whole page (the previous cursor is restored)
+  LOldCursor := Screen.Cursor;
+  Screen.Cursor := crHourGlass;
+  try
   //Clear components
   while ScrollBox.ControlCount > 0 do
   begin
@@ -378,29 +430,73 @@ begin
     BuildButtonsPreview(AFamily, LAppearance, LFlowPanel);
   end;
   FFamilyBuilt := AFamily;
+  finally
+    Screen.Cursor := LOldCursor;
+  end;
+end;
+
+function TStyledButtonEditor.OrderedFamilyNames: TArray<TStyledButtonFamily>;
+const
+  //Families of the library, in the order of the tabs: the order of registration
+  //depends on the initialization order of the units, which is not stable (it
+  //depends on the project and on the IDE), so it cannot decide the order of the tabs
+  KNOWN_FAMILIES: array[0..7] of string = (
+    DEFAULT_CLASSIC_FAMILY, BOOTSTRAP_FAMILY, ANGULAR_LIGHT_FAMILY, ANGULAR_DARK_FAMILY,
+    ANGULAR_M3_LIGHT_FAMILY, ANGULAR_M3_DARK_FAMILY, BASIC_COLOR_FAMILY, SVG_COLOR_FAMILY);
+var
+  LList: TList<TStyledButtonFamily>;
+  LFamilies: TObjectList;
+  LName: string;
+  I, J: Integer;
+  LKnown: Boolean;
+begin
+  LList := TList<TStyledButtonFamily>.Create;
+  try
+    LFamilies := GetButtonFamilies;
+    //Known families first, in the fixed order, when registered
+    for J := Low(KNOWN_FAMILIES) to High(KNOWN_FAMILIES) do
+      if StyleFamilyExists(KNOWN_FAMILIES[J]) then
+        LList.Add(KNOWN_FAMILIES[J]);
+    //Then any other family (custom), in order of registration
+    if Assigned(LFamilies) then
+      for I := 0 to LFamilies.Count - 1 do
+      begin
+        LName := GetButtonFamilyName(I);
+        LKnown := False;
+        for J := Low(KNOWN_FAMILIES) to High(KNOWN_FAMILIES) do
+          if SameText(LName, KNOWN_FAMILIES[J]) then
+            LKnown := True;
+        if not LKnown then
+          LList.Add(LName);
+      end;
+    Result := LList.ToArray;
+  finally
+    LList.Free;
+  end;
 end;
 
 procedure TStyledButtonEditor.BuildTabControls;
 var
-  LFamilies: TObjectList;
+  LFamilies: TArray<TStyledButtonFamily>;
   LFamily: TStyledButtonFamily;
+  LCurrent: TStyledButtonFamily;
   I: Integer;
 begin
   TabControl.Tabs.Clear;
-  LFamilies := GetButtonFamilies;
-  if Assigned(LFamilies) then
+  LCurrent := '';
+  if Assigned(FStyledButtonRender) then
+    LCurrent := FStyledButtonRender.StyleFamily
+  else if Assigned(FStyledPanel) then
+    LCurrent := FStyledPanel.StyleFamily;
+  LFamilies := OrderedFamilyNames;
+  for I := 0 to Length(LFamilies) - 1 do
   begin
-    for I := 0 to LFamilies.Count -1 do
-    begin
-      LFamily := GetButtonFamilyName(I);
-      TabControl.Tabs.Add(LFamily);
-      if Assigned(FStyledButtonRender) and SameText(LFamily, FStyledButtonRender.StyleFamily) then
-        TabControl.TabIndex := I
-      else if Assigned(FStyledPanel) and SameText(LFamily, FStyledPanel.StyleFamily) then
-        TabControl.TabIndex := I
-    end;
+    LFamily := LFamilies[I];
+    TabControl.Tabs.Add(LFamily);
+    if SameText(LFamily, LCurrent) then
+      TabControl.TabIndex := I;
   end;
-  TabControlChange(TabControl);
+  ShowFamilyPreview;
 end;
 
 procedure TStyledButtonEditor.SourceDestControlClick(Sender: TObject);
@@ -542,8 +638,12 @@ begin
       LPos := StyleComboBox.Items.Add(LStyleName);
       if Assigned(FSourceButton) and (J = FSourceButton.Style) then
         StyleComboBox.ItemIndex := LPos;
-      if Assigned(FSourcePanel) then
-        StyleComboBox.Visible := False;
+    end;
+    //A panel has no button Style: hide the label together with the combo box
+    if Assigned(FSourcePanel) then
+    begin
+      StyleLabel.Visible := False;
+      StyleComboBox.Visible := False;
     end;
 
     if Assigned(FSourceButton) then
@@ -551,6 +651,7 @@ begin
       EnabledCheckBox.Checked := FSourceButton.Enabled;
       AsVCLComponentCheckBox.Checked := FSourceButton.AsVCLComponent;
       RadiusTrackBar.Position := FSourceButton.StyleRadius;
+      ShadowSizeTrackBar.Position := FSourceButton.StyleShadowSize;
       RoundedCorners := FSourceButton.StyleRoundedCorners;
       FlatButtonCheckBox.Checked := FSourceButton.Flat;
     end
@@ -568,6 +669,8 @@ begin
   finally
     TabControl.OnChange := TabControlChange;
   end;
+  //Initialisation done: build only the page of the style of the component
+  FUpdating := False;
   BuildTabControls;
 end;
 
@@ -589,6 +692,9 @@ begin
 
   if SavedBounds.Right - SavedBounds.Left > 0 then
     SetBounds(SavedBounds.Left, SavedBounds.Top, SavedBounds.Width, SavedBounds.Height);
+  //After the normal bounds, so that "Restore" goes back to them
+  if SavedWindowState = wsMaximized then
+    WindowState := wsMaximized;
 end;
 
 function TStyledButtonEditor.GetRoundedCorners: TRoundedCorners;
@@ -614,8 +720,9 @@ end;
 
 procedure TStyledButtonEditor.HelpButtonClick(Sender: TObject);
 begin
-  ShellExecute(handle, 'open',
-    PChar(GetProjectURL), nil, nil, SW_SHOWNORMAL)
+  //Page of the documentation dedicated to this editor
+  ShellExecute(Handle, 'open',
+    PChar(COMPONENT_EDITOR_HELP_URL), nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TStyledButtonEditor.Loaded;
@@ -650,6 +757,21 @@ begin
   TabControlChange(TabControl);
 end;
 
+procedure TStyledButtonEditor.ShadowSizeTrackBarChange(Sender: TObject);
+begin
+  if Assigned(FDestButton) then
+  begin
+//    FDestButton.StyleShadowSize := ShadowSizeTrackBar.Position;
+  end
+  else if Assigned(FDestPanel) then
+  begin
+  end;
+  UpdateDestFromGUI;
+  FFamilyBuilt := '';
+  TabControlChange(TabControl);
+end;
+
+
 procedure TStyledButtonEditor.RoundedCheckBoxClick(Sender: TObject);
 begin
   UpdateDestFromGUI;
@@ -665,22 +787,55 @@ begin
   TabControlChange(TabControl);
 end;
 
-procedure TStyledButtonEditor.TabControlChange(Sender: TObject);
+procedure TStyledButtonEditor.ShowFamilyPreview;
 var
   LFamily: TStyledButtonFamily;
 begin
+  if (TabControl.TabIndex < 0) or (TabControl.TabIndex >= TabControl.Tabs.Count) then
+    Exit;
   LFamily := TabControl.Tabs[TabControl.TabIndex];
   if FFamilyBuilt <> LFamily then
     BuildFamilyPreview(LFamily);
 end;
 
+procedure TStyledButtonEditor.TabControlChange(Sender: TObject);
+begin
+  //While the controls are being initialised (InitGUI sets checkboxes, trackbar
+  //and radius, each firing a handler that rebuilds the page) nothing is built:
+  //BuildTabControls shows the page of the style of the component once, at the end
+  if not FUpdating then
+    ShowFamilyPreview;
+end;
+
 procedure TStyledButtonEditor.TabControlGetImageIndex(Sender: TObject;
   TabIndex: Integer; var ImageIndex: Integer);
+var
+  FamilyName: string;
 begin
-  //Use always Image n.6 for custom Families
-  if TabIndex <= 5 then
-    ImageIndex := TabIndex
+  //The icon depends on the family (not on the position of the tab): the images of
+  //the ImageList are, in order, Classic, Bootstrap, Angular-Light, Angular-Dark,
+  //Basic-Colors, SVG-Colors, custom family, Angular-M3-Light, Angular-M3-Dark
+  if (TabIndex < 0) or (TabIndex >= TabControl.Tabs.Count) then
+    Exit;
+  FamilyName := TabControl.Tabs[TabIndex];
+  if SameText(FamilyName, DEFAULT_CLASSIC_FAMILY) then
+    ImageIndex := 0
+  else if SameText(FamilyName, BOOTSTRAP_FAMILY) then
+    ImageIndex := 1
+  else if SameText(FamilyName, ANGULAR_LIGHT_FAMILY) then
+    ImageIndex := 2
+  else if SameText(FamilyName, ANGULAR_DARK_FAMILY) then
+    ImageIndex := 3
+  else if SameText(FamilyName, BASIC_COLOR_FAMILY) then
+    ImageIndex := 4
+  else if SameText(FamilyName, SVG_COLOR_FAMILY) then
+    ImageIndex := 5
+  else if SameText(FamilyName, ANGULAR_M3_LIGHT_FAMILY) then
+    ImageIndex := 7
+  else if SameText(FamilyName, ANGULAR_M3_DARK_FAMILY) then
+    ImageIndex := 8
   else
+    //custom families
     ImageIndex := 6;
 end;
 
@@ -691,6 +846,7 @@ begin
     FDestButton.Style := TCustomButton.TButtonStyle(StyleComboBox.ItemIndex);
     FDestButton.StyleDrawType := TStyledButtonDrawType(StyleDrawTypeComboBox.ItemIndex);
     FDestButton.StyleRadius := RadiusTrackBar.Position;
+    FDestButton.StyleShadowSize := ShadowSizeTrackBar.Position;
     CornerRadiusGroupBox.Visible := FDestButton.StyleDrawType = btRoundRect;
     RoundedCornersGroupBox.Visible := FDestButton.StyleDrawType in [btRoundRect, btRounded];
     FDestButton.StyleRoundedCorners := RoundedCorners;
@@ -699,7 +855,8 @@ begin
     FSourceButton.Hint := ActualGroupBox.Caption;
     FDestButton.Flat := FlatButtonCheckBox.Checked;
     FDestButton.AsVCLComponent := AsVCLComponentCheckBox.Checked;
-    StyleRadiusLabel.Caption := Format('StyleRadius: %d', [FDestButton.StyleRadius]);
+    RadiusLabel.Caption := Format('Radius: %d', [FDestButton.StyleRadius]);
+    ShadowSizeLabel.Caption := Format('Size: %d', [FDestButton.StyleShadowSize]);
     ActualGroupBox.Caption := Format('ACTUAL: %s/%s/%s',
       [FSourceButton.StyleFamily, FSourceButton.StyleClass, FSourceButton.StyleAppearance]);
     NewGroupBox.Caption := Format('NEW: %s/%s/%s',
@@ -717,7 +874,7 @@ begin
     FSourcePanel.Hint := ActualGroupBox.Caption;
     //FDestPanel.Flat := FlatButtonCheckBox.Checked;
     FDestPanel.AsVCLComponent := AsVCLComponentCheckBox.Checked;
-    StyleRadiusLabel.Caption := Format('StyleRadius: %d', [FDestPanel.StyleRadius]);
+    //RadiusLabel.Caption := Format('Radius: %d', [FDestPanel.StyleRadius]);
     ActualGroupBox.Caption := Format('ACTUAL: %s/%s/%s',
       [FSourcePanel.StyleFamily, FSourcePanel.StyleClass, FSourcePanel.StyleAppearance]);
     NewGroupBox.Caption := Format('NEW: %s/%s/%s',
@@ -738,6 +895,32 @@ var
   begin
     Result := StringReplace(AName,' ','_',[rfReplaceAll]);
     Result := StringReplace(Result,'-','_',[rfReplaceAll]);
+  end;
+
+  procedure CreatePanel(
+    const AParent: TFlowPanel;
+    const AClass: TStyledButtonClass);
+  var
+    LPanel: TStyledPanel;
+  begin
+    //Editing a TStyledPanel: the preview items are panels, with the colours a
+    //panel has in that style (not the ones of the button of the same class)
+    LPanel := TStyledPanel.CreateStyled(Self, AFamily, AClass, AAppearance);
+    LPanel.Width := BUTTON_WIDTH;
+    LPanel.Height := BUTTON_HEIGHT;
+    LPanel.AlignWithMargins := True;
+    LPanel.Caption := AClass;
+    LPanel.Hint := Format('StyleFamily: "%s" - StyleClass: "%s" - StyleAppearance: "%s"',
+      [AFamily, AClass, AAppearance]);
+    LPanel.ShowHint := True;
+    //Forced hand cursor: the preview panel is clickable to choose its style
+    LPanel.Cursor := crHandPoint;
+    LPanel.OnClick := SelectButtonClick;
+    LPanel.StyleDrawType := TStyledButtonDrawType(StyleDrawTypeComboBox.ItemIndex);
+    LPanel.StyleRadius := RadiusTrackBar.Position;
+    LPanel.StyleRoundedCorners := RoundedCorners;
+    LPanel.ParentBackground := False;
+    LPanel.Parent := AParent;
   end;
 
   procedure CreateButton(
@@ -761,7 +944,11 @@ var
     LStyledButton.StyleDrawType := TStyledButtonDrawType(StyleDrawTypeComboBox.ItemIndex);
     LStyledButton.StyleRadius := RadiusTrackBar.Position;
     LStyledButton.StyleRoundedCorners := RoundedCorners;
-    LStyledButton.AsVCLComponent := False;
+    //LStyledButton.StyleShadowSize := ShadowSizeTrackBar.Position;
+    //Only the Classic/Windows preview follows the active VCL style (AsVCL): choosing
+    //it must give back a button AsVCL, like the Windows preview of the panels
+    LStyledButton.AsVCLComponent :=
+      (AFamily = DEFAULT_CLASSIC_FAMILY) and (AClass = DEFAULT_WINDOWS_CLASS);
     LStyledButton.Parent := AParent;
   end;
 
@@ -769,7 +956,6 @@ begin
   if AFlowPanel.ControlCount > 0 then
     Exit;
 
-  Screen.Cursor := crHourGlass;
   Try
     AFlowPanel.OnResize := nil;
     AFlowPanel.DisableAlign;
@@ -779,11 +965,13 @@ begin
 
     //Build Buttons or Panels for Family/Class/Appearance
     for J := 0 to Length(LClasses)-1 do
-      CreateButton(AFlowPanel, LClasses[J])
+      if Assigned(FSourcePanel) then
+        CreatePanel(AFlowPanel, LClasses[J])
+      else
+        CreateButton(AFlowPanel, LClasses[J])
   Finally
     AFlowPanel.OnResize := FlowPanelResize;
     AFlowPanel.EnableAlign;
-    Screen.Cursor := crDefault;
   End;
 end;
 

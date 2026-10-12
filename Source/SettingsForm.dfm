@@ -459,7 +459,8 @@ object UserSettingsForm: TUserSettingsForm
         ItemIndex = 0
         Items.Strings = (
           'Delphi Image32'
-          'Windows Direct 2D')
+          'Windows Direct 2D'
+          'Google Skia (Skia4Delphi)')
         TabOrder = 1
       end
       object RoundedButtonsGroupBox: TGroupBox
@@ -553,7 +554,7 @@ object UserSettingsForm: TUserSettingsForm
         Left = 311
         Top = 37
         Width = 284
-        Height = 60
+        Height = 80
         Caption = 'Editing Options'
         TabOrder = 5
         object RestoreLastSessionCheckBox: TCheckBox
@@ -563,6 +564,14 @@ object UserSettingsForm: TUserSettingsForm
           Height = 17
           Caption = 'Remember current session at next run'
           TabOrder = 0
+        end
+        object ShowColorPaletteCheckBox: TCheckBox
+          Left = 15
+          Top = 47
+          Width = 260
+          Height = 17
+          Caption = 'Show color palette under the editor'
+          TabOrder = 1
         end
       end
     end

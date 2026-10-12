@@ -1,7 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
 <style type="text/css">
-body{
-  font-family: Arial, Helvetica, sans-serif;
-}
+:root{color-scheme:light;}
+body{font-family:"Arial",sans-serif;font-size:12pt;color:#000000;background-color:#FFFFFF;}
+a{color:#0000FF;}
+.markdown-alert>:last-child{margin-bottom:0;}
+.markdown-alert-title{margin-top:0;}
+@media print{body{color:#000;background-color:#fff;}}
+</style>
+<script>
+document.addEventListener("click",function(e){var a=e.target.closest("a");if(a){var h=a.getAttribute("href");if(h&&h.charAt(0)==="#"){e.preventDefault();var t=document.getElementById(decodeURIComponent(h.substring(1)));if(t)t.scrollIntoView();}}});
+window.addEventListener("scroll",function(){if(window.chrome&&chrome.webview)chrome.webview.postMessage("scrollY:"+Math.round(window.scrollY)+":"+Math.max(0,Math.round(document.documentElement.scrollHeight-window.innerHeight)));});
+</script>
+</head>
+<body>
+<style type="text/css">
 img{
   max-width: 100%;
   height: auto;
@@ -28,48 +43,136 @@ table{
   border:1px solid;
   border-collapse:collapse;
 }
-th{  padding:5px;
+th{
+  padding:5px;
   border:1px solid;
 }
 td{
   padding:5px;
   border:1px solid;
 }
+mark{
+  background-color: #fff3a0;
+  color: #000;
+}
+kbd{
+  font-family: "Consolas", monospace;
+  border: 1px solid #bbb;
+  padding: 0 4px;
+}
+div.math{
+  text-align: center;
+}
+pre.mermaid{
+  border: none;
+  padding: 0;
+}
+.markdown-alert{
+  padding: 0.5em 1em;
+  margin-bottom: 1em;
+  border-left: 4px solid #d0d7de;
+}
+.markdown-alert-title{
+  font-weight: bold;
+}
+.markdown-alert-note{
+  border-left: 4px solid #0969da;
+}
+.markdown-alert-note .markdown-alert-title{
+  color: #0969da;
+}
+.markdown-alert-tip{
+  border-left: 4px solid #1a7f37;
+}
+.markdown-alert-tip .markdown-alert-title{
+  color: #1a7f37;
+}
+.markdown-alert-important{
+  border-left: 4px solid #8250df;
+}
+.markdown-alert-important .markdown-alert-title{
+  color: #8250df;
+}
+.markdown-alert-warning{
+  border-left: 4px solid #9a6700;
+}
+.markdown-alert-warning .markdown-alert-title{
+  color: #9a6700;
+}
+.markdown-alert-caution{
+  border-left: 4px solid #cf222e;
+}
+.markdown-alert-caution .markdown-alert-title{
+  color: #cf222e;
+}
 </style>
-<h1>SVG Editor and Shell Extensions <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg" alt="License"/></a></h1>
-<p><strong>Latest Version 3.4.2 - 03 Sep 2026</strong></p>
-<p><strong>A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11):</strong></p>
+<h1 id="svg-editor-and-shell-extensions">SVG Editor and Shell Extensions</h1>
+<!-- raw HTML omitted -->
+<p><a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg" alt="License: Apache" /></a>
+<a href="https://github.com/EtheaDev/SVGShellExtensions/releases"><img src="https://img.shields.io/github/v/release/EtheaDev/SvgShellExtensions?label=release&amp;color=blue" alt="Latest release" /></a>
+<a href="https://www.embarcadero.com/products/delphi"><img src="https://img.shields.io/badge/Delphi-12%2B-e62329.svg" alt="Delphi 12+" /></a>
+<a href="https://docwiki.embarcadero.com/RADStudio/en/Main_Page"><img src="https://img.shields.io/badge/Platform-VCL-8a2be2.svg" alt="Platform: VCL" /></a>
+<a href="https://www.microsoft.com/windows"><img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078d6.svg" alt="Windows 10 and 11" /></a></p>
+<p><strong>A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11) and a useful SVG Text Editor:</strong></p>
+<p><img src="/Setup/SupportingDelphi.jpg" alt="Delphi Support" /></p>
+<p>Related links: <a href="https://www.embarcadero.com/">embarcadero.com</a> - <a href="https://learndelphi.org/">learndelphi.org</a></p>
+<hr />
 <ul>
-<li><p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers">Preview handler</a>  which allows you to see the SVG image and text without open it, in the &ldquo;Preview Panel&rdquo;.</p>
+<li>
+<p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers">Preview handler</a>  which allows you to see the SVG image and text without open it, in the “Preview Panel”.</p>
 </li>
-<li><p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers">Thumbnail handler</a> which allows you to see the SVG image into Windows Explorer.</p>
+<li>
+<p>A <a href="https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers">Thumbnail handler</a> which allows you to see the SVG image into Windows Explorer.</p>
 </li>
-<li><p>An <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor">SVG-XML Text Editor</a> to manually edit and preview the text of SVG files.</p>
+<li>
+<p>An <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/Using-The-SVG-Text-Editor">SVG-XML Text Editor</a> to manually edit and preview the text of SVG files.</p>
 </li>
 </ul>
-<h3>Features</h3>
+<h3 id="documentation">Documentation</h3>
+<p>Follow the <a href="https://ethea.it/docs/svgtools/">Project Site</a> to know all the SVG tools: SVG Text Editor, Shell Extensions (Preview Panel, Thumbnails and Context menu) and the SVGToPNG command-line tool.</p>
+<h3 id="features">Features</h3>
 <ul>
-<li><p>Supports Windows 10 and 11 (for 32 bits and 64 bits).</p>
+<li>
+<p>Supports Windows 10 and 11 (for 32 bits and 64 bits).</p>
 </li>
-<li><p>Themes (Dark and Light) according to user preferences of Windows Theme</p>
+<li>
+<p>Themes (Dark and Light) according to user preferences of Windows Theme</p>
 </li>
-<li><p>Integrated also with other Shell Applications (like XYplorer)</p>
+<li>
+<p>Integrated also with other Shell Applications (like XYplorer)</p>
 </li>
 </ul>
-<h3>Setup using the Installer</h3>
+<h3 id="setup-using-the-installer">Setup using the Installer</h3>
 <p>Click to download the <a href="https://github.com/EtheaDev/SVGShellExtensions/releases/latest/download/SVGShellExtensionsSetup.exe">SVGShellExtensionsSetup.exe</a> located also in the Release area. The Installer works both for 32 and 64 bit system.</p>
-<p><img src="./Images/Setup.png" alt="SVG Setup_Program"/></p>
-<p><strong><em>For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</em></strong></p>
-<h3>Preview Panel and Thumbnails in action</h3>
+<p><img src="./Images/Setup.png" alt="SVG Setup_Program" /></p>
+<p><em><strong>For a clean Setup close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</strong></em></p>
+<h3 id="preview-panel-and-thumbnails-in-action">Preview Panel and Thumbnails in action</h3>
 <p>In Windows 11 with Light theme:</p>
-<p><img src="./Images/PreviewThumbnailsLight.png" alt="Preview Thumbnails Light"/></p>
+<p><img src="./Images/PreviewThumbnailsLight.png" alt="Preview Thumbnails Light" /></p>
 <p>In Windows 11 with Dark theme:</p>
-<p><img src="./Images/PreviewThumbnailsDark.png" alt="Preview Thumbnails Dark"/></p>
-<h3>SVG Text Editor</h3>
+<p><img src="./Images/PreviewThumbnailsDark.png" alt="Preview Thumbnails Dark" /></p>
+<h3 id="svg-text-editor">SVG Text Editor</h3>
 <p>A useful Text editor with preview of SVG Image:</p>
-<p><img src="./Images/SVGTextEditorDark.png" alt="SVG Text Editor Dark"/></p>
-<h3>COMMAND LINE TOOLS</h3>
-<p><img src="./Images/svg_png_128.png" alt="svg_png Tool"/></p>
+<p><img src="./Images/SVGTextEditorDark.png" alt="SVG Text Editor Dark" /></p>
+<p><strong>Color palette</strong>: under the editor a panel shows all the colors used by the SVG, with the number of occurrences of each one. Colors are found in the presentation attributes (<code>fill</code>, <code>stroke</code>, <code>stop-color</code>, <code>flood-color</code>, <code>lighting-color</code>, <code>color</code>, <code>solid-color</code>), in <code>style</code> attributes and in <code>&lt;style&gt;</code> blocks, written as hex (<code>#rgb</code>, <code>#rgba</code>, <code>#rrggbb</code>, <code>#rrggbbaa</code>), <code>rgb()</code>, <code>rgba()</code>, <code>hsl()</code>, <code>hsla()</code> or color names; the same color written in different ways is shown once.</p>
+<ul>
+<li>Click on a color to highlight all its occurrences in the text, then move between them with <code>Alt+Right</code> / <code>Alt+Left</code> or with the arrow buttons of the palette.</li>
+<li>When the caret is on a color value, the corresponding color is marked in the palette.</li>
+<li>Double-click on a color to replace the color value under the caret (keeping its notation and opacity), or to insert it at the caret position as <code>#RRGGBB</code>.</li>
+<li>Right-click on a color to replace all its occurrences with another color (one single undo), to select all its occurrences with multiple carets, or to copy its value.</li>
+<li>Add your own colors to the “Custom” section with the <code>+</code> button (color picker) or from the context menu: they are kept for all files and shared with the custom colors of the color picker.</li>
+<li>The hint of each color shows its value, the properties using it and its opacities.</li>
+<li>The palette can be hidden in the Settings (“Show color palette under the editor”).</li>
+</ul>
+<h3 id="automatic-updates">Automatic updates</h3>
+<p>The SVG Text Editor checks if a new version is available on GitHub, then downloads and installs it:</p>
+<ul>
+<li><strong>Automatic check</strong>: at startup, once every <em>n</em> days (7 by default), in background; it can be disabled or its interval changed in Settings - Updates.</li>
+<li><strong>Manual check</strong>: with the “Check for updates” button of the About dialog.</li>
+<li>When a new version is available the editor asks to download it: the About dialog shows the progress of the download (that can be stopped), then the editor starts the Setup and closes itself.</li>
+</ul>
+<h3 id="command-line-tools">COMMAND LINE TOOLS</h3>
+<p><img src="./Images/svg_png_128.png" alt="svg_png Tool" /></p>
 <p><strong>SVGToPNG</strong> is a command-line utility for batch converting SVG files to PNG images.</p>
 <p>It supports:</p>
 <ul>
@@ -78,7 +181,7 @@ td{
 <li>Optional fixed color, grayscale and opacity settings</li>
 </ul>
 <p><strong>Usage:</strong></p>
-<pre style="background-color:#191D22;color:#FFFFFF;"><code>SVGToPNG convert -in:&lt;InputPattern&gt; -size:&lt;Sizes&gt; &lt;options&gt;
+<pre style="background-color:#FFFFFF;color:#000000;"><code>SVGToPNG convert -in:&lt;InputPattern&gt; -size:&lt;Sizes&gt; &lt;options&gt;
 Options:
  -color|-c:&lt;color&gt;            Fixed color to apply (e.g. clBlack, #FF0000) ((Optional))
  -grayscale|-g:&lt;grayscale&gt;    Convert to grayscale ((Optional))
@@ -90,47 +193,70 @@ Examples:
   SVGToPNG convert -in:"C:\icons\*.svg" -size:32
   SVGToPNG convert -in:"C:\icons\home.svg" -size:16,32,48,64 -out:"C:\output"
   SVGToPNG convert -in:"*.svg" -size:256 -grayscale</code></pre>
-<h3>Support for XYplorer</h3>
-<p>As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support">configuration guide&hellip;</a></p>
-<p><img src="./Images/XYplorer_Preview.png" alt="XYplorer"/></p>
-<h3>Manual Build and Installation (for Delphi developers)</h3>
+<h3 id="support-for-xyplorer">Support for XYplorer</h3>
+<p>As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support">configuration guide…</a></p>
+<p><img src="./Images/XYplorer_Preview.png" alt="XYplorer" /></p>
+<h3 id="manual-build-and-installation-for-delphi-developers">Manual Build and Installation (for Delphi developers)</h3>
 <p>If you have Delphi 12 or 13, you can manually build the project:</p>
-<p><strong><em>Warning: To build the DLL you need also other open-source projects</em></strong></p>
+<p><em><strong>Warning: To build the DLL you need also other open-source projects</strong></em></p>
 <ul>
-<li><p><a href="https://github.com/EtheaDev/SVGIconImageList">SVGIconImageList</a></p>
+<li>
+<p><a href="https://ethea.it/docs/svgiconimagelist/">SVGIconImageList</a></p>
 </li>
-<li><p><a href="https://github.com/pyscripter/SynEdit">Synedit</a></p>
+<li>
+<p><a href="https://github.com/pyscripter/SynEdit/">Synedit</a></p>
 </li>
-<li><p><a href="https://github.com/RRUZ/vcl-styles-utils">VCL-Style-Utils</a></p>
+<li>
+<p><a href="https://github.com/RRUZ/vcl-styles-utils/">VCL-Style-Utils</a></p>
 </li>
 </ul>
 <p>To build SVGToPNG Tool you can use <code>BuildSVGToPNG.cmd</code> in the <code>Tools/SVGToPNG/Project/</code> folder.</p>
 <p>To manually install the SVGShellExtensions.dll follow these steps:</p>
 <ol>
-<li><p>Close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</p>
+<li>
+<p>Close all the windows explorer instances which have the preview handler active or the preview handler was used (remember the dll remains in memory until the windows explorer was closed).</p>
 </li>
-<li><p>If you have already used the installer uninstall the components from system.</p>
+<li>
+<p>If you have already used the installer uninstall the components from system.</p>
 </li>
-<li><p>To install manually the dll run the <code>Setup\Register64bit.bat</code> (run-as-administrator).</p>
+<li>
+<p>To install manually the dll run the <code>Setup\Register64bit.bat</code> (run-as-administrator).</p>
 </li>
-<li><p>If you wanto to uninstall the dll you use the <code>Setup\UnRegister64Bit.bat</code></p>
+<li>
+<p>If you wanto to uninstall the dll you use the <code>Setup\UnRegister64Bit.bat</code></p>
 </li>
-<li><p>When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).</p>
+<li>
+<p>When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).</p>
 </li>
 </ol>
-<h2>Release Notes</h2>
+<h2 id="release-notes">Release Notes</h2>
+<p>12 Oct 2026: ver. 3.5.0</p>
+<ul>
+<li>SVG Text Editor: new Color palette panel under the editor, showing the colors used in the SVG text (presentation attributes, style attributes and <code>&lt;style&gt;</code> blocks; hex, rgb(), rgba(), hsl(), hsla() and named colors), grouped by color with the number of occurrences and a hint with value, properties and opacities.</li>
+<li>SVG Text Editor: click on a palette color to highlight all its occurrences in the text; move between them with Alt+Right / Alt+Left or with the arrow buttons of the palette.</li>
+<li>SVG Text Editor: the palette marks the color under the editor caret.</li>
+<li>SVG Text Editor: double-click on a palette color to replace the color under the caret, keeping its notation (hex, rgb(), hsl(), name) and opacity, or to insert it at the caret.</li>
+<li>SVG Text Editor: palette context menu to replace all the occurrences of a color, select them with multiple carets, copy the color value, add or remove custom colors.</li>
+<li>SVG Text Editor: custom colors added with the color picker, kept for all files and shared with the custom colors of the color picker.</li>
+<li>SVG Text Editor: option in Settings to show or hide the color palette; its height is remembered.</li>
+<li>Added the Google Skia (Skia4Delphi) SVG rendering engine, beside Image32 and Direct2D: it can be selected in Settings (“SVG rendering options”) and is used by the Preview, the Thumbnails and the SVG Text Editor.</li>
+<li>SVG Text Editor: the “Automatic check” option for new versions and its interval in days are respected again: the check ran at every startup, also when disabled.</li>
+<li>Fixed a typo in the message of the new version available.</li>
+<li>The web help link of the About dialog points to the new documentation site <a href="https://ethea.it/docs/svgtools/">https://ethea.it/docs/svgtools/</a>.</li>
+<li>Version aligned to 3.5.0 on every project and on the setup.</li>
+</ul>
 <p>03 Sep 2026: ver. 3.4.2</p>
 <ul>
 <li>Fixed a GDI handle and memory leak in the Thumbnail provider: the bitmap handed over to Explorer was released incorrectly, so every generated thumbnail leaked resources inside the Explorer process.</li>
 <li>The shared resources data module is now a single instance created on demand, instead of one created and destroyed by every preview.</li>
 <li>Fixed the preview of ANSI-encoded SVG files, which produced an empty pane.</li>
-<li>SVG Text Editor: files whose extension is uppercase (.SVG) can now be opened. The check was a case-sensitive substring search, which also wrongly accepted names ending in &ldquo;.xm&rdquo; or &ldquo;.s&rdquo;.</li>
+<li>SVG Text Editor: files whose extension is uppercase (.SVG) can now be opened. The check was a case-sensitive substring search, which also wrongly accepted names ending in “.xm” or “.s”.</li>
 <li>SVG Text Editor: the SVG is no longer re-parsed at every keystroke.</li>
 <li>SVG Text Editor: fixed memory-management defects on the file-opening error path.</li>
 <li>SVG Text Editor: closing with unsaved changes can now be cancelled;</li>
 <li>SVG Text Editor: removed the Help button from the error dialog, which did nothing; the WM_COPYDATA payload is now bounded in size.</li>
-<li>The new-version check runs in background at startup instead of blocking the interface, tolerates release tags without the leading &ldquo;v&rdquo;, and no longer crashes when the download starts right after the automatic check.</li>
-<li>Web help now points to https://ethea.it/componenti/svgshellextensions/, while the Issues button and the new-version check point to GitHub.</li>
+<li>The new-version check runs in background at startup instead of blocking the interface, tolerates release tags without the leading “v”, and no longer crashes when the download starts right after the automatic check.</li>
+<li>Web help now points to <a href="https://ethea.it/componenti/svgshellextensions/">https://ethea.it/componenti/svgshellextensions/</a>, while the Issues button and the new-version check point to GitHub.</li>
 <li>Fixed the Debug configuration of the SVG Text Editor and SVGToPNG projects, which could not be built at all.</li>
 <li>Version aligned to 3.4.2 on every project, on the setup and on this document: SVG Text Editor still declared 3.4.0, and therefore offered an update to a version older than the installed one.</li>
 <li>Reduced the size of the thumbnail log and removed unused code.</li>
@@ -154,7 +280,7 @@ Examples:
 </ul>
 <p>01 Mar 2025: ver. 3.3.0</p>
 <ul>
-<li>Added &ldquo;Wordwrap option&rdquo; for the editor (active by default)</li>
+<li>Added “Wordwrap option” for the editor (active by default)</li>
 <li>Updated the latest Image32 library</li>
 <li>Added Color options in Viewer GUI (Grayscale, FixedColor, ApplyFixedColorToRootOnly)</li>
 <li>Added Color options in Editor GUI</li>
@@ -187,8 +313,8 @@ Examples:
 </ul>
 <p>25 Oct 2023: ver. 3.1.0</p>
 <ul>
-<li>Added &ldquo;close button&rdquo; over Tabs</li>
-<li>Removed &ldquo;TSVG&rdquo; rendering option</li>
+<li>Added “close button” over Tabs</li>
+<li>Removed “TSVG” rendering option</li>
 <li>Updated to Image32 ver. 4.4 (30 Jan 2023)</li>
 <li>Updated to Skia4Delphi ver. 6.0.0 beta 5</li>
 <li>Added support for Delphi 12</li>
@@ -196,8 +322,8 @@ Examples:
 <p>24 Sep 2022: ver. 3.0.0</p>
 <ul>
 <li>Fixed Scrollbar colors viewing text in preview</li>
-<li>Fixed &ldquo;empty panel&rdquo; viewing text in preview</li>
-<li>Fixed &ldquo;context-menu&rdquo; for export to PNG (image lost)</li>
+<li>Fixed “empty panel” viewing text in preview</li>
+<li>Fixed “context-menu” for export to PNG (image lost)</li>
 </ul>
 <p>18 Sep 2022: ver. 2.9.0</p>
 <ul>
@@ -305,22 +431,24 @@ Examples:
 <ul>
 <li>Added SVG file Preview panel</li>
 </ul>
-<h2>Credits</h2>
-<p>Many thanks to <strong>Rodrigo Ruz V.</strong> (author of <a href="https://theroadtodelphi.com/">theroadtodelphi.com</a> Blog) for his wonderful work on <a href="https://github.com/RRUZ/delphi-preview-handler">delphi-preview-handler</a> from which this project has used a lot of code and inspiration.</p>
-<h2>License</h2>
-<p>Licensed under the <a href="https://opensource.org/licenses/Apache-2.0">Apache License, Version 2.0</a> (the &ldquo;License&rdquo;);
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an &ldquo;AS IS&rdquo; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
+<h2 id="credits">Credits</h2>
+<p>Many thanks to <strong>Rodrigo Ruz V.</strong> (author of <a href="https://theroadtodelphi.com/">theroadtodelphi.com</a> Blog) for his wonderful work on <a href="https://github.com/RRUZ/delphi-preview-handler/">delphi-preview-handler</a> from which this project has used a lot of code and inspiration.</p>
+<h2 id="license">License</h2>
+<p>Licensed under the <a href="https://opensource.org/licenses/Apache-2.0/">Apache License, Version 2.0</a> (the “License”);
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
 <p>Third Party libraries and tools used from Ethea:</p>
 <ul>
-<li><a href="https://github.com/EtheaDev/SVGIconImageList">SVGIconImageList</a></li>
+<li><a href="https://ethea.it/docs/svgiconimagelist/">SVGIconImageList</a></li>
 </ul>
-<p>The Initial Developer of the <a href="https://github.com/RRUZ/delphi-preview-handler">Original Code</a> is <strong>Rodrigo Ruz V</strong>. Portions created by him are Copyright © 2011-2021 Rodrigo Ruz V.</p>
+<p>The Initial Developer of the <a href="https://github.com/RRUZ/delphi-preview-handler/">Original Code</a> is <strong>Rodrigo Ruz V</strong>. Portions created by him are Copyright © 2011-2021 Rodrigo Ruz V.</p>
 <p>Third Party libraries and tools used:</p>
 <ul>
-<li><p><a href="https://github.com/RRUZ/vcl-styles-utils">VCLStyles Utils</a></p>
+<li>
+<p><a href="https://github.com/RRUZ/vcl-styles-utils/">VCLStyles Utils</a></p>
 </li>
-<li><p><a href="https://github.com/pyscripter/SynEdit">SynEdit of PyScripter project</a></p>
+<li>
+<p><a href="https://github.com/pyscripter/SynEdit/">SynEdit of PyScripter project</a></p>
 </li>
 </ul>
-<p><img src="/Setup/SupportingDelphi.jpg" alt="Delphi Support"/></p>
-<p>Related links: <a href="https://www.embarcadero.com/">embarcadero.com</a> - <a href="https://learndelphi.org/">learndelphi.org</a></p>
+</body>
+</html>

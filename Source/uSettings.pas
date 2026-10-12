@@ -47,6 +47,7 @@ const
   default_lightactivelinecolor = 15066597;
   default_darkactivelinecolor = 0;
   default_checkdays = 7;
+  default_colorpaletteheight = 90; //at 96 DPI
 
 resourcestring
   Background_Grayscale_Caption = 'Backlight %d%%';
@@ -54,7 +55,7 @@ resourcestring
 type
   TThemeSelection = (tsAsWindows, tsDarkTheme, tsLightTheme);
   TThemeType = (ttLight, ttDark);
-  TSVGEngine = (enImage32, enDirect2D);
+  TSVGEngine = (enImage32, enDirect2D, enSkia);
 
   //Class to register Theme attributes (like dark or light)
   TThemeAttribute = class
@@ -159,6 +160,9 @@ type
     FLightActiveLineColor: TColor;
     FDarkActiveLineColor: TColor;
     FRestoreLastSession: Boolean;
+    FShowColorPalette: Boolean;
+    FColorPaletteHeight: Integer;
+    FCustomColors: string;
     procedure WriteSynEditorOptions(
       const ASynEditorOptions: TSynEditorOptionsContainer);
     procedure ReadSynEditorOptions(
@@ -181,6 +185,15 @@ type
     property LightActiveLineColor: TColor read FLightActiveLineColor write FLightActiveLineColor;
     property DarkActiveLineColor: TColor read FDarkActiveLineColor write FDarkActiveLineColor;
     property RestoreLastSession: Boolean read FRestoreLastSession write SetRestoreLastSession;
+    //Color palette panel under the editor
+    property ShowColorPalette: Boolean read FShowColorPalette write FShowColorPalette;
+    //Height of the color palette panel, at 96 DPI
+    property ColorPaletteHeight: Integer read FColorPaletteHeight write FColorPaletteHeight;
+    //Custom colors of the palette, as '#RRGGBB,#RRGGBB,...'
+    property CustomColors: string read FCustomColors;
+    //Custom colors are saved at once: the settings are read again from the
+    //file in many places, which would otherwise drop the unsaved ones
+    procedure WriteCustomColors(const AValue: string);
   end;
 
 implementation
@@ -190,6 +203,7 @@ uses
   SVGInterfaces,
   D2DSVGFactory,
   Image32SVGFactory,
+  SkiaSVGFactory,
   System.Types,
   System.TypInfo,
   System.Rtti,
@@ -410,6 +424,7 @@ begin
   case FSVGEngine of
     enImage32: SetGlobalSvgFactory(GetImage32SVGFactory);
     enDirect2D: SetGlobalSvgFactory(GetD2DSVGFactory);
+    enSkia: SetGlobalSvgFactory(GetSkiaSVGFactory);
   end;
 end;
 
@@ -570,12 +585,24 @@ begin
     Exit(False);
   Result := Now() > FVersionCheckTime + FDaysForNextCheck;
   if Result then
+  begin
     FVersionCheckTime := Now(); //Update Next time for check
+    //Saved at once: the settings are read again from the file in many places
+    //(e.g. for every opened file), which would restore the old date before it
+    //is written at closing, and the check would run at every startup
+    FIniFile.WriteDateTime('Global', 'VersionCheckTime', FVersionCheckTime);
+  end;
 end;
 
 procedure TEditorSettings.SetRestoreLastSession(const Value: Boolean);
 begin
   FRestoreLastSession := Value;
+end;
+
+procedure TEditorSettings.WriteCustomColors(const AValue: string);
+begin
+  FCustomColors := AValue;
+  FIniFile.WriteString('ColorPalette', 'CustomColors', FCustomColors);
 end;
 
 procedure TEditorSettings.ReadSettings(
@@ -599,6 +626,9 @@ begin
     ASynEditorOptions.ActiveLineColor := LightActiveLineColor;
 
   RestoreLastSession := Boolean(FIniFile.ReadInteger('Global', 'RestoreLastSession', 1));
+  FShowColorPalette := FIniFile.ReadBool('ColorPalette', 'Visible', True);
+  FColorPaletteHeight := FIniFile.ReadInteger('ColorPalette', 'Height', default_colorpaletteheight);
+  FCustomColors := FIniFile.ReadString('ColorPalette', 'CustomColors', '');
 
   if ASynEditHighilighter = nil then
   begin
@@ -747,6 +777,8 @@ begin
     FIniFile.DeleteKey('Global', 'LightActiveLineColor');
 
   FIniFile.WriteInteger('Global', 'RestoreLastSession', Ord(FRestoreLastSession));
+  FIniFile.WriteBool('ColorPalette', 'Visible', FShowColorPalette);
+  FIniFile.WriteInteger('ColorPalette', 'Height', FColorPaletteHeight);
 
   FIniFile.EraseSection(LAST_OPENED_SECTION);
   for I := 0 to HistoryFileList.Count -1 do

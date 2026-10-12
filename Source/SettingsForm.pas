@@ -128,6 +128,7 @@ type
     FixedColorColorBox: TColorBox;
     EditingOptionsGroupBox: TGroupBox;
     RestoreLastSessionCheckBox: TCheckBox;
+    ShowColorPaletteCheckBox: TCheckBox;
     ActiveLineColorGroupBox: TGroupBox;
     DarkActiveLineColorColorBox: TColorBox;
     LightActiveLineColorColorBox: TColorBox;
@@ -597,8 +598,9 @@ begin
   ThemesRadioGroup.ItemIndex := Ord(ASettings.ThemeSelection);
   CbFont.ItemIndex := CbFont.Items.IndexOf(ASettings.FontName);
   FontSizeUpDown.Position := ASettings.FontSize;
-  EngineRadioGroup.Enabled := WinSvgSupported;
   EngineRadioGroup.ItemIndex := Ord(ASettings.SVGEngine);
+  //Only Direct2D depends on the Windows version
+  EngineRadioGroup.Buttons[Ord(enDirect2D)].Enabled := WinSvgSupported;
   ToolbarRoundedCheckBox.Checked := ASettings.ToolbarDrawRounded;
   ButtonsRoundedCheckBox.Checked := ASettings.ButtonDrawRounded;
   MenuRoundedCheckBox.Checked := ASettings.MenuDrawRounded;
@@ -611,9 +613,15 @@ begin
 
   EditingOptionsGroupBox.Visible := ASettings is TEditorSettings;
   if EditingOptionsGroupBox.Visible then
-    RestoreLastSessionCheckBox.Checked := TEditorSettings(ASettings).RestoreLastSession
+  begin
+    RestoreLastSessionCheckBox.Checked := TEditorSettings(ASettings).RestoreLastSession;
+    ShowColorPaletteCheckBox.Checked := TEditorSettings(ASettings).ShowColorPalette;
+  end
   else
+  begin
     RestoreLastSessionCheckBox.Checked := False;
+    ShowColorPaletteCheckBox.Checked := False;
+  end;
 
   AutoUpdateCheckBox.Checked := ASettings.DaysForNextCheck <> -1;
   CheckNDaysSpinEdit.Value := ASettings.DaysForNextCheck;
@@ -669,6 +677,7 @@ begin
     TEditorSettings(ASettings).DarkActiveLineColor := DarkActiveLineColorColorBox.Selected;
     TEditorSettings(ASettings).LightActiveLineColor := LightActiveLineColorColorBox.Selected;
     TEditorSettings(ASettings).RestoreLastSession := RestoreLastSessionCheckBox.Checked;
+    TEditorSettings(ASettings).ShowColorPalette := ShowColorPaletteCheckBox.Checked;
   end;
 
   if AutoUpdateCheckBox.Checked then
