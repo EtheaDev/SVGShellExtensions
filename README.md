@@ -9,7 +9,7 @@
 
 **A collection of extensions tools for SVG files, integrated into Microsoft Windows Explorer (for Windows 10 and 11) and a useful SVG Text Editor:**
 
-![Delphi Support](/Setup/SupportingDelphi.jpg)
+![Delphi Support](/Images/SupportingDelphi.jpg)
 
 Related links: [embarcadero.com][10] - [learndelphi.org][11]
 
