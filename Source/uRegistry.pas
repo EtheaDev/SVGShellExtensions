@@ -172,14 +172,14 @@ begin
     if IsWindows11 then
       Result := 'Windows11 Modern Light'
     else
-      Result := 'Windows10';
+      Result := 'Windows Modern';
   end
   else
   begin
     if IsWindows11 then
       Result := 'Windows11 Modern Dark'
     else
-      Result := 'Windows10 SlateGray';
+      Result := 'Windows Modern SlateGray';
   end;
 end;
 

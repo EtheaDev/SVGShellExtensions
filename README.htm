@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
 <style type="text/css">
-:root{color-scheme:light;}
-body{font-family:"Arial",sans-serif;font-size:12pt;color:#000000;background-color:#FFFFFF;}
-a{color:#0000FF;}
-.markdown-alert>:last-child{margin-bottom:0;}
-.markdown-alert-title{margin-top:0;}
-@media print{body{color:#000;background-color:#fff;}}
-</style>
-<script>
-document.addEventListener("click",function(e){var a=e.target.closest("a");if(a){var h=a.getAttribute("href");if(h&&h.charAt(0)==="#"){e.preventDefault();var t=document.getElementById(decodeURIComponent(h.substring(1)));if(t)t.scrollIntoView();}}});
-window.addEventListener("scroll",function(){if(window.chrome&&chrome.webview)chrome.webview.postMessage("scrollY:"+Math.round(window.scrollY)+":"+Math.max(0,Math.round(document.documentElement.scrollHeight-window.innerHeight)));});
-</script>
-</head>
-<body>
-<style type="text/css">
+body{
+  font-family: Arial, sans-serif;
+}
 img{
+  max-width: 100%;
+  height: auto;
+}
+video{
   max-width: 100%;
   height: auto;
 }
@@ -107,7 +96,6 @@ pre.mermaid{
 }
 </style>
 <h1 id="svg-editor-and-shell-extensions">SVG Editor and Shell Extensions</h1>
-<!-- raw HTML omitted -->
 <p><a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg" alt="License: Apache" /></a>
 <a href="https://github.com/EtheaDev/SVGShellExtensions/releases"><img src="https://img.shields.io/github/v/release/EtheaDev/SvgShellExtensions?label=release&amp;color=blue" alt="Latest release" /></a>
 <a href="https://www.embarcadero.com/products/delphi"><img src="https://img.shields.io/badge/Delphi-12%2B-e62329.svg" alt="Delphi 12+" /></a>
@@ -181,7 +169,7 @@ pre.mermaid{
 <li>Optional fixed color, grayscale and opacity settings</li>
 </ul>
 <p><strong>Usage:</strong></p>
-<pre style="background-color:#FFFFFF;color:#000000;"><code>SVGToPNG convert -in:&lt;InputPattern&gt; -size:&lt;Sizes&gt; &lt;options&gt;
+<pre><code>SVGToPNG convert -in:&lt;InputPattern&gt; -size:&lt;Sizes&gt; &lt;options&gt;
 Options:
  -color|-c:&lt;color&gt;            Fixed color to apply (e.g. clBlack, #FF0000) ((Optional))
  -grayscale|-g:&lt;grayscale&gt;    Convert to grayscale ((Optional))
@@ -190,9 +178,10 @@ Options:
  -out|-o:&lt;out&gt;                Output folder for generated PNG files ((Optional))
  -size|-s:&lt;size&gt;              PNG sizes separated by comma (e.g. 16,32,48,64) ((Required))
 Examples:
-  SVGToPNG convert -in:"C:\icons\*.svg" -size:32
-  SVGToPNG convert -in:"C:\icons\home.svg" -size:16,32,48,64 -out:"C:\output"
-  SVGToPNG convert -in:"*.svg" -size:256 -grayscale</code></pre>
+  SVGToPNG convert -in:&quot;C:\icons\*.svg&quot; -size:32
+  SVGToPNG convert -in:&quot;C:\icons\home.svg&quot; -size:16,32,48,64 -out:&quot;C:\output&quot;
+  SVGToPNG convert -in:&quot;*.svg&quot; -size:256 -grayscale
+</code></pre>
 <h3 id="support-for-xyplorer">Support for XYplorer</h3>
 <p>As requested by many users of popular shell alternative, the new version supports XYplorer for Thumbnails and Preview Panel: follow the <a href="https://github.com/EtheaDev/SVGShellExtensions/wiki/XYplorer-Support">configuration guide…</a></p>
 <p><img src="./Images/XYplorer_Preview.png" alt="XYplorer" /></p>
@@ -230,6 +219,14 @@ Examples:
 </li>
 </ol>
 <h2 id="release-notes">Release Notes</h2>
+<p>20 Oct 2026: ver. 3.5.1</p>
+<ul>
+<li>SVG Text Editor: fixed the icons of the side menu and of the toolbar, missing when the editor was started without files (also in the Preview Panel).</li>
+<li>Removed the obsolete Windows10 styles; on Windows 10 the default style is now “Windows Modern” (light) or “Windows Modern SlateGray” (dark), and a stored style no longer available falls back to the default one.</li>
+<li>Settings, Theme page: every available style is offered, classified as light or dark automatically (“Windows Modern” and “Windows Modern SlateGray” were missing).</li>
+<li>About: copyright updated to 2026.</li>
+<li>Version aligned to 3.5.1 on every project and on the setup.</li>
+</ul>
 <p>12 Oct 2026: ver. 3.5.0</p>
 <ul>
 <li>SVG Text Editor: new Color palette panel under the editor, showing the colors used in the SVG text (presentation attributes, style attributes and <code>&lt;style&gt;</code> blocks; hex, rgb(), rgba(), hsl(), hsla() and named colors), grouped by color with the number of occurrences and a hint with value, properties and opacities.</li>
@@ -450,5 +447,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 <p><a href="https://github.com/pyscripter/SynEdit/">SynEdit of PyScripter project</a></p>
 </li>
 </ul>
-</body>
-</html>

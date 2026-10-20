@@ -84,7 +84,12 @@ begin
     //NB: dmResources is not created here any more. It is a shared instance
     //owned by DResources, created on first use and freed when that unit is
     //finalized, so that the editor and the shell extension follow the same
-    //lifetime rule.
+    //lifetime rule. It must exist before the forms are created: their DFM
+    //reference dmResources.SVGIconImageCollection and the reference is
+    //resolved only if the data module is already there. Created later (e.g.
+    //when the first file is opened), the image lists stay empty until then
+    //and the buttons show no icons.
+    dmResources;
     Application.CreateForm(TfrmMain, frmMain);
     Application.CreateForm(TTestPrintPreviewDlg, TestPrintPreviewDlg);
     Application.CreateForm(TPageSetupDlg, PageSetupDlg);

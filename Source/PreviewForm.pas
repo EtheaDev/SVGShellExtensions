@@ -187,12 +187,15 @@ end;
 
 constructor TFrmPreview.Create(AOwner: TComponent);
 begin
+  //NB: the data module is a shared instance owned by DResources, created on
+  //first use (creating and destroying it per preview form meant that, with two
+  //handlers alive in the same Explorer process, one could free the module the
+  //other was still using). It is requested before inherited: the DFM of this
+  //form references dmResources.SVGIconImageCollection, resolved only if the
+  //data module already exists, otherwise the buttons show no icons.
+  dmResources;
   inherited;
   FPreviewSettings := TPreviewSettings.CreateSettings(SynEdit.Highlighter);
-  //NB: the data module is no longer created here. It is a shared instance
-  //owned by DResources, created on first use: creating and destroying it per
-  //preview form meant that, with two handlers alive in the same Explorer
-  //process, one could free the module the other was still using.
 end;
 
 destructor TFrmPreview.Destroy;

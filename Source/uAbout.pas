@@ -429,11 +429,11 @@ begin
   MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
   MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');
-  MemoCopyRights.Lines.Add('Copyright © 2021-2025 all rights reserved.');
+  MemoCopyRights.Lines.Add('Copyright © 2021-2026 all rights reserved.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('Third Party libraries and tools used from Ethea:');
   MemoCopyRights.Lines.Add('SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/');
-  MemoCopyRights.Lines.Add('Copyright © 2019-2025 all rights reserved.');
+  MemoCopyRights.Lines.Add('Copyright © 2019-2026 all rights reserved.');
   MemoCopyRights.Lines.Add('');
   MemoCopyRights.Lines.Add('The Initial Developer of the Original Code is Rodrigo Ruz V.');
   MemoCopyRights.Lines.Add('Portions created by Rodrigo Ruz V. are Copyright © 2011-2022 Rodrigo Ruz V.');

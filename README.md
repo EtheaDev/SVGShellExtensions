@@ -1,6 +1,5 @@
 ﻿# SVG Editor and Shell Extensions
 
-<!-- badges -->
 [![License: Apache](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/EtheaDev/SvgShellExtensions?label=release&color=blue)](https://github.com/EtheaDev/SVGShellExtensions/releases)
 [![Delphi 12+](https://img.shields.io/badge/Delphi-12%2B-e62329.svg)](https://www.embarcadero.com/products/delphi)
@@ -135,6 +134,13 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+20 Oct 2026: ver. 3.5.1
+- SVG Text Editor: fixed the icons of the side menu and of the toolbar, missing when the editor was started without files (also in the Preview Panel).
+- Removed the obsolete Windows10 styles; on Windows 10 the default style is now "Windows Modern" (light) or "Windows Modern SlateGray" (dark), and a stored style no longer available falls back to the default one.
+- Settings, Theme page: every available style is offered, classified as light or dark automatically ("Windows Modern" and "Windows Modern SlateGray" were missing).
+- About: copyright updated to 2026.
+- Version aligned to 3.5.1 on every project and on the setup.
+
 12 Oct 2026: ver. 3.5.0
 - SVG Text Editor: new Color palette panel under the editor, showing the colors used in the SVG text (presentation attributes, style attributes and `<style>` blocks; hex, rgb(), rgba(), hsl(), hsla() and named colors), grouped by color with the number of occurrences and a hint with value, properties and opacities.
 - SVG Text Editor: click on a palette color to highlight all its occurrences in the text; move between them with Alt+Right / Alt+Left or with the arrow buttons of the palette.
