@@ -134,6 +134,13 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+30 Oct 2026: ver. 3.5.2
+- SVG Text Editor: "Word-Wrap Text" and "Show Line Numbers" in the context menu of the editor, with a check mark: they switch word wrap and line numbers in every open editor and are saved with the other editor options (as in the Editor options dialog)
+- Setup: no language selection dialog, the installer uses the language of Windows
+- License and credits: the same list of third party libraries in the setup, in the README and in the About dialog
+- New logo, box and setup wizard image of the product
+- Uses StyledComponents 4.5.0
+
 20 Oct 2026: ver. 3.5.1
 - SVG Text Editor: fixed the icons of the side menu and of the toolbar, missing when the editor was started without files (also in the Preview Panel).
 - Removed the obsolete Windows10 styles; on Windows 10 the default style is now "Windows Modern" (light) or "Windows Modern SlateGray" (dark), and a stored style no longer available falls back to the default one.
@@ -318,17 +325,32 @@ Many thanks to **Rodrigo Ruz V.** (author of [theroadtodelphi.com][7] Blog) for 
 Licensed under the [Apache License, Version 2.0][9] (the "License");
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-Third Party libraries and tools used from Ethea:
+<!-- credits:begin -->
+Copyright © 2021-2026 Ethea S.r.l.
 
-- [SVGIconImageList][4]
+### Credits
 
-The Initial Developer of the [Original Code][8] is **Rodrigo Ruz V**. Portions created by him are Copyright © 2011-2021 Rodrigo Ruz V.
+Author: Carlo Barazzetta  
+Custom icons: Ariel Montes  
+Source project: https://github.com/EtheaDev/SVGShellExtensions  
 
-Third Party libraries and tools used:
+### Other libraries from Ethea
 
-- [VCLStyles Utils][6]
+- **[SVGIconImageList](https://github.com/EtheaDev/SVGIconImageList)**
+- **[StyledComponents](https://github.com/EtheaDev/StyledComponents)**
 
-- [SynEdit of PyScripter project][5]
+### Third party libraries
+
+- **[Delphi Preview Handler](https://github.com/RRUZ/delphi-preview-handler)**  
+  The Initial Developer of the Original Code is Rodrigo Ruz V.  
+  Portions created by Rodrigo Ruz V. are Copyright © 2011-2023 Rodrigo Ruz V.
+- **[VCL Styles Utils](https://github.com/RRUZ/vcl-styles-utils)**  
+  Portions created by Rodrigo Ruz V. are Copyright © 2012-2023 Rodrigo Ruz V. (Mozilla Public License 1.1)
+- **[SynEdit (PyScripter fork)](https://github.com/pyscripter/SynEdit)**  
+  Portions created by Martin Waldenburg are Copyright © 1998 Martin Waldenburg (Mozilla Public License 1.1)
+- **[Image32 Library](https://www.angusj.com/delphi/image32/Docs/_Body.htm)**  
+  Copyright © 2019-2025 Angus Johnson (Boost Software License)
+<!-- credits:end -->
 
 [1]: https://docs.microsoft.com/en-us/windows/win32/shell/preview-handlers
 

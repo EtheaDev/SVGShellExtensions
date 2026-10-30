@@ -126,6 +126,8 @@ uses
   , GitHubAPI
   ;
 
+{$I SVGShellExtensions.Credits.inc}
+
 {$R *.dfm}
 
 var
@@ -426,25 +428,7 @@ begin
   btnCheckUpdates.Visible := True;
   FStopDownload := True;
 
-  MemoCopyRights.Lines.Add('Author: Carlo Barazzetta - Ethea S.r.l.');
-  MemoCopyRights.Lines.Add('Custom icons: Ariel Montes - Ethea S.r.l.');
-  MemoCopyRights.Lines.Add('https://github.com/EtheaDev/SVGShellExtensions');
-  MemoCopyRights.Lines.Add('Copyright © 2021-2026 all rights reserved.');
-  MemoCopyRights.Lines.Add('');
-  MemoCopyRights.Lines.Add('Third Party libraries and tools used from Ethea:');
-  MemoCopyRights.Lines.Add('SVGIconImageList https://github.com/EtheaDev/SVGIconImageList/');
-  MemoCopyRights.Lines.Add('Copyright © 2019-2026 all rights reserved.');
-  MemoCopyRights.Lines.Add('');
-  MemoCopyRights.Lines.Add('The Initial Developer of the Original Code is Rodrigo Ruz V.');
-  MemoCopyRights.Lines.Add('Portions created by Rodrigo Ruz V. are Copyright © 2011-2022 Rodrigo Ruz V.');
-  MemoCopyRights.Lines.Add('https://github.com/RRUZ/delphi-preview-handler');
-  MemoCopyRights.Lines.Add('');
-  MemoCopyRights.Lines.Add('Third Party libraries and tools used');
-  MemoCopyRights.Lines.Add('SynEdit forked by Pyscripter https://github.com/pyscripter/SynEdit/');
-  MemoCopyRights.Lines.Add('');
-  MemoCopyRights.Lines.Add('Image32 Library - http://www.angusj.com/delphi/image32/Docs/_Body.htm');
-  MemoCopyRights.Lines.Add('Copyright ©2019-2025 Angus Johnson.');
-  MemoCopyRights.Lines.Add('');
+  MemoCopyRights.Lines.Text := CreditsText;
 end;
 
 procedure TFrmAbout.FormShow(Sender: TObject);

@@ -238,6 +238,11 @@ type
     ImagePreviewPanel: TPanel;
     ExportToPNGAction: TAction;
     N1: TMenuItem;
+    N2: TMenuItem;
+    acWordWrap: TAction;
+    acShowLineNumbers: TAction;
+    WordWrapMenuItem: TMenuItem;
+    ShowLineNumbersMenuItem: TMenuItem;
     CloseAllMenuItem: TMenuItem;
     ExporttoPNGMenuItem: TMenuItem;
     StatusPanel: TPanel;
@@ -300,6 +305,10 @@ type
     procedure acAboutExecute(Sender: TObject);
     procedure acSearchAgainExecute(Sender: TObject);
     procedure acSearchAgainUpdate(Sender: TObject);
+    procedure acWordWrapExecute(Sender: TObject);
+    procedure acWordWrapUpdate(Sender: TObject);
+    procedure acShowLineNumbersExecute(Sender: TObject);
+    procedure acShowLineNumbersUpdate(Sender: TObject);
     procedure actnPrinterSetupExecute(Sender: TObject);
     procedure actnPrintPreviewExecute(Sender: TObject);
     procedure actnPrintExecute(Sender: TObject);
@@ -1829,6 +1838,33 @@ procedure TfrmMain.acSearchAgainExecute(Sender: TObject);
 begin
   gbSearchFromCaret := True;
   DoSearchReplaceText(False, gbSearchBackwards);
+end;
+
+//Word wrap and line numbers are editor options (also in the Editor options
+//dialog): the context menu toggles them for every open editor, and they
+//are saved with the other editor options when the application closes
+procedure TfrmMain.acWordWrapExecute(Sender: TObject);
+begin
+  FEditorOptions.WordWrap := not FEditorOptions.WordWrap;
+  UpdateEditorsOptions;
+end;
+
+procedure TfrmMain.acWordWrapUpdate(Sender: TObject);
+begin
+  acWordWrap.Enabled := CurrentEditor <> nil;
+  acWordWrap.Checked := FEditorOptions.WordWrap;
+end;
+
+procedure TfrmMain.acShowLineNumbersExecute(Sender: TObject);
+begin
+  FEditorOptions.Gutter.ShowLineNumbers := not FEditorOptions.Gutter.ShowLineNumbers;
+  UpdateEditorsOptions;
+end;
+
+procedure TfrmMain.acShowLineNumbersUpdate(Sender: TObject);
+begin
+  acShowLineNumbers.Enabled := CurrentEditor <> nil;
+  acShowLineNumbers.Checked := FEditorOptions.Gutter.ShowLineNumbers;
 end;
 
 procedure TfrmMain.acSearchAgainUpdate(Sender: TObject);
