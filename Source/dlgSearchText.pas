@@ -25,7 +25,7 @@
 {******************************************************************************}
 unit dlgSearchText;
 
-{$I SynEdit.inc}
+{$I SynEdit.Defines.inc}
 
 interface
 

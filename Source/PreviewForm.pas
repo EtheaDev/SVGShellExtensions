@@ -36,13 +36,13 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, SynEdit,
+  Dialogs, StdCtrls, ExtCtrls, SynEdit.Core,
   System.Generics.Collections,
-  SynEditHighlighter,
-  ComCtrls, ToolWin, ImgList, SynHighlighterXML,
-  Vcl.Menus, SynEditExport,
-  SynExportHTML, SynExportRTF, SynEditMiscClasses,
-  uSettings, System.ImageList, SynEditCodeFolding,
+  SynEdit.Highlighter,
+  ComCtrls, ToolWin, ImgList, SynEdit.Highlighter.XML,
+  Vcl.Menus, SynEdit.Export,
+  SynEdit.ExportHTML, SynEdit.ExportRTF, SynEdit.MiscClasses,
+  uSettings, System.ImageList, SynEdit.CodeFolding,
   SVGIconImageList, SVGIconImageListBase, SVGIconImage, Vcl.VirtualImageList,
   UPreviewContainer,
   Vcl.ButtonStylesAttributes, Vcl.StyledButton,
@@ -136,7 +136,7 @@ type
 implementation
 
 uses
-  SynEditTypes
+  SynEdit.Types
   , Vcl.Clipbrd
 {$IFNDEF DISABLE_STYLES}
   , Vcl.Themes

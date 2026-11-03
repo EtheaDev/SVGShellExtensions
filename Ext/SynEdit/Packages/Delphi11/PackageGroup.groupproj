@@ -1,0 +1,62 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{450C8E42-F5B0-4275-9B2A-B95A0ED61BEB}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="EtheaSynEdit.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="dclEtheaSynEdit.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="EtheaSynEdit">
+        <MSBuild Projects="EtheaSynEdit.dproj"/>
+    </Target>
+    <Target Name="EtheaSynEdit:Clean">
+        <MSBuild Projects="EtheaSynEdit.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="EtheaSynEdit:Make">
+        <MSBuild Projects="EtheaSynEdit.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="dclEtheaSynEdit">
+        <MSBuild Projects="dclEtheaSynEdit.dproj"/>
+    </Target>
+    <Target Name="dclEtheaSynEdit:Clean">
+        <MSBuild Projects="dclEtheaSynEdit.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dclEtheaSynEdit:Make">
+        <MSBuild Projects="dclEtheaSynEdit.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="EtheaSynEdit;dclEtheaSynEdit"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="EtheaSynEdit:Clean;dclEtheaSynEdit:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="EtheaSynEdit:Make;dclEtheaSynEdit:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+    <ItemGroup Condition="'$(BuildGroup)'=='ALL'">
+        <BuildGroupProject Include="EtheaSynEdit.dproj">
+            <ProjectGuid>{EF83CD6B-61B3-449C-8FCA-29C183F786E5}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32;Win64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="dclEtheaSynEdit.dproj">
+            <ProjectGuid>{3FCF7CA6-390B-492F-94D2-8EDEF55AAE7E}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
+</Project>

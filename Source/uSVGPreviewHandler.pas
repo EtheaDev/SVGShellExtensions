@@ -56,7 +56,7 @@ implementation
 
 Uses
   uLogExcept,
-  SynEdit,
+  SynEdit.Core,
   Windows,
   Forms,
   uMisc;

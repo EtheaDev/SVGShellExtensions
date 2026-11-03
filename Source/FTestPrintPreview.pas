@@ -42,7 +42,7 @@ uses
   Vcl.ActnList,
   Vcl.ImgList,
   Vcl.Dialogs,
-  SynEditPrintPreview,
+  SynEdit.PrintPreview,
   Vcl.Menus,
   Vcl.AppEvnts,
   Vcl.Printers,

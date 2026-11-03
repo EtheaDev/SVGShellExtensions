@@ -60,7 +60,7 @@ function GetRect(const ARect: TRect; const ATxt: string): string;
 implementation
 
 uses
-  SynEdit,
+  SynEdit.Core,
   System.Math,
 {$IFNDEF DISABLE_STYLES}
   Vcl.Styles.Ext,

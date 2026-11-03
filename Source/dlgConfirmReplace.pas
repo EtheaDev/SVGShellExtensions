@@ -25,7 +25,7 @@
 {******************************************************************************}
 unit dlgConfirmReplace;
 
-{$I SynEdit.inc}
+{$I SynEdit.Defines.inc}
 
 interface
 

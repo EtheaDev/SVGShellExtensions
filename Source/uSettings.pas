@@ -35,7 +35,8 @@ uses
   System.SysUtils,
   System.Classes,
   VCL.Graphics,
-  SynEditHighlighter,
+  SynEdit.Highlighter,
+  SynEdit.Types,
   System.Generics.Collections,
   SynEditOptionsDialog,
   SVGIconUtils,
@@ -218,7 +219,7 @@ uses
   uLogExcept,
   uRegistry,
   uMisc,
-  SynEdit
+  SynEdit.Core
   ;
 
 const

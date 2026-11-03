@@ -44,6 +44,12 @@ uses
   ;
 
 const
+  /// <summary>Default colour of the blinking text of a dialog (TextBlink)</summary>
+  DEFAULT_TEXTBLINK_COLOR = clRed;
+  /// <summary>Default interval in milliseconds between the two colours of the blinking text</summary>
+  DEFAULT_TEXTBLINK_INTERVAL = 500;
+  /// <summary>Minimum interval of the blinking text: two blinks a second, under the three flashes a second that WCAG 2.3.1 sets as the limit</summary>
+  MIN_TEXTBLINK_INTERVAL = 250;
   /// <summary>Default alpha blend value for styled dialogs (fully opaque)</summary>
   DEFAULT_STYLEDDIALOG_ALPHABLEND = 255;
   /// <summary>Default minimum width for styled dialogs in pixels</summary>
@@ -115,6 +121,8 @@ type
     _DefaultButtonsDrawType: TStyledButtonDrawType;
     _DefaultButtonsRadius: Integer;
     _DefaultButtonsRoundedCorners: TRoundedCorners;
+    _DefaultButtonsShadowSize: Integer;
+    _DefaultButtonsBorderWidth: Integer;
   private
     FHelpFile: string;
     FParentWnd: HWND;
@@ -124,12 +132,18 @@ type
     FDialogButtonsDrawType: TStyledButtonDrawType;
     FDialogButtonsRadius: Integer;
     FDialogButtonsRoundedCorners: TRoundedCorners;
+    FDialogButtonsShadowSize: Integer;
+    FDialogButtonsBorderWidth: Integer;
     FUseTitleInMessageDlg: Boolean;
     FAlphaBlendValue: Byte;
     FButtonsWidth: Integer;
     FButtonsHeight: Integer;
     FAutoClick: Boolean;
     FAutoClickDelay: Integer;
+    FTextBlink: Boolean;
+    FTextBlinkColor: TColor;
+    FTextBlinkInterval: Integer;
+    FTextBlinkLinks: Boolean;
     FOnFindDialogButton: TOnFindDialogButtonEvent;
     FUseAnimations: Boolean;
     FUseAnimationLoop: Boolean;
@@ -142,8 +156,13 @@ type
     function IsStoredDrawType: Boolean;
     function IsStoredRadius: Boolean;
     function IsStoredRoundedCorners: Boolean;
+    function IsStoredShadowSize: Boolean;
+    function IsStoredBorderWidth: Boolean;
+    procedure SetDialogButtonsShadowSize(const AValue: Integer);
+    procedure SetDialogButtonsBorderWidth(const AValue: Integer);
     procedure SetAutoClick(const AValue: Boolean);
     procedure SetAutoClickDelay(const AValue: Integer);
+    procedure SetTextBlinkInterval(const AValue: Integer);
     procedure SetAlphaBlendValue(const AValue: Byte);
     procedure SetButtonsHeight(const AValue: Integer);
     procedure SetButtonsWidth(const AValue: Integer);
@@ -190,11 +209,15 @@ type
     /// <param name="AFamily">The style family for buttons (default: DEFAULT_CLASSIC_FAMILY)</param>
     /// <param name="ARadius">The corner radius in pixels (default: DEFAULT_RADIUS)</param>
     /// <param name="ARoundedCorners">Which corners to round (default: ALL_ROUNDED_CORNERS)</param>
+    /// <param name="AShadowSize">Shadow below the buttons: -1 = the one of the style (default: DEFAULT_SHADOW_SIZE), 0 = none, greater than zero = pixels</param>
+    /// <param name="ABorderWidth">Border width of the buttons: -1 = the one of the style (default: DEFAULT_BORDER_WIDTH), 0 = none, greater than zero = pixels</param>
     class procedure RegisterDefaultRenderingStyle(
       const ADrawType: TStyledButtonDrawType;
       const AFamily: TStyledButtonFamily = DEFAULT_CLASSIC_FAMILY;
       const ARadius: Integer = DEFAULT_RADIUS;
-      const ARoundedCorners: TRoundedCorners = ALL_ROUNDED_CORNERS); virtual;
+      const ARoundedCorners: TRoundedCorners = ALL_ROUNDED_CORNERS;
+      const AShadowSize: Integer = DEFAULT_SHADOW_SIZE;
+      const ABorderWidth: Integer = DEFAULT_BORDER_WIDTH); virtual;
     /// <summary>The default button determined from message dialog type</summary>
     property MessageDefaultButton: TMsgDlgBtn read FMessageDefaultButton;
     /// <summary>Indicates if MessageDefaultButton should be used</summary>
@@ -210,6 +233,14 @@ type
     property AutoClick: Boolean read FAutoClick write SetAutoClick default False;
     /// <summary>Delay in milliseconds before auto-clicking the default button</summary>
     property AutoClickDelay: Integer read FAutoClickDelay write SetAutoClickDelay default DEFAULT_AUTOCLICK_DELAY;
+    /// <summary>When True the text of the dialog blinks: it switches between its colour and TextBlinkColor while the dialog is shown</summary>
+    property TextBlink: Boolean read FTextBlink write FTextBlink default False;
+    /// <summary>Colour of the text in the blink phase</summary>
+    property TextBlinkColor: TColor read FTextBlinkColor write FTextBlinkColor default DEFAULT_TEXTBLINK_COLOR;
+    /// <summary>Milliseconds between the two colours; a value below MIN_TEXTBLINK_INTERVAL is raised to it</summary>
+    property TextBlinkInterval: Integer read FTextBlinkInterval write SetTextBlinkInterval default DEFAULT_TEXTBLINK_INTERVAL;
+    /// <summary>When True (default) the hyperlinks of the text blink too; when False they keep the colours of the system</summary>
+    property TextBlinkLinks: Boolean read FTextBlinkLinks write FTextBlinkLinks default True;
     /// <summary>Style family for dialog buttons (e.g., Bootstrap, Angular, Classic)</summary>
     property DialogButtonsFamily: TStyledButtonFamily read FDialogButtonsFamily write FDialogButtonsFamily stored IsDefaultFamily;
     /// <summary>Draw type for dialog buttons (btRoundRect, btRounded, btRect, btEllipse)</summary>
@@ -218,6 +249,10 @@ type
     property DialogButtonsRadius: Integer read FDialogButtonsRadius write FDialogButtonsRadius stored IsStoredRadius;
     /// <summary>Specifies which corners of dialog buttons should be rounded</summary>
     property DialogButtonsRoundedCorners: TRoundedCorners read FDialogButtonsRoundedCorners write FDialogButtonsRoundedCorners stored IsStoredRoundedCorners;
+    /// <summary>Shadow below the dialog buttons in pixels (-1 = the one of the style, 0 = none)</summary>
+    property DialogButtonsShadowSize: Integer read FDialogButtonsShadowSize write SetDialogButtonsShadowSize stored IsStoredShadowSize;
+    /// <summary>Border width of the dialog buttons in pixels (-1 = the one of the style, 0 = none)</summary>
+    property DialogButtonsBorderWidth: Integer read FDialogButtonsBorderWidth write SetDialogButtonsBorderWidth stored IsStoredBorderWidth;
     /// <summary>When True, displays buttons as command links with descriptions</summary>
     property UseCommandLinks: Boolean read GetUseCommandLinks write SetUseCommandLinks default False;
     /// <summary>Enables Lottie animations for dialog icons (requires Skia4Delphi)</summary>
@@ -450,6 +485,21 @@ function GetDialogAutoClickDelay: Integer;
 /// <param name="AValue">Delay in milliseconds (0 or less to disable)</param>
 /// <remarks>Use GetDialogAutoClickDelay to restore the previous value</remarks>
 procedure SetDialogAutoClickDelay(const AValue: Integer);
+/// <summary>Returns True if the text of every dialog that is not given its own setting blinks</summary>
+function GetDialogTextBlink: Boolean;
+/// <summary>Returns the colour of the blinking text used by every dialog that is not given its own</summary>
+function GetDialogTextBlinkColor: TColor;
+/// <summary>Returns the interval in milliseconds of the blinking text used by every dialog that is not given its own</summary>
+function GetDialogTextBlinkInterval: Integer;
+/// <summary>Sets the blinking text of every dialog that is not given its own setting (the message routines
+/// have no component to set), leaving every other dialog setting as it is</summary>
+/// <param name="AEnabled">True to make the text blink</param>
+/// <param name="AColor">Colour of the text in the blink phase</param>
+/// <param name="AInterval">Milliseconds between the two colours (raised to MIN_TEXTBLINK_INTERVAL if lower)</param>
+/// <remarks>Use the Get functions to restore the previous values</remarks>
+procedure SetDialogTextBlink(const AEnabled: Boolean;
+  const AColor: TColor = DEFAULT_TEXTBLINK_COLOR;
+  const AInterval: Integer = DEFAULT_TEXTBLINK_INTERVAL);
 
 /// <summary>Returns the default title for a dialog type</summary>
 /// <param name="DlgType">The dialog type</param>
@@ -533,6 +583,9 @@ var
   _ButtonsWidth: Integer;
   _ButtonsHeight: Integer;
   _AutoClickDelay: Integer;
+  _TextBlink: Boolean;
+  _TextBlinkColor: TColor;
+  _TextBlinkInterval: Integer;
 
   ButtonNames: array[TMsgDlgBtn] of string = (
     'Yes', 'No', 'OK', 'Cancel', 'Abort', 'Retry', 'Ignore', 'All', 'NoToAll',
@@ -801,6 +854,29 @@ begin
   _AutoClickDelay := AValue;
 end;
 
+function GetDialogTextBlink: Boolean;
+begin
+  Result := _TextBlink;
+end;
+
+function GetDialogTextBlinkColor: TColor;
+begin
+  Result := _TextBlinkColor;
+end;
+
+function GetDialogTextBlinkInterval: Integer;
+begin
+  Result := _TextBlinkInterval;
+end;
+
+procedure SetDialogTextBlink(const AEnabled: Boolean;
+  const AColor: TColor; const AInterval: Integer);
+begin
+  _TextBlink := AEnabled;
+  _TextBlinkColor := AColor;
+  _TextBlinkInterval := Max(AInterval, MIN_TEXTBLINK_INTERVAL);
+end;
+
 function StyledMessageDlg(const Msg: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer; overload;
 begin
@@ -1045,6 +1121,8 @@ begin
   FDialogButtonsDrawType := _DefaultButtonsDrawType;
   FDialogButtonsRadius := _DefaultButtonsRadius;
   FDialogButtonsRoundedCorners := _DefaultButtonsRoundedCorners;
+  FDialogButtonsShadowSize := _DefaultButtonsShadowSize;
+  FDialogButtonsBorderWidth := _DefaultButtonsBorderWidth;
   UseCommandLinks := _UseCommandLinks;
   FUseTitleInMessageDlg := _UseTitleInMessageDlg;
   AlphaBlendValue := _AlphaBlendValue;
@@ -1055,6 +1133,10 @@ begin
     FAutoClickDelay := _AutoClickDelay
   else
     FAutoClickDelay := DEFAULT_AUTOCLICK_DELAY;
+  FTextBlink := _TextBlink;
+  FTextBlinkColor := _TextBlinkColor;
+  FTextBlinkInterval := _TextBlinkInterval;
+  FTextBlinkLinks := True;
   FMainIconSize := DEFAULT_MAIN_ICON_SIZE;
   DoOnDialogCreated;
 end;
@@ -1180,16 +1262,46 @@ begin
   Result := FDialogButtonsRoundedCorners <> _DefaultButtonsRoundedCorners;
 end;
 
+function TStyledTaskDialog.IsStoredShadowSize: Boolean;
+begin
+  Result := FDialogButtonsShadowSize <> _DefaultButtonsShadowSize;
+end;
+
+function TStyledTaskDialog.IsStoredBorderWidth: Boolean;
+begin
+  Result := FDialogButtonsBorderWidth <> _DefaultButtonsBorderWidth;
+end;
+
+procedure TStyledTaskDialog.SetDialogButtonsShadowSize(const AValue: Integer);
+begin
+  if AValue < DEFAULT_SHADOW_SIZE then
+    raise EReadError.Create(SInvalidProperty);
+  FDialogButtonsShadowSize := AValue;
+end;
+
+procedure TStyledTaskDialog.SetDialogButtonsBorderWidth(const AValue: Integer);
+begin
+  if AValue < DEFAULT_BORDER_WIDTH then
+    raise EReadError.Create(SInvalidProperty);
+  FDialogButtonsBorderWidth := AValue;
+end;
+
 class procedure TStyledTaskDialog.RegisterDefaultRenderingStyle(
   const ADrawType: TStyledButtonDrawType;
   const AFamily: TStyledButtonFamily;
   const ARadius: Integer;
-  const ARoundedCorners: TRoundedCorners);
+  const ARoundedCorners: TRoundedCorners;
+  const AShadowSize: Integer;
+  const ABorderWidth: Integer);
 begin
+  if (AShadowSize < DEFAULT_SHADOW_SIZE) or (ABorderWidth < DEFAULT_BORDER_WIDTH) then
+    raise EArgumentException.Create(SInvalidProperty);
   _DefaultButtonsFamily := AFamily;
   _DefaultButtonsDrawType := ADrawType;
   _DefaultButtonsRadius := ARadius;
   _DefaultButtonsRoundedCorners := ARoundedCorners;
+  _DefaultButtonsShadowSize := AShadowSize;
+  _DefaultButtonsBorderWidth := ABorderWidth;
 end;
 
 procedure TStyledTaskDialog.SetAlphaBlendValue(const AValue: Byte);
@@ -1225,6 +1337,11 @@ end;
 procedure TStyledTaskDialog.SetAutoClickDelay(const AValue: Integer);
 begin
   FAutoClickDelay := AValue;
+end;
+
+procedure TStyledTaskDialog.SetTextBlinkInterval(const AValue: Integer);
+begin
+  FTextBlinkInterval := Max(AValue, MIN_TEXTBLINK_INTERVAL);
 end;
 
 procedure TStyledTaskDialog.SetButtonsHeight(const AValue: Integer);
@@ -1326,6 +1443,9 @@ initialization
   _UseCommandLinks := False;
   _UseTitleInMessageDlg := True;
   _AlphaBlendValue := DEFAULT_STYLEDDIALOG_ALPHABLEND;
+  _TextBlink := False;
+  _TextBlinkColor := DEFAULT_TEXTBLINK_COLOR;
+  _TextBlinkInterval := DEFAULT_TEXTBLINK_INTERVAL;
   _ButtonsWidth := DEFAULT_STYLEDDIALOG_BUTTONSWIDTH;
   _ButtonsHeight := DEFAULT_STYLEDDIALOG_BUTTONSHEIGHT;
   _DialogFont := nil;
@@ -1334,6 +1454,8 @@ initialization
   TStyledTaskDialog._DefaultButtonsDrawType := btRoundRect;
   TStyledTaskDialog._DefaultButtonsRadius := DEFAULT_RADIUS;
   TStyledTaskDialog._DefaultButtonsRoundedCorners := ALL_ROUNDED_CORNERS;
+  TStyledTaskDialog._DefaultButtonsShadowSize := DEFAULT_SHADOW_SIZE;
+  TStyledTaskDialog._DefaultButtonsBorderWidth := DEFAULT_BORDER_WIDTH;
   RegisterTaskDialogFormClass(TStyledTaskDialogStd);
 
 finalization

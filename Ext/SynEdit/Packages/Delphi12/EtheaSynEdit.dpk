@@ -1,0 +1,152 @@
+﻿package EtheaSynEdit;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Ethea SynEdit Runtime Components'}
+{$LIBSUFFIX AUTO}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl,
+  vcldb,
+  vclx,
+  rtl;
+
+contains
+  SynEdit.Accessibility in '..\..\Source\SynEdit.Accessibility.pas',
+  SynEdit.AutoCorrect in '..\..\Source\SynEdit.AutoCorrect.pas',
+  SynEdit.AutoCorrectEditor in '..\..\Source\SynEdit.AutoCorrectEditor.pas' {frmAutoCorrectEditor},
+  SynEdit.OmniSetupDialog in '..\..\Source\SynEdit.OmniSetupDialog.pas' {SynOmniSynSetup},
+  SynEdit.CompletionProposal in '..\..\Source\SynEdit.CompletionProposal.pas',
+  SynEdit.DBEdit in '..\..\Source\SynEdit.DBEdit.pas',
+  SynEdit.DWrite in '..\..\Source\SynEdit.DWrite.pas',
+  SynEdit.Core in '..\..\Source\SynEdit.Core.pas',
+  SynEdit.CodeFolding in '..\..\Source\SynEdit.CodeFolding.pas',
+  SynEdit.DataObject in '..\..\Source\SynEdit.DataObject.pas',
+  SynEdit.DragDrop in '..\..\Source\SynEdit.DragDrop.pas',
+  SynEdit.Export in '..\..\Source\SynEdit.Export.pas',
+  SynEdit.Highlighter in '..\..\Source\SynEdit.Highlighter.pas',
+  SynEdit.KbdHandler in '..\..\Source\SynEdit.KbdHandler.pas',
+  SynEdit.KeyCmdEditor in '..\..\Source\SynEdit.KeyCmdEditor.pas' {SynEditKeystrokeEditorForm},
+  SynEdit.KeyCmds in '..\..\Source\SynEdit.KeyCmds.pas',
+  SynEdit.KeyCmdsEditor in '..\..\Source\SynEdit.KeyCmdsEditor.pas' {SynEditKeystrokesEditorForm},
+  SynEdit.KeyConst in '..\..\Source\SynEdit.KeyConst.pas',
+  SynEdit.MiscClasses in '..\..\Source\SynEdit.MiscClasses.pas',
+  SynEdit.MiscProcs in '..\..\Source\SynEdit.MiscProcs.pas',
+  SynEdit.OptionsDialog in '..\..\Source\SynEdit.OptionsDialog.pas' {fmEditorOptionsDialog},
+  SynEdit.Plugins in '..\..\Source\SynEdit.Plugins.pas',
+  SynEdit.Print in '..\..\Source\SynEdit.Print.pas',
+  SynEdit.PrinterInfo in '..\..\Source\SynEdit.PrinterInfo.pas',
+  SynEdit.PrintHeaderFooter in '..\..\Source\SynEdit.PrintHeaderFooter.pas',
+  SynEdit.PrintMargins in '..\..\Source\SynEdit.PrintMargins.pas',
+  SynEdit.PrintMarginsDialog in '..\..\Source\SynEdit.PrintMarginsDialog.pas' {SynEditPrintMarginsDlg},
+  SynEdit.PrintPreview in '..\..\Source\SynEdit.PrintPreview.pas',
+  SynEdit.PrintTypes in '..\..\Source\SynEdit.PrintTypes.pas',
+  SynEdit.PythonBehaviour in '..\..\Source\SynEdit.PythonBehaviour.pas',
+  SynEdit.RegexSearch in '..\..\Source\SynEdit.RegexSearch.pas',
+  SynEdit.ScrollBars in '..\..\Source\SynEdit.ScrollBars.pas',
+  SynEdit.Search in '..\..\Source\SynEdit.Search.pas',
+  SynEdit.StrConst in '..\..\Source\SynEdit.StrConst.pas',
+  SynEdit.TextBuffer in '..\..\Source\SynEdit.TextBuffer.pas',
+  SynEdit.Types in '..\..\Source\SynEdit.Types.pas',
+  SynEdit.Undo in '..\..\Source\SynEdit.Undo.pas',
+  SynEdit.WordWrap in '..\..\Source\SynEdit.WordWrap.pas',
+  SynEdit.ActionsResource in '..\..\Source\SynEdit.ActionsResource.pas',
+  SynEdit.ExportHTML in '..\..\Source\SynEdit.ExportHTML.pas',
+  SynEdit.ExportRTF in '..\..\Source\SynEdit.ExportRTF.pas',
+  SynEdit.ExportTeX in '..\..\Source\SynEdit.ExportTeX.pas',
+  SynEdit.Highlighter.ADSP21xx in '..\..\Source\SynEdit.Highlighter.ADSP21xx.pas',
+  SynEdit.Highlighter.Assembler in '..\..\Source\SynEdit.Highlighter.Assembler.pas',
+  SynEdit.Highlighter.AWK in '..\..\Source\SynEdit.Highlighter.AWK.pas',
+  SynEdit.Highlighter.Baan in '..\..\Source\SynEdit.Highlighter.Baan.pas',
+  SynEdit.Highlighter.Bat in '..\..\Source\SynEdit.Highlighter.Bat.pas',
+  SynEdit.Highlighter.CAC in '..\..\Source\SynEdit.Highlighter.CAC.pas',
+  SynEdit.Highlighter.Cache in '..\..\Source\SynEdit.Highlighter.Cache.pas',
+  SynEdit.Highlighter.Cobol in '..\..\Source\SynEdit.Highlighter.Cobol.pas',
+  SynEdit.Highlighter.CPM in '..\..\Source\SynEdit.Highlighter.CPM.pas',
+  SynEdit.Highlighter.Cpp in '..\..\Source\SynEdit.Highlighter.Cpp.pas',
+  SynEdit.Highlighter.CS in '..\..\Source\SynEdit.Highlighter.CS.pas',
+  SynEdit.Highlighter.Css in '..\..\Source\SynEdit.Highlighter.Css.pas',
+  SynEdit.Highlighter.Dfm in '..\..\Source\SynEdit.Highlighter.Dfm.pas',
+  SynEdit.Highlighter.Dml in '..\..\Source\SynEdit.Highlighter.Dml.pas',
+  SynEdit.Highlighter.DOT in '..\..\Source\SynEdit.Highlighter.DOT.pas',
+  SynEdit.Highlighter.DWS in '..\..\Source\SynEdit.Highlighter.DWS.pas',
+  SynEdit.Highlighter.Eiffel in '..\..\Source\SynEdit.Highlighter.Eiffel.pas',
+  SynEdit.Highlighter.Fortran in '..\..\Source\SynEdit.Highlighter.Fortran.pas',
+  SynEdit.Highlighter.Foxpro in '..\..\Source\SynEdit.Highlighter.Foxpro.pas',
+  SynEdit.Highlighter.Galaxy in '..\..\Source\SynEdit.Highlighter.Galaxy.pas',
+  SynEdit.Highlighter.General in '..\..\Source\SynEdit.Highlighter.General.pas',
+  SynEdit.Highlighter.GWS in '..\..\Source\SynEdit.Highlighter.GWS.pas',
+  SynEdit.Highlighter.Haskell in '..\..\Source\SynEdit.Highlighter.Haskell.pas',
+  SynEdit.Highlighter.HC11 in '..\..\Source\SynEdit.Highlighter.HC11.pas',
+  SynEdit.Highlighter.HP48 in '..\..\Source\SynEdit.Highlighter.HP48.pas',
+  SynEdit.Highlighter.Html in '..\..\Source\SynEdit.Highlighter.Html.pas',
+  SynEdit.Highlighter.IDL in '..\..\Source\SynEdit.Highlighter.IDL.pas',
+  SynEdit.Highlighter.Ini in '..\..\Source\SynEdit.Highlighter.Ini.pas',
+  SynEdit.Highlighter.Inno in '..\..\Source\SynEdit.Highlighter.Inno.pas',
+  SynEdit.Highlighter.Java in '..\..\Source\SynEdit.Highlighter.Java.pas',
+  SynEdit.Highlighter.JScript in '..\..\Source\SynEdit.Highlighter.JScript.pas',
+  SynEdit.Highlighter.JSON in '..\..\Source\SynEdit.Highlighter.JSON.pas',
+  SynEdit.Highlighter.Kix in '..\..\Source\SynEdit.Highlighter.Kix.pas',
+  SynEdit.Highlighter.LDraw in '..\..\Source\SynEdit.Highlighter.LDraw.pas',
+  SynEdit.Highlighter.LLVM in '..\..\Source\SynEdit.Highlighter.LLVM.pas',
+  SynEdit.Highlighter.M3 in '..\..\Source\SynEdit.Highlighter.M3.pas',
+  SynEdit.Highlighter.Modelica in '..\..\Source\SynEdit.Highlighter.Modelica.pas',
+  SynEdit.Highlighter.Msg in '..\..\Source\SynEdit.Highlighter.Msg.pas',
+  SynEdit.Highlighter.Multi in '..\..\Source\SynEdit.Highlighter.Multi.pas',
+  SynEdit.Highlighter.Omni in '..\..\Source\SynEdit.Highlighter.Omni.pas',
+  SynEdit.Highlighter.Pas in '..\..\Source\SynEdit.Highlighter.Pas.pas',
+  SynEdit.Highlighter.Perl in '..\..\Source\SynEdit.Highlighter.Perl.pas',
+  SynEdit.Highlighter.PHP in '..\..\Source\SynEdit.Highlighter.PHP.pas',
+  SynEdit.Highlighter.Progress in '..\..\Source\SynEdit.Highlighter.Progress.pas',
+  SynEdit.Highlighter.Python in '..\..\Source\SynEdit.Highlighter.Python.pas',
+  SynEdit.Highlighter.RC in '..\..\Source\SynEdit.Highlighter.RC.pas',
+  SynEdit.Highlighter.Rexx in '..\..\Source\SynEdit.Highlighter.Rexx.pas',
+  SynEdit.Highlighter.Ruby in '..\..\Source\SynEdit.Highlighter.Ruby.pas',
+  SynEdit.Highlighter.SDD in '..\..\Source\SynEdit.Highlighter.SDD.pas',
+  SynEdit.Highlighter.Sml in '..\..\Source\SynEdit.Highlighter.Sml.pas',
+  SynEdit.Highlighter.SQL in '..\..\Source\SynEdit.Highlighter.SQL.pas',
+  SynEdit.Highlighter.ST in '..\..\Source\SynEdit.Highlighter.ST.pas',
+  SynEdit.Highlighter.TclTk in '..\..\Source\SynEdit.Highlighter.TclTk.pas',
+  SynEdit.Highlighter.TeX in '..\..\Source\SynEdit.Highlighter.TeX.pas',
+  SynEdit.Highlighter.UNIXShellScript in '..\..\Source\SynEdit.Highlighter.UNIXShellScript.pas',
+  SynEdit.Highlighter.Unreal in '..\..\Source\SynEdit.Highlighter.Unreal.pas',
+  SynEdit.Highlighter.URI in '..\..\Source\SynEdit.Highlighter.URI.pas',
+  SynEdit.Highlighter.VB in '..\..\Source\SynEdit.Highlighter.VB.pas',
+  SynEdit.Highlighter.VBScript in '..\..\Source\SynEdit.Highlighter.VBScript.pas',
+  SynEdit.Highlighter.Vrml97 in '..\..\Source\SynEdit.Highlighter.Vrml97.pas',
+  SynEdit.Highlighter.WebIDL in '..\..\Source\SynEdit.Highlighter.WebIDL.pas',
+  SynEdit.Highlighter.XML in '..\..\Source\SynEdit.Highlighter.XML.pas',
+  SynEdit.Highlighter.YAML in '..\..\Source\SynEdit.Highlighter.YAML.pas',
+  SynEdit.MacroRecorder in '..\..\Source\SynEdit.MacroRecorder.pas',
+  SynEdit.SpellCheck in '..\..\Source\SynEdit.SpellCheck.pas',
+  SynEdit.Unicode in '..\..\Source\SynEdit.Unicode.pas',
+  SynEdit.URIOpener in '..\..\Source\SynEdit.URIOpener.pas',
+  SynEdit.Highlighter.Markdown in '..\..\Source\SynEdit.Highlighter.Markdown.pas',
+  SynEdit.HighlighterOptions in '..\..\Source\SynEdit.HighlighterOptions.pas';
+
+end.

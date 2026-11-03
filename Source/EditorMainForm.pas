@@ -58,14 +58,14 @@ uses
   Vcl.VirtualImageList,
   Vcl.PlatformVclStylesActnCtrls,
   DResources,
-  SynEdit,
-  SynEditHighlighter,
-  SynEditPrint,
+  SynEdit.Core,
+  SynEdit.Highlighter,
+  SynEdit.Print,
   SynEditOptionsDialog,
-  SynCompletionProposal,
-  SynEditTypes,
-  SynEditMiscClasses,
-  SynEditSearch,
+  SynEdit.CompletionProposal,
+  SynEdit.Types,
+  SynEdit.MiscClasses,
+  SynEdit.Search,
   SVGIconImage,
   uSettings
   {$IFNDEF NO_VCL_STYLES}
@@ -536,14 +536,14 @@ uses
   , uAbout
   , FTestPrintPreview
   , DPageSetup
-  , FSynHighlightProp
+  , SynEdit.FHighlightProp
   , System.Math
   , System.Generics.Collections
   , Winapi.SHFolder
   , SettingsForm
   , uSingleInstance
   , Vcl.StyledTaskDialog
-  , SynDWrite
+  , SynEdit.DWrite
   , Vcl.Clipbrd
   , uRegistry
   ;

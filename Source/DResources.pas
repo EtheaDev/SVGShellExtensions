@@ -30,15 +30,15 @@ interface
 uses
   System.SysUtils
   , System.Classes
-  , SynHighlighterXML
+  , SynEdit.Highlighter.XML
   , Vcl.Graphics
   , Vcl.ImgList
   , Vcl.Controls
   , System.ImageList
   , SynEditOptionsDialog
-  , SynEditPrint
-  , SynEditCodeFolding
-  , SynEditHighlighter
+  , SynEdit.Print
+  , SynEdit.CodeFolding
+  , SynEdit.Highlighter
   , SVGIconImageListBase
   , SVGIconImageList
 	, Vcl.BaseImageCollection

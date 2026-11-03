@@ -1,0 +1,43 @@
+﻿package dclEtheaSynEdit;
+
+{$R *.res}
+{$R '..\..\Source\SynEdit.Reg.dcr'}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Ethea SynEdit Components'}
+{$LIBSUFFIX AUTO}
+{$DESIGNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  designide,
+  EtheaSynEdit;
+
+contains
+  SynEdit.Reg in '..\..\Source\SynEdit.Reg.pas',
+  SynEdit.PropertyReg in '..\..\Source\SynEdit.PropertyReg.pas',
+  SynEdit.Highlighter.Manager in '..\..\Source\SynEdit.Highlighter.Manager.pas';
+
+end.

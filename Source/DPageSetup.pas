@@ -57,11 +57,11 @@ uses
   Vcl.ImgList,
   Vcl.ActnList,
   Vcl.Dialogs,
-  SynEditPrintTypes,
-  SynEditPrint,
-  SynEditPrintMargins,
-  SynEditPrintHeaderFooter,
-  SynEditPrintPreview,
+  SynEdit.PrintTypes,
+  SynEdit.Print,
+  SynEdit.PrintMargins,
+  SynEdit.PrintHeaderFooter,
+  SynEdit.PrintPreview,
   SVGIconImageListBase,
   SVGIconImageList;
 

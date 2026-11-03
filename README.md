@@ -134,6 +134,9 @@ To manually install the SVGShellExtensions.dll follow these steps:
 5. When it's registered, you can continue to change code and rebuild the dll (beware to close all Explorer instances).
 
 ## Release Notes ##
+03 Nov 2026: ver. 3.5.3
+- SVG Text Editor and preview: they use Ethea SynEdit 3.0.0 (https://github.com/EtheaDev/SynEdit), the EtheaDev fork of pyscripter/SynEdit with every unit under the `SynEdit.` scope
+
 30 Oct 2026: ver. 3.5.2
 - SVG Text Editor: "Word-Wrap Text" and "Show Line Numbers" in the context menu of the editor, with a check mark: they switch word wrap and line numbers in every open editor and are saved with the other editor options (as in the Editor options dialog)
 - Setup: no language selection dialog, the installer uses the language of Windows
